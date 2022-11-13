@@ -13,19 +13,20 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { TriggerNodeCreationAction } from '@eclipse-glsp/protocol';
 import { ContainerModule } from 'inversify';
-import { configureActionHandler, EnableDefaultToolsAction } from 'sprotty';
-import '../../../css/tool-palette.css';
+import { configureActionHandler } from 'sprotty';
+
 import { TYPES } from '../../base/types';
-import { FocusDomAction } from '../keyboard/actions';
-import { EnableToolPaletteAction, ToolPalette } from './tool-palette';
+import { GlobalKeyListenerTool } from './global-keylistener-tool';
+import { KeyboardMouse } from './keyboard-mouse';
 
-const toolPaletteModule = new ContainerModule((bind, _unbind, isBound, rebind) => {
-    bind(ToolPalette).toSelf().inSingletonScope();
-    bind(TYPES.IUIExtension).toService(ToolPalette);
-    configureActionHandler({ bind, isBound }, EnableToolPaletteAction.KIND, ToolPalette);
-    configureActionHandler({ bind, isBound }, EnableDefaultToolsAction.KIND, ToolPalette);
-    configureActionHandler({ bind, isBound }, FocusDomAction.KIND, ToolPalette);
+export const keyboardControlModule = new ContainerModule((bind, _unbind, isBound, rebind) => {
+    bind(TYPES.IDefaultTool).to(GlobalKeyListenerTool);
+
+    bind(KeyboardMouse).toSelf().inSingletonScope();
+    bind(TYPES.IUIExtension).toService(KeyboardMouse);
+    bind(TYPES.SModelRootListener).toService(KeyboardMouse);
+
+    configureActionHandler({ bind, isBound }, TriggerNodeCreationAction.KIND, KeyboardMouse);
 });
-
-export default toolPaletteModule;

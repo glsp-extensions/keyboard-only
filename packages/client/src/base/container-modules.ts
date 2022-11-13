@@ -30,6 +30,7 @@ import {
     routingModule,
     zorderModule
 } from 'sprotty';
+import { keyboardControlModule } from '../features/keyboard/di.config';
 import glspCommandPaletteModule from '../features/command-palette/di.config';
 import glspContextMenuModule from '../features/context-menu/di.config';
 import { glspServerCopyPasteModule } from '../features/copy-paste/di.config';
@@ -80,6 +81,7 @@ export const DEFAULT_MODULES = [
     routingModule,
     toolFeedbackModule,
     toolsModule,
+    keyboardControlModule,
     enableDefaultToolsOnFocusLossModule,
     validationModule,
     zorderModule

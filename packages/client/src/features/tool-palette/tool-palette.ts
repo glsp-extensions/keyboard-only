@@ -30,6 +30,7 @@ import { codiconCSSClasses } from 'sprotty/lib/utils/codicon';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { EditModeListener, EditorContextService } from '../../base/editor-context-service';
+import { FocusDomAction } from '../keyboard/actions';
 import { MouseDeleteTool } from '../tools/delete-tool';
 import { MarqueeMouseTool } from '../tools/marquee-mouse-tool';
 
@@ -90,6 +91,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
     }
 
     protected initializeContents(_containerElement: HTMLElement): void {
+        this.containerElement.tabIndex = 20;
         this.createHeader();
         this.createBody();
         this.lastActivebutton = this.defaultToolsButton;
@@ -138,7 +140,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
     protected createBody(): void {
         const bodyDiv = document.createElement('div');
         bodyDiv.classList.add('palette-body');
-        let tabIndex = 0;
+        let tabIndex = 21;
         this.paletteItems.sort(compare).forEach(item => {
             if (item.children) {
                 const group = createToolGroup(item);
@@ -274,7 +276,10 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         }
         button.insertAdjacentText('beforeend', item.label);
         button.onclick = this.onClickCreateToolButton(button, item);
-        button.onkeydown = ev => this.clearToolOnEscape(ev);
+        button.onkeydown = ev => {
+            this.clickToolOnEnter(ev, button, item);
+            this.clearToolOnEscape(ev);
+        };
         return button;
     }
 
@@ -331,6 +336,8 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         } else if (action.kind === EnableDefaultToolsAction.KIND) {
             this.changeActiveButton();
             this.restoreFocus();
+        } else if (action.kind === FocusDomAction.KIND) {
+            this.containerElement.focus();
         }
     }
 
@@ -338,6 +345,15 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         this.actionDispatcher.dispatch(
             SetUIExtensionVisibilityAction.create({ extensionId: ToolPalette.ID, visible: !this.editorContext.isReadonly })
         );
+    }
+
+    protected clickToolOnEnter(event: KeyboardEvent, button: HTMLElement, item: PaletteItem): void {
+        if (matchesKeystroke(event, 'Enter')) {
+            if (!this.editorContext.isReadonly) {
+                this.actionDispatcher.dispatchAll(item.actions);
+                this.changeActiveButton(button);
+            }
+        }
     }
 
     protected clearOnEscape(event: KeyboardEvent): void {
@@ -349,6 +365,9 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
 
     protected clearToolOnEscape(event: KeyboardEvent): void {
         if (matchesKeystroke(event, 'Escape')) {
+            if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+            }
             this.actionDispatcher.dispatch(EnableDefaultToolsAction.create());
         }
     }
