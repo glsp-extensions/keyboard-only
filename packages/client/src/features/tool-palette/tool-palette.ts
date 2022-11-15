@@ -27,7 +27,7 @@ import {
     TYPES
 } from 'sprotty';
 import { codiconCSSClasses } from 'sprotty/lib/utils/codicon';
-import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
+import { KeyCode, matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { EditModeListener, EditorContextService } from '../../base/editor-context-service';
 import { FocusDomAction } from '../keyboard/actions';
@@ -63,12 +63,14 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
     @inject(TYPES.IToolManager) protected readonly toolManager: IToolManager;
     @inject(EditorContextService) protected readonly editorContext: EditorContextService;
 
+
     protected paletteItems: PaletteItem[];
     protected paletteItemsCopy: PaletteItem[] = [];
     protected bodyDiv?: HTMLElement;
     protected lastActivebutton?: HTMLElement;
     protected defaultToolsButton: HTMLElement;
     protected searchField: HTMLInputElement;
+    protected keyboardIndexButtonMapping = new Map<number, HTMLElement>();
     modelRootId: string;
 
     id(): string {
@@ -95,6 +97,29 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         this.createHeader();
         this.createBody();
         this.lastActivebutton = this.defaultToolsButton;
+        
+        this.containerElement.onkeydown = ev => {
+            let index : number | undefined = undefined ;
+                for(let i = 0; i < this.interactablePaletteItems.length; i++){
+                    if (matchesKeystroke(ev, 'Digit'+i as KeyCode)) {
+                        index = i;
+                        break;
+                    }
+                }
+
+                if(index !== undefined){
+                    this.actionDispatcher.dispatchAll(this.interactablePaletteItems[index].actions);
+                    this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
+                    this.keyboardIndexButtonMapping.get(index)?.focus();
+                }
+            }                       
+        };
+
+    get interactablePaletteItems(): PaletteItem[] {
+            return this.paletteItems
+                       .sort(compare)
+                       .map(item => item.children?.sort(compare) ?? [item])
+                       .reduce((acc, val) => acc.concat(val), []);
     }
 
     protected override onBeforeShow(_containerElement: HTMLElement, root: Readonly<SModelRoot>): void {
@@ -141,13 +166,15 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         const bodyDiv = document.createElement('div');
         bodyDiv.classList.add('palette-body');
         let tabIndex = 21;
+        let currentButtonIndex = 0;
+        this.keyboardIndexButtonMapping.clear();
         this.paletteItems.sort(compare).forEach(item => {
             if (item.children) {
                 const group = createToolGroup(item);
-                item.children.sort(compare).forEach(child => group.appendChild(this.createToolButton(child, tabIndex++)));
+                item.children.sort(compare).forEach(child => group.appendChild(this.createToolButton(child, tabIndex++, currentButtonIndex++)));
                 bodyDiv.appendChild(group);
             } else {
-                bodyDiv.appendChild(this.createToolButton(item, tabIndex++));
+                bodyDiv.appendChild(this.createToolButton(item, tabIndex++, currentButtonIndex++));
             }
         });
         if (this.paletteItems.length === 0) {
@@ -267,8 +294,17 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         return header;
     }
 
-    protected createToolButton(item: PaletteItem, index: number): HTMLElement {
+    private createKeyboardIndex(currentIndex: number){
+        const hint = document.createElement('span');
+        hint.classList.add('numberCircle');
+        hint.innerHTML = currentIndex.toString();
+        return hint;
+    }
+    protected createToolButton(item: PaletteItem, index: number, currentButtonIndex: number): HTMLElement {
+        
         const button = document.createElement('div');
+        // add keyboard index
+        button.appendChild(this.createKeyboardIndex(currentButtonIndex));
         button.tabIndex = index;
         button.classList.add('tool-button');
         if (item.icon) {
@@ -280,6 +316,8 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             this.clickToolOnEnter(ev, button, item);
             this.clearToolOnEscape(ev);
         };
+
+        this.keyboardIndexButtonMapping.set(currentButtonIndex, button);
         return button;
     }
 

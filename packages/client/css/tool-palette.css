@@ -153,3 +153,17 @@
     width: 100%;
     margin: 3px;
 }
+.numberCircle {
+    border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    padding: 8px;
+
+    background: #fff;
+    border: 2px solid #666;
+    color: #666;
+    text-align: center;
+
+    font: bold 16px Arial, sans-serif;
+    margin-right: 10px;
+}
