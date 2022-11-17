@@ -28,10 +28,11 @@ import {
 } from 'sprotty';
 import { codiconCSSClasses } from 'sprotty/lib/utils/codicon';
 import { KeyCode, matchesKeystroke } from 'sprotty/lib/utils/keyboard';
+
 import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { EditModeListener, EditorContextService } from '../../base/editor-context-service';
 import { FocusDomAction } from '../keyboard/actions';
-import { KeyboardGrid } from '../keyboard/keyboard-grid';
+import { KeyboardGridUI } from '../keyboard/grid/constants';
 import { MouseDeleteTool } from '../tools/delete-tool';
 import { MarqueeMouseTool } from '../tools/marquee-mouse-tool';
 
@@ -110,7 +111,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             if (index !== undefined) {
                 this.actionDispatcher.dispatchAll([
                     ...this.interactablePaletteItems[index].actions,
-                    SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGrid.ID, visible: true, contextElementsId: [] })
+                    SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: true, contextElementsId: [] })
                 ]);
                 this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
                 this.keyboardIndexButtonMapping.get(index)?.focus();

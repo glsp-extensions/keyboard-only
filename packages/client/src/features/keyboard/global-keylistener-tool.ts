@@ -13,16 +13,16 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { Action } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
 import { IActionDispatcher, SetUIExtensionVisibilityAction, TYPES } from 'sprotty';
-import { Action } from 'sprotty-protocol';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 import { ToolPalette } from '../tool-palette/tool-palette';
 import { FocusDomAction } from './actions';
-import { KeyboardGrid } from './keyboard-grid';
-import { KeyboardMouse } from './keyboard-mouse';
+import { KeyboardGridUI } from './grid/constants';
+import { KeyboardPointerUI } from './pointer/constants';
 
 @injectable()
 export class GlobalKeyListenerTool implements GLSPTool {
@@ -60,17 +60,17 @@ export class KeyboardListener {
             console.log('KeyboardTool: Escape');
 
             return [
-                SetUIExtensionVisibilityAction.create({ extensionId: KeyboardMouse.ID, visible: false, contextElementsId: [] }),
-                SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGrid.ID, visible: false, contextElementsId: [] })
+                SetUIExtensionVisibilityAction.create({ extensionId: KeyboardPointerUI.ID, visible: false, contextElementsId: [] }),
+                SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: false, contextElementsId: [] })
             ];
         } else if (matchesKeystroke(event, 'KeyM', 'alt')) {
             console.log('KeyboardTool: KeyM');
 
-            return [SetUIExtensionVisibilityAction.create({ extensionId: KeyboardMouse.ID, visible: true })];
+            return [SetUIExtensionVisibilityAction.create({ extensionId: KeyboardPointerUI.ID, visible: true })];
         } else if (matchesKeystroke(event, 'KeyG', 'alt')) {
             console.log('KeyboardTool: KeyG');
 
-            return [SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGrid.ID, visible: true })];
+            return [SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: true })];
         }
         return [];
     }

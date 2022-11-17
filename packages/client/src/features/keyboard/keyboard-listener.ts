@@ -13,21 +13,10 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action, hasStringProp } from '@eclipse-glsp/protocol';
 
-export interface FocusDomAction extends Action {
-    kind: typeof FocusDomAction.KIND;
-    id: string;
-}
+/* eslint-disable @typescript-eslint/no-empty-function */
 
-export namespace FocusDomAction {
-    export const KIND = 'focusDomAction';
-
-    export function is(object: any): object is FocusDomAction {
-        return Action.hasKind(object, KIND) && hasStringProp(object, 'id');
-    }
-
-    export function create(id: string): FocusDomAction {
-        return { kind: KIND, id };
-    }
+export class KeyboardListener {
+    keyDown(event: KeyboardEvent): void {}
+    keyUp(event: KeyboardEvent): void {}
 }
