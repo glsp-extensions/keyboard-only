@@ -16,9 +16,6 @@
 import { CreateNodeOperation } from '@eclipse-glsp/protocol';
 import { IActionDispatcher, SetUIExtensionVisibilityAction } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
-
-import { ToolPalette } from '../../../features/tool-palette/tool-palette';
-import { FocusDomAction } from '../actions';
 import { KeyboardGridUI } from '../grid/constants';
 import { KeyboardListener } from '../keyboard-listener';
 import { KeyboardPointerUI } from './constants';
@@ -72,18 +69,6 @@ export class KeyboardPointerKeyboardListener extends KeyboardListener {
                     SetUIExtensionVisibilityAction.create({ extensionId: KeyboardPointerUI.ID, visible: false, contextElementsId: [] }),
                     SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: false, contextElementsId: [] }),
                     CreateNodeOperation.create(elementTypeId, { location, containerId, args: this.keyboardPointer.triggerAction.args })
-                ]);
-            } else if (matchesKeystroke(event, 'Enter', 'ctrl', 'shift')) {
-                // back to palette view, disable keyboard mouse & grid
-
-                const containerId = container.id;
-                const location = this.position.diagramPosition;
-
-                this.actionDispatcher.dispatchAll([
-                    CreateNodeOperation.create(elementTypeId, { location, containerId, args: this.keyboardPointer.triggerAction.args }),
-                    SetUIExtensionVisibilityAction.create({ extensionId: KeyboardPointerUI.ID, visible: false, contextElementsId: [] }),
-                    SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: false, contextElementsId: [] }),
-                    FocusDomAction.create(ToolPalette.ID)
                 ]);
             } else if (matchesKeystroke(event, 'Enter', 'ctrl')) {
                 // stay in this mode, selected palette option stays, grid and keyboard mouse are displayed
