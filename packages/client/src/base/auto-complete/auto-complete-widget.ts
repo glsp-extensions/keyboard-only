@@ -324,5 +324,5 @@ export function toActionArray(input: LabeledAction | Action[] | Action): Action[
     } else if (Action.is(input)) {
         return [input];
     }
-    return [];
+    return input;
 }

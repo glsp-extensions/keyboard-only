@@ -31,6 +31,7 @@ import { KeyCode, matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { EditModeListener, EditorContextService } from '../../base/editor-context-service';
 import { FocusDomAction } from '../keyboard/actions';
+import { KeyboardGrid } from '../keyboard/keyboard-grid';
 import { MouseDeleteTool } from '../tools/delete-tool';
 import { MarqueeMouseTool } from '../tools/marquee-mouse-tool';
 
@@ -62,7 +63,6 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
     @inject(TYPES.IActionDispatcher) protected readonly actionDispatcher: GLSPActionDispatcher;
     @inject(TYPES.IToolManager) protected readonly toolManager: IToolManager;
     @inject(EditorContextService) protected readonly editorContext: EditorContextService;
-
 
     protected paletteItems: PaletteItem[];
     protected paletteItemsCopy: PaletteItem[] = [];
@@ -97,29 +97,32 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         this.createHeader();
         this.createBody();
         this.lastActivebutton = this.defaultToolsButton;
-        
-        this.containerElement.onkeydown = ev => {
-            let index : number | undefined = undefined ;
-                for(let i = 0; i < this.interactablePaletteItems.length; i++){
-                    if (matchesKeystroke(ev, 'Digit'+i as KeyCode)) {
-                        index = i;
-                        break;
-                    }
-                }
 
-                if(index !== undefined){
-                    this.actionDispatcher.dispatchAll(this.interactablePaletteItems[index].actions);
-                    this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
-                    this.keyboardIndexButtonMapping.get(index)?.focus();
+        this.containerElement.onkeydown = ev => {
+            let index: number | undefined = undefined;
+            for (let i = 0; i < this.interactablePaletteItems.length; i++) {
+                if (matchesKeystroke(ev, ('Digit' + i) as KeyCode)) {
+                    index = i;
+                    break;
                 }
-            }                       
+            }
+
+            if (index !== undefined) {
+                this.actionDispatcher.dispatchAll([
+                    ...this.interactablePaletteItems[index].actions,
+                    SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGrid.ID, visible: true, contextElementsId: [] })
+                ]);
+                this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
+                this.keyboardIndexButtonMapping.get(index)?.focus();
+            }
         };
+    }
 
     get interactablePaletteItems(): PaletteItem[] {
-            return this.paletteItems
-                       .sort(compare)
-                       .map(item => item.children?.sort(compare) ?? [item])
-                       .reduce((acc, val) => acc.concat(val), []);
+        return this.paletteItems
+            .sort(compare)
+            .map(item => item.children?.sort(compare) ?? [item])
+            .reduce((acc, val) => acc.concat(val), []);
     }
 
     protected override onBeforeShow(_containerElement: HTMLElement, root: Readonly<SModelRoot>): void {
@@ -171,7 +174,9 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         this.paletteItems.sort(compare).forEach(item => {
             if (item.children) {
                 const group = createToolGroup(item);
-                item.children.sort(compare).forEach(child => group.appendChild(this.createToolButton(child, tabIndex++, currentButtonIndex++)));
+                item.children
+                    .sort(compare)
+                    .forEach(child => group.appendChild(this.createToolButton(child, tabIndex++, currentButtonIndex++)));
                 bodyDiv.appendChild(group);
             } else {
                 bodyDiv.appendChild(this.createToolButton(item, tabIndex++, currentButtonIndex++));
@@ -294,14 +299,13 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         return header;
     }
 
-    private createKeyboardIndex(currentIndex: number){
+    private createKeyboardIndex(currentIndex: number): HTMLElement {
         const hint = document.createElement('span');
         hint.classList.add('numberCircle');
         hint.innerHTML = currentIndex.toString();
         return hint;
     }
     protected createToolButton(item: PaletteItem, index: number, currentButtonIndex: number): HTMLElement {
-        
         const button = document.createElement('div');
         // add keyboard index
         button.appendChild(this.createKeyboardIndex(currentButtonIndex));

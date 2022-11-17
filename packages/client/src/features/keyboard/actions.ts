@@ -13,11 +13,17 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action, hasStringProp } from '@eclipse-glsp/protocol';
+import { Action, hasNumberProp, hasStringProp } from '@eclipse-glsp/protocol';
 
 export interface FocusDomAction extends Action {
     kind: typeof FocusDomAction.KIND;
     id: string;
+}
+
+export interface SetKeyboardMouseAction extends Action {
+    kind: typeof SetKeyboardMouseAction.KIND;
+    x: number;
+    y: number;
 }
 
 export namespace FocusDomAction {
@@ -29,5 +35,17 @@ export namespace FocusDomAction {
 
     export function create(id: string): FocusDomAction {
         return { kind: KIND, id };
+    }
+}
+
+export namespace SetKeyboardMouseAction {
+    export const KIND = 'setKeyboardMouseAction';
+
+    export function is(object: any): object is SetKeyboardMouseAction {
+        return Action.hasKind(object, KIND) && hasNumberProp(object, 'x') && hasNumberProp(object, 'y');
+    }
+
+    export function create(x: number, y: number): SetKeyboardMouseAction {
+        return { kind: KIND, x: x, y: y };
     }
 }

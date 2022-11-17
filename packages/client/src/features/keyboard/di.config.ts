@@ -18,7 +18,9 @@ import { ContainerModule } from 'inversify';
 import { configureActionHandler } from 'sprotty';
 
 import { TYPES } from '../../base/types';
+import { SetKeyboardMouseAction } from './actions';
 import { GlobalKeyListenerTool } from './global-keylistener-tool';
+import { KeyboardGrid } from './keyboard-grid';
 import { KeyboardMouse } from './keyboard-mouse';
 
 export const keyboardControlModule = new ContainerModule((bind, _unbind, isBound, rebind) => {
@@ -28,5 +30,10 @@ export const keyboardControlModule = new ContainerModule((bind, _unbind, isBound
     bind(TYPES.IUIExtension).toService(KeyboardMouse);
     bind(TYPES.SModelRootListener).toService(KeyboardMouse);
 
+    bind(KeyboardGrid).toSelf().inSingletonScope();
+    bind(TYPES.IUIExtension).toService(KeyboardGrid);
+    bind(TYPES.SModelRootListener).toService(KeyboardGrid);
+
     configureActionHandler({ bind, isBound }, TriggerNodeCreationAction.KIND, KeyboardMouse);
+    configureActionHandler({ bind, isBound }, SetKeyboardMouseAction.KIND, KeyboardMouse);
 });

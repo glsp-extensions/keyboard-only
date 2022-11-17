@@ -21,6 +21,7 @@ import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 import { ToolPalette } from '../tool-palette/tool-palette';
 import { FocusDomAction } from './actions';
+import { KeyboardGrid } from './keyboard-grid';
 import { KeyboardMouse } from './keyboard-mouse';
 
 @injectable()
@@ -58,11 +59,18 @@ export class KeyboardListener {
         } else if (matchesKeystroke(event, 'Escape')) {
             console.log('KeyboardTool: Escape');
 
-            return [SetUIExtensionVisibilityAction.create({ extensionId: KeyboardMouse.ID, visible: false, contextElementsId: [] })];
+            return [
+                SetUIExtensionVisibilityAction.create({ extensionId: KeyboardMouse.ID, visible: false, contextElementsId: [] }),
+                SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGrid.ID, visible: false, contextElementsId: [] })
+            ];
         } else if (matchesKeystroke(event, 'KeyM', 'alt')) {
             console.log('KeyboardTool: KeyM');
 
             return [SetUIExtensionVisibilityAction.create({ extensionId: KeyboardMouse.ID, visible: true })];
+        } else if (matchesKeystroke(event, 'KeyG', 'alt')) {
+            console.log('KeyboardTool: KeyG');
+
+            return [SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGrid.ID, visible: true })];
         }
         return [];
     }

@@ -33,6 +33,7 @@ import { toActionArray } from '../../base/auto-complete/auto-complete-widget';
 import { SModelRootListener } from '../../base/model/update-model-command';
 import { getAbsolutePositionByPoint } from '../../utils/viewpoint-util';
 import { Containable, isContainable } from '../hints/model';
+import { SetKeyboardMouseAction } from './actions';
 
 @injectable()
 export class KeyboardMouse extends AbstractUIExtension implements IActionHandler, SModelRootListener {
@@ -48,6 +49,7 @@ export class KeyboardMouse extends AbstractUIExtension implements IActionHandler
         elementTypeId: 'task:automated',
         kind: 'triggerNodeCreation'
     };
+
     protected root: Readonly<SModelRoot>;
 
     @inject(TYPES.IActionDispatcherProvider) protected actionDispatcherProvider: IActionDispatcherProvider;
@@ -93,6 +95,14 @@ export class KeyboardMouse extends AbstractUIExtension implements IActionHandler
         if (TriggerNodeCreationAction.is(action)) {
             console.log('NodeCreationTool', action);
             this.triggerAction = action;
+        } else if (SetKeyboardMouseAction.is(action)) {
+            console.log('SetKeyboardMouseAction', action);
+            this.x = action.x;
+            this.y = action.y;
+
+            if (this.containerElement !== undefined) {
+                this.render();
+            }
         }
     }
 
