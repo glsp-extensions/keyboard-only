@@ -16,6 +16,7 @@
 
 export namespace KeyboardPointerUI {
     export const ID = 'keyboard-pointer';
-    export const circleHeight = 16;
-    export const circleWidth = 16;
+    export const CRICLE_HEIGHT = 16;
+    export const CIRCLE_WIDTH = 16;
+    export const TAB_INDEX = 10;
 }

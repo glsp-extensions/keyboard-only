@@ -45,7 +45,7 @@ export class KeyboardPointer extends AbstractUIExtension implements IActionHandl
     }
 
     get isVisible(): boolean {
-        return this.containerElement.style.visibility === 'visible';
+        return this.containerElement?.style.visibility === 'visible';
     }
 
     id(): string {
@@ -58,8 +58,8 @@ export class KeyboardPointer extends AbstractUIExtension implements IActionHandl
 
     protected initializeContents(containerElement: HTMLElement): void {
         containerElement.style.position = 'absolute';
-        containerElement.style.height = `${KeyboardPointerUI.circleHeight}px`;
-        containerElement.style.width = `${KeyboardPointerUI.circleWidth}px`;
+        containerElement.style.height = `${KeyboardPointerUI.CRICLE_HEIGHT}px`;
+        containerElement.style.width = `${KeyboardPointerUI.CIRCLE_WIDTH}px`;
         containerElement.style.borderRadius = '100%';
     }
 

@@ -101,8 +101,26 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
 
         this.containerElement.onkeydown = ev => {
             let index: number | undefined = undefined;
-            for (let i = 0; i < this.interactablePaletteItems.length; i++) {
-                if (matchesKeystroke(ev, ('Digit' + i) as KeyCode)) {
+            const items = this.interactablePaletteItems;
+
+            const availableKeys: KeyCode[] = [
+                'Digit1',
+                'Digit2',
+                'Digit3',
+                'Digit4',
+                'Digit5',
+                'Digit6',
+                'Digit7',
+                'Digit8',
+                'Digit9',
+                'Digit0'
+            ];
+
+            const itemsCount = items.length < 10 ? items.length : availableKeys.length;
+
+            for (let i = 0; i < itemsCount; i++) {
+                const keycode = availableKeys[i];
+                if (matchesKeystroke(ev, keycode)) {
                     index = i;
                     break;
                 }
@@ -110,7 +128,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
 
             if (index !== undefined) {
                 this.actionDispatcher.dispatchAll([
-                    ...this.interactablePaletteItems[index].actions,
+                    ...items[index].actions,
                     SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: true, contextElementsId: [] })
                 ]);
                 this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
@@ -142,8 +160,10 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             this.updateMinimizePaletteButtonTooltip(minPaletteDiv);
             minimizeIcon.onclick = _event => {
                 if (this.isPaletteMaximized()) {
+                    this.containerElement.style.overflow = 'hidden';
                     this.containerElement.style.maxHeight = '0px';
                 } else {
+                    this.containerElement.style.overflow = 'visible';
                     this.containerElement.style.maxHeight = PALETTE_HEIGHT;
                 }
                 this.updateMinimizePaletteButtonTooltip(minPaletteDiv);
@@ -169,18 +189,18 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
     protected createBody(): void {
         const bodyDiv = document.createElement('div');
         bodyDiv.classList.add('palette-body');
-        let tabIndex = 21;
-        let currentButtonIndex = 0;
+        const tabIndex = 21;
+        let toolButtonCounter = 0;
         this.keyboardIndexButtonMapping.clear();
         this.paletteItems.sort(compare).forEach(item => {
             if (item.children) {
                 const group = createToolGroup(item);
                 item.children
                     .sort(compare)
-                    .forEach(child => group.appendChild(this.createToolButton(child, tabIndex++, currentButtonIndex++)));
+                    .forEach(child => group.appendChild(this.createToolButton(child, tabIndex, toolButtonCounter++)));
                 bodyDiv.appendChild(group);
             } else {
-                bodyDiv.appendChild(this.createToolButton(item, tabIndex++, currentButtonIndex++));
+                bodyDiv.appendChild(this.createToolButton(item, tabIndex, toolButtonCounter++));
             }
         });
         if (this.paletteItems.length === 0) {
@@ -300,17 +320,20 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         return header;
     }
 
-    private createKeyboardIndex(currentIndex: number): HTMLElement {
-        const hint = document.createElement('span');
-        hint.classList.add('numberCircle');
-        hint.innerHTML = currentIndex.toString();
+    private createKeyboardShotcut(keyShortcut: number): HTMLElement {
+        const hint = document.createElement('div');
+        hint.classList.add('key-shortcut');
+        hint.innerHTML = keyShortcut.toString();
         return hint;
     }
-    protected createToolButton(item: PaletteItem, index: number, currentButtonIndex: number): HTMLElement {
+
+    protected createToolButton(item: PaletteItem, tabIndex: number, buttonIndex: number): HTMLElement {
         const button = document.createElement('div');
         // add keyboard index
-        button.appendChild(this.createKeyboardIndex(currentButtonIndex));
-        button.tabIndex = index;
+        if (buttonIndex < 10) {
+            button.appendChild(this.createKeyboardShotcut((buttonIndex + 1) % 10));
+        }
+        button.tabIndex = tabIndex;
         button.classList.add('tool-button');
         if (item.icon) {
             button.appendChild(createIcon(item.icon));
@@ -322,7 +345,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             this.clearToolOnEscape(ev);
         };
 
-        this.keyboardIndexButtonMapping.set(currentButtonIndex, button);
+        this.keyboardIndexButtonMapping.set(buttonIndex, button);
         return button;
     }
 

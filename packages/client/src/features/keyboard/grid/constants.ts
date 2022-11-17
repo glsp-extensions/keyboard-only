@@ -15,5 +15,6 @@
  ********************************************************************************/
 
 export namespace KeyboardGridUI {
-    export const ID = 'keyboard-palette';
+    export const ID = 'keyboard-grid';
+    export const TAB_INDEX = 15;
 }

@@ -38,23 +38,20 @@ export class KeyboardGrid extends AbstractUIExtension {
     }
 
     protected initializeContents(containerElement: HTMLElement): void {
-        this.containerElement.tabIndex = 21;
-        containerElement.style.position = 'absolute';
-        containerElement.style.width = '100%';
-        containerElement.style.height = '100%';
-        containerElement.style.border = 'none';
+        containerElement.tabIndex = KeyboardGridUI.TAB_INDEX;
         containerElement.classList.add('grid-container');
 
         for (let i = 1; i <= 9; i++) {
-            const spanIndex = document.createElement('span');
+            const gridNumber = document.createElement('div');
             const gridItem = document.createElement('div');
 
             gridItem.classList.add('grid-item');
             gridItem.id = `keyboard-grid-item-${i}`;
-            spanIndex.classList.add('numberCircleGrid');
-            spanIndex.innerHTML = i.toString();
 
-            gridItem.appendChild(spanIndex);
+            gridNumber.classList.add('grid-item-number');
+            gridNumber.innerHTML = i.toString();
+
+            gridItem.appendChild(gridNumber);
             containerElement.appendChild(gridItem);
         }
 
@@ -66,6 +63,18 @@ export class KeyboardGrid extends AbstractUIExtension {
                 this.keyboardPointer.keyListener.keyDown(ev);
             }
         };
+    }
+
+    protected override setContainerVisible(visible: boolean): void {
+        if (this.containerElement) {
+            if (visible) {
+                this.containerElement.style.visibility = 'visible';
+                this.containerElement.style.opacity = '0.7';
+            } else {
+                this.containerElement.style.visibility = 'hidden';
+                this.containerElement.style.opacity = '0';
+            }
+        }
     }
 
     override show(root: Readonly<SModelRoot>, ...contextElementIds: string[]): void {

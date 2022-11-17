@@ -28,8 +28,8 @@ export class KeyboardPointerPosition {
 
     get centerizedRenderPosition(): Point {
         return {
-            x: this.renderPosition.x + KeyboardPointerUI.circleWidth / 2,
-            y: this.renderPosition.y + KeyboardPointerUI.circleHeight / 2
+            x: this.renderPosition.x + KeyboardPointerUI.CIRCLE_WIDTH / 2,
+            y: this.renderPosition.y + KeyboardPointerUI.CRICLE_HEIGHT / 2
         };
     }
 
