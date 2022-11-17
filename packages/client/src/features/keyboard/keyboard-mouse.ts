@@ -21,6 +21,7 @@ import {
     findParentByFeature,
     IActionDispatcherProvider,
     IActionHandler,
+    SetUIExtensionVisibilityAction,
     SModelElement,
     SModelRoot,
     TYPES,
@@ -33,7 +34,9 @@ import { toActionArray } from '../../base/auto-complete/auto-complete-widget';
 import { SModelRootListener } from '../../base/model/update-model-command';
 import { getAbsolutePositionByPoint } from '../../utils/viewpoint-util';
 import { Containable, isContainable } from '../hints/model';
-import { SetKeyboardMouseAction } from './actions';
+import { ToolPalette } from '../tool-palette/tool-palette';
+import { FocusDomAction, SetKeyboardMouseAction } from './actions';
+import { KeyboardGrid } from './keyboard-grid';
 
 @injectable()
 export class KeyboardMouse extends AbstractUIExtension implements IActionHandler, SModelRootListener {
@@ -127,17 +130,42 @@ export class KeyboardMouse extends AbstractUIExtension implements IActionHandler
     }
 
     protected clickIfEnterEvent(event: KeyboardEvent): any {
-        if (matchesKeystroke(event, 'Enter')) {
-            const elementTypeId = this.triggerAction.elementTypeId;
+        const elementTypeId = this.triggerAction.elementTypeId;
 
-            const { container, status } = this.containableParentOf(elementTypeId);
+        const { container, status } = this.containableParentOf(elementTypeId);
+        if (matchesKeystroke(event, 'Enter')) {
+            if (container !== undefined && status === 'NODE_CREATION') {
+                const containerId = container.id;
+                const location = this.diagramPosition();
+                this.executeAction([
+                    SetUIExtensionVisibilityAction.create({ extensionId: KeyboardMouse.ID, visible: false, contextElementsId: [] }),
+                    SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGrid.ID, visible: false, contextElementsId: [] }),
+                    CreateNodeOperation.create(elementTypeId, { location, containerId, args: this.triggerAction.args })
+                ]);
+            }
+            // this.hide();
+        } else if (matchesKeystroke(event, 'Enter', 'ctrl', 'shift')) {
+            // back to palette view, disable keyboard mouse & grid
+
+            if (container !== undefined && status === 'NODE_CREATION') {
+                const containerId = container.id;
+                const location = this.diagramPosition();
+
+                this.executeAction([
+                    CreateNodeOperation.create(elementTypeId, { location, containerId, args: this.triggerAction.args }),
+                    SetUIExtensionVisibilityAction.create({ extensionId: KeyboardMouse.ID, visible: false, contextElementsId: [] }),
+                    SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGrid.ID, visible: false, contextElementsId: [] }),
+                    FocusDomAction.create(ToolPalette.ID)
+                ]);
+            }
+        } else if (matchesKeystroke(event, 'Enter', 'ctrl')) {
+            // stay in this mode, selected palette option stays, grid and keyboard mouse are displayed
 
             if (container !== undefined && status === 'NODE_CREATION') {
                 const containerId = container.id;
                 const location = this.diagramPosition();
                 this.executeAction(CreateNodeOperation.create(elementTypeId, { location, containerId, args: this.triggerAction.args }));
             }
-            // this.hide();
         }
     }
 
