@@ -32,6 +32,7 @@ import paletteModule from './features/tool-palette/di.config';
 import { enableDefaultToolsOnFocusLossModule, toolsModule } from './features/tools/di.config';
 import { markerNavigatorModule, validationModule } from './features/validation/di.config';
 import glspViewportModule from './features/viewport/di.config';
+import glspAutocompletePaletteModule from './features/autocomplete-palette/di.config';
 
 export * from './base/action-dispatcher';
 export * from './base/actions/focus-change-action';
@@ -107,6 +108,7 @@ export {
     toolFeedbackModule,
     defaultGLSPModule,
     modelHintsModule,
+    glspAutocompletePaletteModule,
     glspCommandPaletteModule,
     glspContextMenuModule,
     glspServerCopyPasteModule,
