@@ -22,9 +22,9 @@ import { GlobalKeyListenerTool } from './global-keylistener-tool';
 import { KeyboardGrid } from './grid/keyboard-grid';
 import { SetKeyboardPointerRenderPositionAction } from './pointer/actions';
 import { KeyboardPointer } from './pointer/keyboard-pointer';
-import { SetEdgeTargetSelectionAction } from './search/actions';
-import { EdgeAutocompletePalette } from './search/edge-autocomplete-palette';
-import { EdgeAutocompletePaletteTool } from './search/edge-autocomplete-tool';
+import { SetEdgeTargetSelectionAction } from './edge-autocomplete/actions';
+import { EdgeAutocompletePalette } from './edge-autocomplete/edge-autocomplete-palette';
+import { EdgeAutocompletePaletteTool } from './edge-autocomplete/edge-autocomplete-tool';
 
 export const keyboardControlModule = new ContainerModule((bind, _unbind, isBound, rebind) => {
     bind(TYPES.IDefaultTool).to(GlobalKeyListenerTool);

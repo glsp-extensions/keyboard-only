@@ -65,8 +65,16 @@ export class EdgeAutocompletePalette extends BaseAutocompletePalette {
     }
     protected override initializeContents(containerElement: HTMLElement): void {
         super.initializeContents(containerElement);
+        this.render();
+    }
 
-        this.autocompleteWidget.inputField.placeholder = 'Search for elements';
+    protected override onBeforeShow(containerElement: HTMLElement, root: Readonly<SModelRoot>, ...contextElementIds: string[]): void {
+        super.onBeforeShow(containerElement, root, ...contextElementIds);
+        this.render();
+    }
+
+    protected render(): void {
+        this.autocompleteWidget.inputField.placeholder = `Search for ${this.context?.role ?? 'elements'}`;
     }
 
     protected retrieveSuggestions(root: Readonly<SModelRoot>, input: string): Promise<LabeledAction[]> {

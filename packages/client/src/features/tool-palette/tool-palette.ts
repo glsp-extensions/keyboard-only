@@ -40,7 +40,7 @@ import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { EditModeListener, EditorContextService } from '../../base/editor-context-service';
 import { FocusDomAction } from '../keyboard/actions';
 import { KeyboardGridUI } from '../keyboard/grid/constants';
-import { EdgeAutocompletePalette } from '../keyboard/search/edge-autocomplete-palette';
+import { EdgeAutocompletePalette } from '../keyboard/edge-autocomplete/edge-autocomplete-palette';
 import { MouseDeleteTool } from '../tools/delete-tool';
 import { MarqueeMouseTool } from '../tools/marquee-mouse-tool';
 
@@ -49,6 +49,33 @@ const SEARCH_ICON_ID = 'search';
 const PALETTE_ICON_ID = 'symbol-color';
 const CHEVRON_DOWN_ICON_ID = 'chevron-right';
 const PALETTE_HEIGHT = '500px';
+const availableKeys: KeyCode[] = [
+    'KeyA',
+    'KeyB',
+    'KeyC',
+    'KeyD',
+    'KeyE',
+    'KeyF',
+    'KeyG',
+    'KeyH',
+    'KeyI',
+    'KeyJ',
+    'KeyK',
+    'KeyL',
+    'KeyM',
+    'KeyN',
+    'KeyO',
+    'KeyP',
+    'KeyQ',
+    'KeyR',
+    'KeyS',
+    'KeyT',
+    'KeyU',
+    'KeyV',
+    'KeyX',
+    'KeyY',
+    'KeyZ'
+];
 
 export interface EnableToolPaletteAction extends Action {
     kind: typeof EnableToolPaletteAction.KIND;
@@ -111,20 +138,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             let index: number | undefined = undefined;
             const items = this.interactablePaletteItems;
 
-            const availableKeys: KeyCode[] = [
-                'Digit1',
-                'Digit2',
-                'Digit3',
-                'Digit4',
-                'Digit5',
-                'Digit6',
-                'Digit7',
-                'Digit8',
-                'Digit9',
-                'Digit0'
-            ];
-
-            const itemsCount = items.length < 10 ? items.length : availableKeys.length;
+            const itemsCount = items.length < availableKeys.length ? items.length : availableKeys.length;
 
             for (let i = 0; i < itemsCount; i++) {
                 const keycode = availableKeys[i];
@@ -339,18 +353,18 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         return header;
     }
 
-    private createKeyboardShotcut(keyShortcut: number): HTMLElement {
+    private createKeyboardShotcut(keyShortcut: KeyCode): HTMLElement {
         const hint = document.createElement('div');
         hint.classList.add('key-shortcut');
-        hint.innerHTML = keyShortcut.toString();
+        hint.innerHTML = keyShortcut.toString().substring(3);
         return hint;
     }
 
     protected createToolButton(item: PaletteItem, tabIndex: number, buttonIndex: number): HTMLElement {
         const button = document.createElement('div');
         // add keyboard index
-        if (buttonIndex < 10) {
-            button.appendChild(this.createKeyboardShotcut((buttonIndex + 1) % 10));
+        if (buttonIndex < availableKeys.length) {
+            button.appendChild(this.createKeyboardShotcut(availableKeys[buttonIndex]));
         }
         button.tabIndex = tabIndex;
         button.classList.add('tool-button');
