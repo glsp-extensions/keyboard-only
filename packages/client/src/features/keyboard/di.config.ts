@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { TriggerNodeCreationAction } from '@eclipse-glsp/protocol';
+import { TriggerEdgeCreationAction, TriggerNodeCreationAction } from '@eclipse-glsp/protocol';
 import { ContainerModule } from 'inversify';
 import { configureActionHandler } from 'sprotty';
 
@@ -22,6 +22,9 @@ import { GlobalKeyListenerTool } from './global-keylistener-tool';
 import { KeyboardGrid } from './grid/keyboard-grid';
 import { SetKeyboardPointerRenderPositionAction } from './pointer/actions';
 import { KeyboardPointer } from './pointer/keyboard-pointer';
+import { SetEdgeTargetSelectionAction } from './search/actions';
+import { EdgeAutocompletePalette } from './search/edge-autocomplete-palette';
+import { EdgeAutocompletePaletteTool } from './search/edge-autocomplete-tool';
 
 export const keyboardControlModule = new ContainerModule((bind, _unbind, isBound, rebind) => {
     bind(TYPES.IDefaultTool).to(GlobalKeyListenerTool);
@@ -32,7 +35,13 @@ export const keyboardControlModule = new ContainerModule((bind, _unbind, isBound
 
     bind(KeyboardGrid).toSelf().inSingletonScope();
     bind(TYPES.IUIExtension).toService(KeyboardGrid);
+    bind(EdgeAutocompletePalette).toSelf().inSingletonScope();
+    bind(TYPES.IUIExtension).toService(EdgeAutocompletePalette);
 
+    bind(TYPES.IDefaultTool).to(EdgeAutocompletePaletteTool);
+
+    configureActionHandler({ bind, isBound }, TriggerEdgeCreationAction.KIND, EdgeAutocompletePalette);
+    configureActionHandler({ bind, isBound }, SetEdgeTargetSelectionAction.KIND, EdgeAutocompletePalette);
     configureActionHandler({ bind, isBound }, TriggerNodeCreationAction.KIND, KeyboardPointer);
     configureActionHandler({ bind, isBound }, SetKeyboardPointerRenderPositionAction.KIND, KeyboardPointer);
 });

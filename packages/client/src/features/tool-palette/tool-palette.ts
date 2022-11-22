@@ -13,7 +13,14 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action, PaletteItem, RequestContextActions, RequestMarkersAction, SetContextActions } from '@eclipse-glsp/protocol';
+import {
+    Action,
+    PaletteItem,
+    RequestContextActions,
+    RequestMarkersAction,
+    SetContextActions,
+    TriggerNodeCreationAction
+} from '@eclipse-glsp/protocol';
 import { inject, injectable, postConstruct } from 'inversify';
 import {
     AbstractUIExtension,
@@ -33,6 +40,7 @@ import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { EditModeListener, EditorContextService } from '../../base/editor-context-service';
 import { FocusDomAction } from '../keyboard/actions';
 import { KeyboardGridUI } from '../keyboard/grid/constants';
+import { EdgeAutocompletePalette } from '../keyboard/search/edge-autocomplete-palette';
 import { MouseDeleteTool } from '../tools/delete-tool';
 import { MarqueeMouseTool } from '../tools/marquee-mouse-tool';
 
@@ -99,7 +107,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         this.createBody();
         this.lastActivebutton = this.defaultToolsButton;
 
-        this.containerElement.onkeydown = ev => {
+        this.containerElement.onkeyup = ev => {
             let index: number | undefined = undefined;
             const items = this.interactablePaletteItems;
 
@@ -127,10 +135,21 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             }
 
             if (index !== undefined) {
-                this.actionDispatcher.dispatchAll([
-                    ...items[index].actions,
-                    SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: true, contextElementsId: [] })
-                ]);
+                if (items[index].actions.some(a => a.kind === TriggerNodeCreationAction.KIND)) {
+                    this.actionDispatcher.dispatchAll([
+                        ...items[index].actions,
+                        SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: true, contextElementsId: [] })
+                    ]);
+                } else {
+                    this.actionDispatcher.dispatchAll([
+                        ...items[index].actions,
+                        SetUIExtensionVisibilityAction.create({
+                            extensionId: EdgeAutocompletePalette.ID,
+                            visible: true,
+                            contextElementsId: []
+                        })
+                    ]);
+                }
                 this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
                 this.keyboardIndexButtonMapping.get(index)?.focus();
             }
