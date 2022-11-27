@@ -48,11 +48,12 @@ export abstract class BaseAutocompletePalette extends AbstractUIExtension {
     override show(root: Readonly<SModelRoot>, ...contextElementIds: string[]): void {
         super.show(root, ...contextElementIds);
         this.root = root;
+
         this.autocompleteWidget.open(root);
     }
 
     override hide(): void {
-        this.autocompleteWidget.dispose();
+        this.autocompleteWidget?.dispose();
         this.root = undefined;
         super.hide();
     }
@@ -74,6 +75,7 @@ export abstract class BaseAutocompletePalette extends AbstractUIExtension {
     }
 
     protected override onBeforeShow(containerElement: HTMLElement, root: Readonly<SModelRoot>, ...contextElementIds: string[]): void {
+        this.autocompleteWidget.dispose();
         this.autocompleteWidget.inputField.value = '';
     }
 

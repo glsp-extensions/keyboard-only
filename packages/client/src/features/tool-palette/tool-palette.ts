@@ -135,38 +135,8 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         this.lastActivebutton = this.defaultToolsButton;
 
         this.containerElement.onkeyup = ev => {
-            let index: number | undefined = undefined;
-            const items = this.interactablePaletteItems;
-
-            const itemsCount = items.length < availableKeys.length ? items.length : availableKeys.length;
-
-            for (let i = 0; i < itemsCount; i++) {
-                const keycode = availableKeys[i];
-                if (matchesKeystroke(ev, keycode)) {
-                    index = i;
-                    break;
-                }
-            }
-
-            if (index !== undefined) {
-                if (items[index].actions.some(a => a.kind === TriggerNodeCreationAction.KIND)) {
-                    this.actionDispatcher.dispatchAll([
-                        ...items[index].actions,
-                        SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: true, contextElementsId: [] })
-                    ]);
-                } else {
-                    this.actionDispatcher.dispatchAll([
-                        ...items[index].actions,
-                        SetUIExtensionVisibilityAction.create({
-                            extensionId: EdgeAutocompletePalette.ID,
-                            visible: true,
-                            contextElementsId: []
-                        })
-                    ]);
-                }
-                this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
-                this.keyboardIndexButtonMapping.get(index)?.focus();
-            }
+            this.clearToolOnEscape(ev);
+            this.selectItemOnCharacter(ev);
         };
     }
 
@@ -435,7 +405,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         } else if (action.kind === EnableDefaultToolsAction.KIND) {
             this.changeActiveButton();
             this.restoreFocus();
-        } else if (action.kind === FocusDomAction.KIND) {
+        } else if (FocusDomAction.is(action) && action.id === ToolPalette.ID) {
             this.containerElement.focus();
         }
     }
@@ -459,6 +429,41 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         if (matchesKeystroke(event, 'Escape')) {
             this.searchField.value = '';
             this.requestFilterUpdate('');
+        }
+    }
+
+    protected selectItemOnCharacter(event: KeyboardEvent): void {
+        let index: number | undefined = undefined;
+        const items = this.interactablePaletteItems;
+
+        const itemsCount = items.length < availableKeys.length ? items.length : availableKeys.length;
+
+        for (let i = 0; i < itemsCount; i++) {
+            const keycode = availableKeys[i];
+            if (matchesKeystroke(event, keycode)) {
+                index = i;
+                break;
+            }
+        }
+
+        if (index !== undefined) {
+            if (items[index].actions.some(a => a.kind === TriggerNodeCreationAction.KIND)) {
+                this.actionDispatcher.dispatchAll([
+                    ...items[index].actions,
+                    SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: true, contextElementsId: [] })
+                ]);
+            } else {
+                this.actionDispatcher.dispatchAll([
+                    ...items[index].actions,
+                    SetUIExtensionVisibilityAction.create({
+                        extensionId: EdgeAutocompletePalette.ID,
+                        visible: true,
+                        contextElementsId: []
+                    })
+                ]);
+            }
+            this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
+            this.keyboardIndexButtonMapping.get(index)?.focus();
         }
     }
 

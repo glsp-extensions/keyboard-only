@@ -17,19 +17,21 @@ import { Action, CreateEdgeOperation, TriggerEdgeCreationAction } from '@eclipse
 import { injectable } from 'inversify';
 import {
     codiconCSSString,
+    EnableDefaultToolsAction,
     isConnectable,
-    SEdge,
-    SModelElement,
-    SModelRoot,
     LabeledAction,
     name,
-    SetUIExtensionVisibilityAction
+    SEdge,
+    SetUIExtensionVisibilityAction,
+    SModelElement,
+    SModelRoot
 } from 'sprotty';
-
 import { toArray } from 'sprotty/lib/utils/iterable';
+
 import { CloseReason, toActionArray } from '../../../base/auto-complete/auto-complete-widget';
 import { IAutocompleteSuggestionProvider } from '../../autocomplete-palette/autocomplete-suggestion-providers';
 import { BaseAutocompletePalette } from '../../autocomplete-palette/base-autocomplete-palette';
+import { RemoveFeedbackEdgeAction } from '../../tool-feedback/creation-tool-feedback';
 import { SetEdgeTargetSelectionAction } from './actions';
 import { EdgeAutocompleteContext } from './edge-autocomplete-context';
 
@@ -92,15 +94,16 @@ export class EdgeAutocompletePalette extends BaseAutocompletePalette {
             this.context.targetId = action.elementId;
         }
         if (this.context?.sourceId !== undefined && this.context?.targetId !== undefined) {
-            console.log(this.context);
-            this.actionDispatcher.dispatch(
+            this.actionDispatcher.dispatchAll([
                 CreateEdgeOperation.create({
                     elementTypeId: this.context.trigger.elementTypeId,
                     sourceElementId: this.context.sourceId,
                     targetElementId: this.context.targetId,
                     args: this.context.trigger.args
-                })
-            );
+                }),
+                RemoveFeedbackEdgeAction.create(),
+                EnableDefaultToolsAction.create()
+            ]);
             this.hide();
         }
     }

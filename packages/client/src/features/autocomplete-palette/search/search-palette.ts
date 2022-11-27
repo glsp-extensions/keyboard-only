@@ -45,6 +45,13 @@ export class SearchAutocompletePalette extends BaseAutocompletePalette {
         this.autocompleteWidget.inputField.placeholder = 'Search for elements';
     }
 
+    protected override restoreFocus(): void {
+        const focusedElement = document.querySelector('#sprotty #sprotty_sprotty') as HTMLDivElement;
+        if (focusedElement) {
+            focusedElement.focus();
+        }
+    }
+
     protected retrieveSuggestions(root: Readonly<SModelRoot>, input: string): Promise<LabeledAction[]> {
         return this.getActions(root, input);
     }

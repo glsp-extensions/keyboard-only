@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { CenterAction, SelectAction } from '@eclipse-glsp/protocol';
+import { CenterAction, SelectAction, SelectAllAction } from '@eclipse-glsp/protocol';
 import { codiconCSSString, isNameable, LabeledAction, name, SEdge, SModelRoot } from 'sprotty';
 import { toArray } from 'sprotty/lib/utils/iterable';
 import { injectable } from 'inversify';
@@ -31,7 +31,11 @@ export class RevealNamedElementAutocompleteSuggestionProvider implements IAutoco
             nameable =>
                 new LabeledAction(
                     `[${nameable.type}] ${name(nameable) ?? '<no-name>'}`,
-                    [SelectAction.create({ selectedElementsIDs: [nameable.id] }), CenterAction.create([nameable.id])],
+                    [
+                        SelectAllAction.create(false),
+                        SelectAction.create({ selectedElementsIDs: [nameable.id] }),
+                        CenterAction.create([nameable.id])
+                    ],
                     codiconCSSString('eye')
                 )
         );

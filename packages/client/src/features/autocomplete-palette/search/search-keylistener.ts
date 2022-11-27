@@ -25,13 +25,6 @@ export class SearchAutocompletePaletteKeyListener extends KeyListener {
             return [
                 SetUIExtensionVisibilityAction.create({ extensionId: SearchAutocompletePalette.ID, visible: false, contextElementsId: [] })
             ];
-        } else if (SearchAutocompletePalette.isInvokePaletteKey(event)) {
-            return [
-                SetUIExtensionVisibilityAction.create({
-                    extensionId: SearchAutocompletePalette.ID,
-                    visible: true
-                })
-            ];
         }
         return [];
     }

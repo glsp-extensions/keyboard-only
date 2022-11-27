@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { CreateNodeOperation } from '@eclipse-glsp/protocol';
-import { IActionDispatcher, SetUIExtensionVisibilityAction } from 'sprotty';
+import { EnableDefaultToolsAction, IActionDispatcher, SetUIExtensionVisibilityAction } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { KeyboardGridUI } from '../grid/constants';
 import { KeyboardListener } from '../keyboard-listener';
@@ -68,7 +68,8 @@ export class KeyboardPointerKeyboardListener extends KeyboardListener {
                 this.actionDispatcher.dispatchAll([
                     SetUIExtensionVisibilityAction.create({ extensionId: KeyboardPointerUI.ID, visible: false, contextElementsId: [] }),
                     SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: false, contextElementsId: [] }),
-                    CreateNodeOperation.create(elementTypeId, { location, containerId, args: this.keyboardPointer.triggerAction.args })
+                    CreateNodeOperation.create(elementTypeId, { location, containerId, args: this.keyboardPointer.triggerAction.args }),
+                    EnableDefaultToolsAction.create()
                 ]);
             } else if (matchesKeystroke(event, 'Enter', 'ctrl')) {
                 // stay in this mode, selected palette option stays, grid and keyboard mouse are displayed

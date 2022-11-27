@@ -19,6 +19,7 @@ import { IActionDispatcher, SetUIExtensionVisibilityAction, TYPES } from 'sprott
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
+import { SearchAutocompletePalette } from '../autocomplete-palette/search/search-palette';
 import { ToolPalette } from '../tool-palette/tool-palette';
 import { FocusDomAction } from './actions';
 import { KeyboardGridUI } from './grid/constants';
@@ -53,24 +54,25 @@ export class GlobalKeyListenerTool implements GLSPTool {
 export class KeyboardListener {
     keyDown(event: KeyboardEvent): Action[] {
         if (matchesKeystroke(event, 'KeyP', 'alt')) {
-            console.log('KeyboardTool: KeyP');
-
             return [FocusDomAction.create(ToolPalette.ID)];
         } else if (matchesKeystroke(event, 'Escape')) {
-            console.log('KeyboardTool: Escape');
-
             return [
                 SetUIExtensionVisibilityAction.create({ extensionId: KeyboardPointerUI.ID, visible: false, contextElementsId: [] }),
-                SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: false, contextElementsId: [] })
+                SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: false, contextElementsId: [] }),
+                SetUIExtensionVisibilityAction.create({ extensionId: SearchAutocompletePalette.ID, visible: false, contextElementsId: [] })
             ];
         } else if (matchesKeystroke(event, 'KeyM', 'alt')) {
-            console.log('KeyboardTool: KeyM');
-
             return [SetUIExtensionVisibilityAction.create({ extensionId: KeyboardPointerUI.ID, visible: true })];
         } else if (matchesKeystroke(event, 'KeyG', 'alt')) {
-            console.log('KeyboardTool: KeyG');
-
             return [SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: true })];
+        } else if (SearchAutocompletePalette.isInvokePaletteKey(event)) {
+            event.preventDefault();
+            return [
+                SetUIExtensionVisibilityAction.create({
+                    extensionId: SearchAutocompletePalette.ID,
+                    visible: true
+                })
+            ];
         }
         return [];
     }

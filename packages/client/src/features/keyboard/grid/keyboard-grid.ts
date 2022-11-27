@@ -119,9 +119,6 @@ export class KeyboardGrid extends AbstractUIExtension {
             SetUIExtensionVisibilityAction.create({ extensionId: KeyboardPointerUI.ID, visible: true }),
             SetKeyboardPointerRenderPositionAction.create(x, y)
         ]);
-
-        // TODO Hide or Not?
-        // this.hide();
     }
 }
 
