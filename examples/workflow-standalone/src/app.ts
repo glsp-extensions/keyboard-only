@@ -36,7 +36,7 @@ const websocket = new WebSocket(`ws://localhost:${port}/${id}`);
 
 const loc = window.location.pathname;
 const currentDir = loc.substring(0, loc.lastIndexOf('/'));
-const examplePath = resolve(join(currentDir, '..', 'app', 'example1.wf'));
+const examplePath = resolve(join(currentDir, '..', 'app', 'caise23.wf'));
 const clientId = ApplicationIdProvider.get() + '_' + examplePath;
 
 const container = createContainer();

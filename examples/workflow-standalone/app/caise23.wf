@@ -1,0 +1,301 @@
+{
+  "id": "sprotty",
+  "children": [
+    {
+      "name": "SubmitFirstVersion",
+      "taskType": "manual",
+      "id": "submitFirstVersion",
+      "cssClasses": [
+        "task",
+        "manual"
+      ],
+      "children": [
+        {
+          "id": "submitFirstVersion_icon",
+          "type": "icon",
+          "position": {
+            "x": 5.0,
+            "y": 5.0
+          },
+          "size": {
+            "width": 25.0,
+            "height": 20.0
+          }
+        },
+        {
+          "id": "submitFirstVersion_classname",
+          "type": "label:heading",
+          "position": {
+            "x": 31.0,
+            "y": 7.0
+          },
+          "size": {
+            "width": 31.921875,
+            "height": 16.0
+          },
+          "text": "Submit first version",
+          "alignment": {
+            "x": 15.9609375,
+            "y": 13.0
+          }
+        }
+      ],
+      "type": "task:manual",
+      "position": {
+        "x": 70.0,
+        "y": 140.0
+      },
+      "size": {
+        "width": 72.921875,
+        "height": 30.0
+      },
+      "layout": "hbox",
+      "layoutOptions": {
+        "paddingRight": 10.0,
+        "prefWidth": 72.921875,
+        "prefHeight": 30.0
+      },
+      "args": {
+        "radiusBottomLeft": 5.0,
+        "radiusTopLeft": 5.0,
+        "radiusTopRight": 5.0,
+        "radiusBottomRight": 5.0
+      }
+    },
+    {
+      "name": "GetFeedback",
+      "taskType": "automated",
+      "id": "getFeedback",
+      "cssClasses": [
+        "task",
+        "automated"
+      ],
+      "children": [
+        {
+          "id": "getFeedback_icon",
+          "type": "icon",
+          "position": {
+            "x": 5.0,
+            "y": 5.0
+          },
+          "size": {
+            "width": 25.0,
+            "height": 20.0
+          }
+        },
+        {
+          "id": "getFeedback_classname",
+          "type": "label:heading",
+          "position": {
+            "x": 31.0,
+            "y": 7.0
+          },
+          "size": {
+            "width": 42.1103515625,
+            "height": 16.0
+          },
+          "text": "Get feedback",
+          "alignment": {
+            "x": 21.0,
+            "y": 13.0
+          }
+        }
+      ],
+      "type": "task:automated",
+      "position": {
+        "x": 250.0,
+        "y": 140.0
+      },
+      "size": {
+        "width": 83.1103515625,
+        "height": 30.0
+      },
+      "layout": "hbox",
+      "layoutOptions": {
+        "prefWidth": 75.6103515625,
+        "paddingRight": 10.0,
+        "prefHeight": 30.0
+      },
+      "args": {
+        "radiusBottomLeft": 5.0,
+        "radiusTopLeft": 5.0,
+        "radiusTopRight": 5.0,
+        "radiusBottomRight": 5.0
+      }
+    },
+    {
+      "name": "SendRevision",
+      "taskType": "automated",
+      "id": "sendRevision",
+      "cssClasses": [
+        "task",
+        "automated"
+      ],
+      "children": [
+        {
+          "id": "sendRevision_icon",
+          "type": "icon",
+          "position": {
+            "x": 5.0,
+            "y": 5.0
+          },
+          "size": {
+            "width": 25.0,
+            "height": 20.0
+          }
+        },
+        {
+          "id": "sendRevision_classname",
+          "type": "label:heading",
+          "position": {
+            "x": 31.0,
+            "y": 7.0
+          },
+          "size": {
+            "width": 37.9931640625,
+            "height": 16.0
+          },
+          "text": "Send revision",
+          "alignment": {
+            "x": 18.671875,
+            "y": 13.0
+          }
+        }
+      ],
+      "type": "task:automated",
+      "position": {
+        "x": 250.0,
+        "y": 190.0
+      },
+      "size": {
+        "width": 78.9931640625,
+        "height": 30.0
+      },
+      "layout": "hbox",
+      "layoutOptions": {
+        "prefWidth": 71.4931640625,
+        "paddingRight": 10.0,
+        "prefHeight": 30.0
+      },
+      "args": {
+        "radiusBottomLeft": 5.0,
+        "radiusTopLeft": 5.0,
+        "radiusTopRight": 5.0,
+        "radiusBottomRight": 5.0
+      }
+    },
+    {
+      "name": "MakeEdits",
+      "taskType": "automated",
+      "id": "makeEdits",
+      "cssClasses": [
+        "task",
+        "automated"
+      ],
+      "children": [
+        {
+          "id": "makeEdits_icon",
+          "type": "icon",
+          "position": {
+            "x": 5.0,
+            "y": 5.0
+          },
+          "size": {
+            "width": 25.0,
+            "height": 20.0
+          }
+        },
+        {
+          "id": "makeEdits_classname",
+          "type": "label:heading",
+          "position": {
+            "x": 31.0,
+            "y": 7.0
+          },
+          "size": {
+            "width": 34.32421875,
+            "height": 16.0
+          },
+          "text": "Make edits",
+          "alignment": {
+            "x": 17.109375,
+            "y": 13.0
+          }
+        }
+      ],
+      "type": "task:automated",
+      "position": {
+        "x": 350.0,
+        "y": 250.0
+      },
+      "size": {
+        "width": 75.32421875,
+        "height": 30.0
+      },
+      "layout": "hbox",
+      "layoutOptions": {
+        "prefWidth": 67.82421875,
+        "paddingRight": 10.0,
+        "prefHeight": 30.0
+      },
+      "args": {
+        "radiusBottomLeft": 5.0,
+        "radiusTopLeft": 5.0,
+        "radiusTopRight": 5.0,
+        "radiusBottomRight": 5.0
+      }
+    },
+    {
+      "nodeType": "decisionNode",
+      "id": "decisionNode",
+      "type": "activityNode:decision",
+      "position": {
+        "x": 300.0,
+        "y": 250.0
+      },
+      "size": {
+        "width": 32.0,
+        "height": 32.0
+      },
+      "layoutOptions": {
+        "minWidth": 32.0,
+        "minHeight": 32.0
+      }
+    },
+    {
+      "id": "edge1",
+      "type": "edge",
+      "sourceId": "submitFirstVersion",
+      "targetId": "getFeedback"
+    },
+    {
+      "id": "edge2",
+      "type": "edge",
+      "sourceId": "getFeedback",
+      "targetId": "sendRevision"
+    },
+    {
+      "id": "edge3",
+      "type": "edge",
+      "sourceId": "sendRevision",
+      "targetId": "decisionNode"
+    },
+    {
+      "id": "edge4",
+      "type": "edge",
+      "sourceId": "makeEdits",
+      "targetId": "sendRevision"
+    },
+    {
+      "id": "wEdge1",
+      "cssClasses": [
+        "medium"
+      ],
+      "type": "edge:weighted",
+      "sourceId": "decisionNode",
+      "targetId": "makeEdits"
+    }
+  ],
+  "type": "graph",
+  "revision": 10
+}
