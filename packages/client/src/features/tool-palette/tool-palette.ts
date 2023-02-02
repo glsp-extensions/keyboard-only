@@ -27,7 +27,8 @@ import {
     TYPES
 } from 'sprotty';
 import { codiconCSSClasses } from 'sprotty/lib/utils/codicon';
-import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
+import { KeyCode, matchesKeystroke } from 'sprotty/lib/utils/keyboard';
+
 import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { EditModeListener, EditorContextService } from '../../base/editor-context-service';
 import { MouseDeleteTool } from '../tools/delete-tool';
@@ -38,6 +39,33 @@ const SEARCH_ICON_ID = 'search';
 const PALETTE_ICON_ID = 'symbol-color';
 const CHEVRON_DOWN_ICON_ID = 'chevron-right';
 const PALETTE_HEIGHT = '500px';
+const availableKeys: KeyCode[] = [
+    'KeyA',
+    'KeyB',
+    'KeyC',
+    'KeyD',
+    'KeyE',
+    'KeyF',
+    'KeyG',
+    'KeyH',
+    'KeyI',
+    'KeyJ',
+    'KeyK',
+    'KeyL',
+    'KeyM',
+    'KeyN',
+    'KeyO',
+    'KeyP',
+    'KeyQ',
+    'KeyR',
+    'KeyS',
+    'KeyT',
+    'KeyU',
+    'KeyV',
+    'KeyX',
+    'KeyY',
+    'KeyZ'
+];
 
 export interface EnableToolPaletteAction extends Action {
     kind: typeof EnableToolPaletteAction.KIND;
@@ -68,6 +96,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
     protected lastActivebutton?: HTMLElement;
     protected defaultToolsButton: HTMLElement;
     protected searchField: HTMLInputElement;
+    protected keyboardIndexButtonMapping = new Map<number, HTMLElement>();
     modelRootId: string;
 
     id(): string {
@@ -90,9 +119,22 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
     }
 
     protected initializeContents(_containerElement: HTMLElement): void {
+        this.containerElement.tabIndex = 20;
         this.createHeader();
         this.createBody();
         this.lastActivebutton = this.defaultToolsButton;
+
+        this.containerElement.onkeyup = ev => {
+            this.clearToolOnEscape(ev);
+            this.selectItemOnCharacter(ev);
+        };
+    }
+
+    get interactablePaletteItems(): PaletteItem[] {
+        return this.paletteItems
+            .sort(compare)
+            .map(item => item.children?.sort(compare) ?? [item])
+            .reduce((acc, val) => acc.concat(val), []);
     }
 
     protected override onBeforeShow(_containerElement: HTMLElement, root: Readonly<SModelRoot>): void {
@@ -111,8 +153,10 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             this.updateMinimizePaletteButtonTooltip(minPaletteDiv);
             minimizeIcon.onclick = _event => {
                 if (this.isPaletteMaximized()) {
+                    this.containerElement.style.overflow = 'hidden';
                     this.containerElement.style.maxHeight = '0px';
                 } else {
+                    this.containerElement.style.overflow = 'visible';
                     this.containerElement.style.maxHeight = PALETTE_HEIGHT;
                 }
                 this.updateMinimizePaletteButtonTooltip(minPaletteDiv);
@@ -138,14 +182,18 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
     protected createBody(): void {
         const bodyDiv = document.createElement('div');
         bodyDiv.classList.add('palette-body');
-        let tabIndex = 0;
+        const tabIndex = 21;
+        let toolButtonCounter = 0;
+        this.keyboardIndexButtonMapping.clear();
         this.paletteItems.sort(compare).forEach(item => {
             if (item.children) {
                 const group = createToolGroup(item);
-                item.children.sort(compare).forEach(child => group.appendChild(this.createToolButton(child, tabIndex++)));
+                item.children
+                    .sort(compare)
+                    .forEach(child => group.appendChild(this.createToolButton(child, tabIndex, toolButtonCounter++)));
                 bodyDiv.appendChild(group);
             } else {
-                bodyDiv.appendChild(this.createToolButton(item, tabIndex++));
+                bodyDiv.appendChild(this.createToolButton(item, tabIndex, toolButtonCounter++));
             }
         });
         if (this.paletteItems.length === 0) {
@@ -265,16 +313,32 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         return header;
     }
 
-    protected createToolButton(item: PaletteItem, index: number): HTMLElement {
+    private createKeyboardShotcut(keyShortcut: KeyCode): HTMLElement {
+        const hint = document.createElement('div');
+        hint.classList.add('key-shortcut');
+        hint.innerHTML = keyShortcut.toString().substring(3);
+        return hint;
+    }
+
+    protected createToolButton(item: PaletteItem, tabIndex: number, buttonIndex: number): HTMLElement {
         const button = document.createElement('div');
-        button.tabIndex = index;
+        // add keyboard index
+        if (buttonIndex < availableKeys.length) {
+            button.appendChild(this.createKeyboardShotcut(availableKeys[buttonIndex]));
+        }
+        button.tabIndex = tabIndex;
         button.classList.add('tool-button');
         if (item.icon) {
             button.appendChild(createIcon(item.icon));
         }
         button.insertAdjacentText('beforeend', item.label);
         button.onclick = this.onClickCreateToolButton(button, item);
-        button.onkeydown = ev => this.clearToolOnEscape(ev);
+        button.onkeydown = ev => {
+            this.clickToolOnEnter(ev, button, item);
+            this.clearToolOnEscape(ev);
+        };
+
+        this.keyboardIndexButtonMapping.set(buttonIndex, button);
         return button;
     }
 
@@ -340,6 +404,15 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         );
     }
 
+    protected clickToolOnEnter(event: KeyboardEvent, button: HTMLElement, item: PaletteItem): void {
+        if (matchesKeystroke(event, 'Enter')) {
+            if (!this.editorContext.isReadonly) {
+                this.actionDispatcher.dispatchAll(item.actions);
+                this.changeActiveButton(button);
+            }
+        }
+    }
+
     protected clearOnEscape(event: KeyboardEvent): void {
         if (matchesKeystroke(event, 'Escape')) {
             this.searchField.value = '';
@@ -347,8 +420,38 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         }
     }
 
+    protected selectItemOnCharacter(event: KeyboardEvent): void {
+        let index: number | undefined = undefined;
+        const items = this.interactablePaletteItems;
+
+        const itemsCount = items.length < availableKeys.length ? items.length : availableKeys.length;
+
+        for (let i = 0; i < itemsCount; i++) {
+            const keycode = availableKeys[i];
+            if (matchesKeystroke(event, keycode)) {
+                index = i;
+                break;
+            }
+        }
+
+        if (index !== undefined) {
+            /**  if (items[index].actions.some(a => a.kind === TriggerNodeCreationAction.KIND)) {
+                console.log('TriggerNodeCreationAction');
+            } else {
+                console.log('TriggerEdge');
+            } */
+
+            this.actionDispatcher.dispatchAll(items[index].actions);
+            this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
+            this.keyboardIndexButtonMapping.get(index)?.focus();
+        }
+    }
+
     protected clearToolOnEscape(event: KeyboardEvent): void {
         if (matchesKeystroke(event, 'Escape')) {
+            if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+            }
             this.actionDispatcher.dispatch(EnableDefaultToolsAction.create());
         }
     }

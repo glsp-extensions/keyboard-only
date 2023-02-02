@@ -121,6 +121,29 @@
     margin-right: 0.4em;
 }
 
+.tool-button .key-shortcut {
+    display: none;
+    position: absolute;
+    left: -2rem;
+
+    border-radius: 50%;
+    width: 0.5rem;
+    height: 0.5rem;
+    padding: 0.5rem;
+
+    background: #fff;
+    border: 2px solid #666;
+    color: black;
+    text-align: center;
+
+    font: bold 0.8rem Arial, sans-serif;
+    line-height: 0.5rem;
+}
+
+.tool-palette:focus-within .key-shortcut {
+    display: block;
+}
+
 .tool-button:hover {
     background: #dfdfdf;
 }
@@ -134,7 +157,6 @@
 }
 
 .collapsible-palette {
-    overflow: auto;
     transition: max-height 0.2s ease-out;
 }
 
