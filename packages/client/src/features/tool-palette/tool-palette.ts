@@ -143,8 +143,8 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             if (matchesKeystroke(ev, 'AltLeft', 'alt') || matchesKeystroke(ev, 'AltRight', 'alt')) {
                 isAltPressed = true;
                 console.log('Alt key is pressed' + isAltPressed);
-                this.hideKeyboardShortcut(TOOL_PALETTE_SHORTCUT_HINT_CLASS, true);
-                this.hideKeyboardShortcut(HEADER_TOOL_SHORTCUT_HINT_CLASS, false);
+                this.triggerKeyboardShortcutDisplay(TOOL_PALETTE_SHORTCUT_HINT_CLASS, true);
+                this.triggerKeyboardShortcutDisplay(HEADER_TOOL_SHORTCUT_HINT_CLASS, false);
                 this.isToolPaletteHintHidden = true;
                 this.isHeaderToolHintHidden = false;
             }
@@ -158,8 +158,8 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             if (matchesKeystroke(ev, 'AltLeft', 'alt') || matchesKeystroke(ev, 'AltRight', 'alt')) {
                 isAltPressed = false;
                 console.log('Alt key is released' + isAltPressed);
-                this.hideKeyboardShortcut(TOOL_PALETTE_SHORTCUT_HINT_CLASS, false);
-                this.hideKeyboardShortcut(HEADER_TOOL_SHORTCUT_HINT_CLASS, true);
+                this.triggerKeyboardShortcutDisplay(TOOL_PALETTE_SHORTCUT_HINT_CLASS, false);
+                this.triggerKeyboardShortcutDisplay(HEADER_TOOL_SHORTCUT_HINT_CLASS, true);
                 this.isToolPaletteHintHidden = false;
                 this.isHeaderToolHintHidden = true;
             }
@@ -372,7 +372,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         return hint;
     }
 
-    private hideKeyboardShortcut(classname: string, isHidden: boolean): void {
+    private triggerKeyboardShortcutDisplay(classname: string, isHidden: boolean): void {
         const keyboardHints = document.querySelectorAll(classname);
         const keyboardHintsArray = Array.from(keyboardHints) as HTMLElement[];
 
@@ -485,26 +485,28 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         let index: number | undefined = undefined;
         const items = this.interactablePaletteItems;
 
-        const itemsCount = items.length < availableKeys.length ? items.length : availableKeys.length;
+        if (!this.isToolPaletteHintHidden) {
+            const itemsCount = items.length < availableKeys.length ? items.length : availableKeys.length;
 
-        for (let i = 0; i < itemsCount; i++) {
-            const keycode = availableKeys[i];
-            if (matchesKeystroke(event, keycode)) {
-                index = i;
-                break;
+            for (let i = 0; i < itemsCount; i++) {
+                const keycode = availableKeys[i];
+                if (matchesKeystroke(event, keycode)) {
+                    index = i;
+                    break;
+                }
             }
-        }
 
-        if (index !== undefined) {
-            /**  if (items[index].actions.some(a => a.kind === TriggerNodeCreationAction.KIND)) {
+            if (index !== undefined) {
+                /**  if (items[index].actions.some(a => a.kind === TriggerNodeCreationAction.KIND)) {
                 console.log('TriggerNodeCreationAction');
             } else {
                 console.log('TriggerEdge');
             } */
 
-            this.actionDispatcher.dispatchAll(items[index].actions);
-            this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
-            this.keyboardIndexButtonMapping.get(index)?.focus();
+                this.actionDispatcher.dispatchAll(items[index].actions);
+                this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
+                this.keyboardIndexButtonMapping.get(index)?.focus();
+            }
         }
     }
 
