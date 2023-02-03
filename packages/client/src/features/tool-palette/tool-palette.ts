@@ -39,6 +39,9 @@ const SEARCH_ICON_ID = 'search';
 const PALETTE_ICON_ID = 'symbol-color';
 const CHEVRON_DOWN_ICON_ID = 'chevron-right';
 const PALETTE_HEIGHT = '500px';
+const TOOL_PALETTE_SHORTCUT_HINT_CLASS = '.tool-button .key-shortcut';
+const HEADER_TOOL_SHORTCUT_HINT_CLASS = '.header-tools .key-shortcut';
+
 const availableKeys: KeyCode[] = [
     'KeyA',
     'KeyB',
@@ -105,6 +108,8 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
     protected searchField: HTMLInputElement;
     protected keyboardIndexButtonMapping = new Map<number, HTMLElement>();
     protected headerToolsButtonMapping = new Map<number, HTMLElement>();
+    private isToolPaletteHintHidden = false;
+    private isHeaderToolHintHidden = false;
 
     modelRootId: string;
 
@@ -138,7 +143,10 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             if (matchesKeystroke(ev, 'AltLeft', 'alt') || matchesKeystroke(ev, 'AltRight', 'alt')) {
                 isAltPressed = true;
                 console.log('Alt key is pressed' + isAltPressed);
-                this.hideKeyboardShortcut();
+                this.hideKeyboardShortcut(TOOL_PALETTE_SHORTCUT_HINT_CLASS, true);
+                this.hideKeyboardShortcut(HEADER_TOOL_SHORTCUT_HINT_CLASS, false);
+                this.isToolPaletteHintHidden = true;
+                this.isHeaderToolHintHidden = false;
             }
         };
 
@@ -146,6 +154,15 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             this.clearToolOnEscape(ev);
             this.selectItemOnCharacter(ev);
             this.triggerHeaderToolsByKey(ev);
+
+            if (matchesKeystroke(ev, 'AltLeft', 'alt') || matchesKeystroke(ev, 'AltRight', 'alt')) {
+                isAltPressed = false;
+                console.log('Alt key is released' + isAltPressed);
+                this.hideKeyboardShortcut(TOOL_PALETTE_SHORTCUT_HINT_CLASS, false);
+                this.hideKeyboardShortcut(HEADER_TOOL_SHORTCUT_HINT_CLASS, true);
+                this.isToolPaletteHintHidden = false;
+                this.isHeaderToolHintHidden = true;
+            }
         };
     }
 
@@ -355,14 +372,15 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         return hint;
     }
 
-    private hideKeyboardShortcut(): void {
-        const keyboardHints = document.querySelectorAll('.tool-button .key-shortcut');
+    private hideKeyboardShortcut(classname: string, isHidden: boolean): void {
+        const keyboardHints = document.querySelectorAll(classname);
         const keyboardHintsArray = Array.from(keyboardHints) as HTMLElement[];
 
         for (const keyboardHint of keyboardHintsArray) {
-            keyboardHint.style.display = 'none';
+            keyboardHint.style.display = isHidden ? 'none' : 'block';
         }
     }
+
     protected createToolButton(item: PaletteItem, tabIndex: number, buttonIndex: number): HTMLElement {
         const button = document.createElement('div');
         // add keyboard index
@@ -496,17 +514,21 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
 
         const itemsCount = items.length < headerToolKeys.length ? items.length : headerToolKeys.length;
 
-        for (let i = 0; i < itemsCount; i++) {
-            const keycode = headerToolKeys[i];
+        console.log(this.isHeaderToolHintHidden);
 
-            if (matchesKeystroke(event, keycode)) {
-                index = i;
-                break;
+        if (!this.isHeaderToolHintHidden) {
+            for (let i = 0; i < itemsCount; i++) {
+                const keycode = headerToolKeys[i];
+
+                if (matchesKeystroke(event, keycode)) {
+                    index = i;
+                    break;
+                }
             }
-        }
 
-        if (index !== undefined) {
-            this.headerToolsButtonMapping.get(index)?.click();
+            if (index !== undefined) {
+                this.headerToolsButtonMapping.get(index)?.click();
+            }
         }
     }
 
