@@ -67,6 +67,8 @@ const availableKeys: KeyCode[] = [
     'KeyZ'
 ];
 
+const headerToolKeys: KeyCode[] = ['Digit0', 'Digit1', 'Digit2', 'Digit3', 'Digit4'];
+
 export interface EnableToolPaletteAction extends Action {
     kind: typeof EnableToolPaletteAction.KIND;
 }
@@ -95,6 +97,11 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
     protected bodyDiv?: HTMLElement;
     protected lastActivebutton?: HTMLElement;
     protected defaultToolsButton: HTMLElement;
+
+    protected deleteToolButton: HTMLElement;
+    protected marqueeToolButton: HTMLElement;
+    protected validateActionButton: HTMLElement;
+    protected searchIcon: HTMLElement;
     protected searchField: HTMLInputElement;
     protected keyboardIndexButtonMapping = new Map<number, HTMLElement>();
     modelRootId: string;
@@ -127,7 +134,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         this.containerElement.onkeyup = ev => {
             this.clearToolOnEscape(ev);
             this.selectItemOnCharacter(ev);
-            this.triggerStaticToolButtonByKey(ev);
+            this.triggerHeaderToolsByKey(ev);
         };
     }
 
@@ -228,18 +235,18 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         this.defaultToolsButton = this.createDefaultToolButton();
         headerTools.appendChild(this.defaultToolsButton);
 
-        const deleteToolButton = this.createMouseDeleteToolButton();
-        headerTools.appendChild(deleteToolButton);
+        this.deleteToolButton = this.createMouseDeleteToolButton();
+        headerTools.appendChild(this.deleteToolButton);
 
-        const marqueeToolButton = this.createMarqueeToolButton();
-        headerTools.appendChild(marqueeToolButton);
+        this.marqueeToolButton = this.createMarqueeToolButton();
+        headerTools.appendChild(this.marqueeToolButton);
 
-        const validateActionButton = this.createValidateButton();
-        headerTools.appendChild(validateActionButton);
+        this.validateActionButton = this.createValidateButton();
+        headerTools.appendChild(this.validateActionButton);
 
         // Create button for Search
-        const searchIcon = this.createSearchButton();
-        headerTools.appendChild(searchIcon);
+        this.searchIcon = this.createSearchButton();
+        headerTools.appendChild(this.searchIcon);
 
         return headerTools;
     }
@@ -448,44 +455,31 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         }
     }
 
-    protected triggerSelectionIconByKey(event: KeyboardEvent): void {
-        if (matchesKeystroke(event, 'KeyA')) {
-            console.log('Trigger icon button: Selection');
-            this.actionDispatcher.dispatch(EnableDefaultToolsAction.create());
-        }
-    }
-    protected triggerDeleteIconByKey(event: KeyboardEvent): void {
-        if (matchesKeystroke(event, 'Delete')) {
-            console.log('Trigger icon button: Delete');
-            this.actionDispatcher.dispatch(EnableToolsAction.create([MouseDeleteTool.ID]));
-        }
-    }
-    protected triggerMarqueeIconByKey(event: KeyboardEvent): void {
-        if (matchesKeystroke(event, 'KeyM')) {
-            console.log('Trigger icon button: Marquee');
-            this.actionDispatcher.dispatch(EnableToolsAction.create([MarqueeMouseTool.ID]));
-        }
-    }
+    protected triggerHeaderToolsByKey(event: KeyboardEvent): void {
+        const headerTools = [
+            this.defaultToolsButton,
+            this.deleteToolButton,
+            this.marqueeToolButton,
+            this.validateActionButton,
+            this.searchIcon
+        ];
 
-    protected triggerValidationIconByKey(event: KeyboardEvent): void {
-        if (matchesKeystroke(event, 'KeyV')) {
-            console.log('Trigger icon button: Validate');
-            const modelIds: string[] = [this.modelRootId];
-            this.actionDispatcher.dispatch(RequestMarkersAction.create(modelIds));
+        let index: number | undefined = undefined;
+        const items = this.interactablePaletteItems;
+
+        const itemsCount = items.length < headerToolKeys.length ? items.length : headerToolKeys.length;
+
+        for (let i = 0; i < itemsCount; i++) {
+            const keycode = headerToolKeys[i];
+            if (matchesKeystroke(event, keycode)) {
+                index = i;
+                break;
+            }
         }
-    }
-    protected triggerSearchIconByKey(event: KeyboardEvent): void {
-        if (matchesKeystroke(event, 'KeyS')) {
-            console.log('Trigger icon button: Search');
-            this.searchField.focus();
+
+        if (index !== undefined) {
+            headerTools[index].click();
         }
-    }
-    protected triggerStaticToolButtonByKey(event: KeyboardEvent): void {
-        this.triggerSelectionIconByKey(event);
-        this.triggerDeleteIconByKey(event);
-        this.triggerMarqueeIconByKey(event);
-        this.triggerValidationIconByKey(event);
-        this.triggerSearchIconByKey(event);
     }
 
     protected clearToolOnEscape(event: KeyboardEvent): void {
