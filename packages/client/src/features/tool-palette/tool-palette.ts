@@ -104,6 +104,8 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
     protected searchIcon: HTMLElement;
     protected searchField: HTMLInputElement;
     protected keyboardIndexButtonMapping = new Map<number, HTMLElement>();
+    protected headerToolsButtonMapping = new Map<number, HTMLElement>();
+
     modelRootId: string;
 
     id(): string {
@@ -256,6 +258,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         button.id = 'btn_default_tools';
         button.title = 'Enable selection tool';
         button.onclick = this.onClickStaticToolButton(this.defaultToolsButton);
+        this.headerToolsButtonMapping.set(0, button);
         return button;
     }
 
@@ -263,6 +266,8 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         const deleteToolButton = createIcon('chrome-close');
         deleteToolButton.title = 'Enable deletion tool';
         deleteToolButton.onclick = this.onClickStaticToolButton(deleteToolButton, MouseDeleteTool.ID);
+        this.headerToolsButtonMapping.set(1, deleteToolButton);
+
         return deleteToolButton;
     }
 
@@ -270,6 +275,8 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         const marqueeToolButton = createIcon('screen-full');
         marqueeToolButton.title = 'Enable marquee tool';
         marqueeToolButton.onclick = this.onClickStaticToolButton(marqueeToolButton, MarqueeMouseTool.ID);
+        this.headerToolsButtonMapping.set(2, marqueeToolButton);
+
         return marqueeToolButton;
     }
 
@@ -280,6 +287,8 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             const modelIds: string[] = [this.modelRootId];
             this.actionDispatcher.dispatch(RequestMarkersAction.create(modelIds));
         };
+        this.headerToolsButtonMapping.set(3, validateActionButton);
+
         return validateActionButton;
     }
 
@@ -298,6 +307,8 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         };
         searchIcon.classList.add('search-icon');
         searchIcon.title = 'Filter palette entries';
+        this.headerToolsButtonMapping.set(4, searchIcon);
+
         return searchIcon;
     }
 
@@ -456,14 +467,6 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
     }
 
     protected triggerHeaderToolsByKey(event: KeyboardEvent): void {
-        const headerTools = [
-            this.defaultToolsButton,
-            this.deleteToolButton,
-            this.marqueeToolButton,
-            this.validateActionButton,
-            this.searchIcon
-        ];
-
         let index: number | undefined = undefined;
         const items = this.interactablePaletteItems;
 
@@ -478,7 +481,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         }
 
         if (index !== undefined) {
-            headerTools[index].click();
+            this.headerToolsButtonMapping.get(index)?.click();
         }
     }
 
