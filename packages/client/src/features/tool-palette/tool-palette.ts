@@ -127,6 +127,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         this.containerElement.onkeyup = ev => {
             this.clearToolOnEscape(ev);
             this.selectItemOnCharacter(ev);
+            this.triggerStaticToolButtonByKey(ev);
         };
     }
 
@@ -445,6 +446,46 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
             this.keyboardIndexButtonMapping.get(index)?.focus();
         }
+    }
+
+    protected triggerSelectionIconByKey(event: KeyboardEvent): void {
+        if (matchesKeystroke(event, 'KeyA')) {
+            console.log('Trigger icon button: Selection');
+            this.actionDispatcher.dispatch(EnableDefaultToolsAction.create());
+        }
+    }
+    protected triggerDeleteIconByKey(event: KeyboardEvent): void {
+        if (matchesKeystroke(event, 'Delete')) {
+            console.log('Trigger icon button: Delete');
+            this.actionDispatcher.dispatch(EnableToolsAction.create([MouseDeleteTool.ID]));
+        }
+    }
+    protected triggerMarqueeIconByKey(event: KeyboardEvent): void {
+        if (matchesKeystroke(event, 'KeyM')) {
+            console.log('Trigger icon button: Marquee');
+            this.actionDispatcher.dispatch(EnableToolsAction.create([MarqueeMouseTool.ID]));
+        }
+    }
+
+    protected triggerValidationIconByKey(event: KeyboardEvent): void {
+        if (matchesKeystroke(event, 'KeyV')) {
+            console.log('Trigger icon button: Validate');
+            const modelIds: string[] = [this.modelRootId];
+            this.actionDispatcher.dispatch(RequestMarkersAction.create(modelIds));
+        }
+    }
+    protected triggerSearchIconByKey(event: KeyboardEvent): void {
+        if (matchesKeystroke(event, 'KeyS')) {
+            console.log('Trigger icon button: Search');
+            this.searchField.focus();
+        }
+    }
+    protected triggerStaticToolButtonByKey(event: KeyboardEvent): void {
+        this.triggerSelectionIconByKey(event);
+        this.triggerDeleteIconByKey(event);
+        this.triggerMarqueeIconByKey(event);
+        this.triggerValidationIconByKey(event);
+        this.triggerSearchIconByKey(event);
     }
 
     protected clearToolOnEscape(event: KeyboardEvent): void {
