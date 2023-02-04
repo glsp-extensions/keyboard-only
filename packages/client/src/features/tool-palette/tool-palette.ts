@@ -143,13 +143,10 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         this.createHeader();
         this.createBody();
         this.lastActivebutton = this.defaultToolsButton;
-        let isAltPressed = false;
 
         this.containerElement.onkeydown = ev => {
             this.triggerHeaderToolsByKey(ev);
             if (matchesKeystroke(ev, 'AltLeft', 'alt') || matchesKeystroke(ev, 'AltRight', 'alt')) {
-                isAltPressed = true;
-                console.log('Alt key is pressed' + isAltPressed);
                 this.triggerKeyboardShortcutDisplay(TOOL_PALETTE_SHORTCUT_HINT_CLASS, true);
                 this.triggerKeyboardShortcutDisplay(HEADER_TOOL_SHORTCUT_HINT_CLASS, false);
                 this.isToolPaletteHintHidden = true;
@@ -162,8 +159,6 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             this.selectItemOnCharacter(ev);
 
             if (matchesKeystroke(ev, 'AltLeft') || matchesKeystroke(ev, 'AltRight')) {
-                isAltPressed = false;
-                console.log('Alt key is released' + isAltPressed);
                 this.triggerKeyboardShortcutDisplay(TOOL_PALETTE_SHORTCUT_HINT_CLASS, false);
                 this.triggerKeyboardShortcutDisplay(HEADER_TOOL_SHORTCUT_HINT_CLASS, true);
                 this.isToolPaletteHintHidden = false;
