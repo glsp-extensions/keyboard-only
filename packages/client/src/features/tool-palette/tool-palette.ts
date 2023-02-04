@@ -563,6 +563,10 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
 
             if (index !== undefined) {
                 this.headerToolsButtonMapping.get(index)?.click();
+                this.triggerKeyboardShortcutDisplay(TOOL_PALETTE_SHORTCUT_HINT_CLASS, false);
+                this.triggerKeyboardShortcutDisplay(HEADER_TOOL_SHORTCUT_HINT_CLASS, true);
+                this.isToolPaletteHintHidden = false;
+                this.isHeaderToolHintHidden = true;
             }
         }
     }
