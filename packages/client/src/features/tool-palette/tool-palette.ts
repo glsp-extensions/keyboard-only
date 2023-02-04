@@ -413,6 +413,8 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
                 this.selectToolPaletteItemViaArrowKey(this.keyboardIndexButtonMapping.get(++buttonIndex));
             } else if (matchesKeystroke(ev, 'ArrowUp')) {
                 this.selectToolPaletteItemViaArrowKey(this.keyboardIndexButtonMapping.get(--buttonIndex));
+            } else if (matchesKeystroke(ev, 'Enter')) {
+                this.keyboardIndexButtonMapping.get(buttonIndex)?.click();
             }
         };
 
