@@ -14,6 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { Action, PaletteItem, RequestContextActions, RequestMarkersAction, SetContextActions } from '@eclipse-glsp/protocol';
+import { timeStamp } from 'console';
 import { inject, injectable, postConstruct } from 'inversify';
 import { Key } from 'readline';
 import {
@@ -407,7 +408,16 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             this.clearToolOnEscape(ev);
         };
 
+        button.onkeydown = ev => {
+            if (matchesKeystroke(ev, 'ArrowDown')) {
+                this.selectToolPaletteItemViaArrowKey(this.keyboardIndexButtonMapping.get(++buttonIndex));
+            } else if (matchesKeystroke(ev, 'ArrowUp')) {
+                this.selectToolPaletteItemViaArrowKey(this.keyboardIndexButtonMapping.get(--buttonIndex));
+            }
+        };
+
         this.keyboardIndexButtonMapping.set(buttonIndex, button);
+
         return button;
     }
 
@@ -539,6 +549,14 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             if (index !== undefined) {
                 this.headerToolsButtonMapping.get(index)?.click();
             }
+        }
+    }
+
+    protected selectToolPaletteItemViaArrowKey(currentButton: HTMLElement | undefined): void {
+        // eslint-disable-next-line no-null/no-null
+        if (currentButton !== null) {
+            this.changeActiveButton(currentButton);
+            currentButton?.focus();
         }
     }
 
