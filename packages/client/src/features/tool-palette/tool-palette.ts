@@ -41,6 +41,11 @@ const CHEVRON_DOWN_ICON_ID = 'chevron-right';
 const PALETTE_HEIGHT = '500px';
 const TOOL_PALETTE_SHORTCUT_HINT_CLASS = '.tool-button .key-shortcut';
 const HEADER_TOOL_SHORTCUT_HINT_CLASS = '.header-tools .key-shortcut';
+const SELECTION_TOOL_KEY: KeyCode = 'Digit1';
+const DELETION_TOOL_KEY: KeyCode = 'Digit2';
+const MARQUEE_TOOL_KEY: KeyCode = 'Digit3';
+const VALIDATION_TOOL_KEY: KeyCode = 'Digit4';
+const SEARCH_TOOL_KEY: KeyCode = 'Digit5';
 
 const availableKeys: KeyCode[] = [
     'KeyA',
@@ -70,7 +75,7 @@ const availableKeys: KeyCode[] = [
     'KeyZ'
 ];
 
-const headerToolKeys: KeyCode[] = ['Digit0', 'Digit1', 'Digit2', 'Digit3', 'Digit4'];
+const headerToolKeys: KeyCode[] = [SELECTION_TOOL_KEY, DELETION_TOOL_KEY, MARQUEE_TOOL_KEY, VALIDATION_TOOL_KEY, SEARCH_TOOL_KEY];
 
 export interface EnableToolPaletteAction extends Action {
     kind: typeof EnableToolPaletteAction.KIND;
@@ -155,7 +160,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             this.clearToolOnEscape(ev);
             this.selectItemOnCharacter(ev);
 
-            if (matchesKeystroke(ev, 'AltLeft', 'alt') || matchesKeystroke(ev, 'AltRight', 'alt')) {
+            if (matchesKeystroke(ev, 'AltLeft') || matchesKeystroke(ev, 'AltRight')) {
                 isAltPressed = false;
                 console.log('Alt key is released' + isAltPressed);
                 this.triggerKeyboardShortcutDisplay(TOOL_PALETTE_SHORTCUT_HINT_CLASS, false);
@@ -285,7 +290,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         button.title = 'Enable selection tool';
         button.onclick = this.onClickStaticToolButton(this.defaultToolsButton);
         this.headerToolsButtonMapping.set(0, button);
-        button.appendChild(this.createKeyboardShotcut(headerToolKeys[0]));
+        button.appendChild(this.createKeyboardShotcut(SELECTION_TOOL_KEY));
 
         return button;
     }
@@ -296,7 +301,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         deleteToolButton.onclick = this.onClickStaticToolButton(deleteToolButton, MouseDeleteTool.ID);
         this.headerToolsButtonMapping.set(1, deleteToolButton);
 
-        deleteToolButton.appendChild(this.createKeyboardShotcut(headerToolKeys[1]));
+        deleteToolButton.appendChild(this.createKeyboardShotcut(DELETION_TOOL_KEY));
 
         return deleteToolButton;
     }
@@ -306,7 +311,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         marqueeToolButton.title = 'Enable marquee tool';
         marqueeToolButton.onclick = this.onClickStaticToolButton(marqueeToolButton, MarqueeMouseTool.ID);
         this.headerToolsButtonMapping.set(2, marqueeToolButton);
-        marqueeToolButton.appendChild(this.createKeyboardShotcut(headerToolKeys[2]));
+        marqueeToolButton.appendChild(this.createKeyboardShotcut(MARQUEE_TOOL_KEY));
 
         return marqueeToolButton;
     }
@@ -319,7 +324,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             this.actionDispatcher.dispatch(RequestMarkersAction.create(modelIds));
         };
         this.headerToolsButtonMapping.set(3, validateActionButton);
-        validateActionButton.appendChild(this.createKeyboardShotcut(headerToolKeys[3]));
+        validateActionButton.appendChild(this.createKeyboardShotcut(VALIDATION_TOOL_KEY));
 
         return validateActionButton;
     }
@@ -340,7 +345,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         searchIcon.classList.add('search-icon');
         searchIcon.title = 'Filter palette entries';
         this.headerToolsButtonMapping.set(4, searchIcon);
-        searchIcon.appendChild(this.createKeyboardShotcut(headerToolKeys[4]));
+        searchIcon.appendChild(this.createKeyboardShotcut(SEARCH_TOOL_KEY));
 
         return searchIcon;
     }
@@ -515,8 +520,6 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         const items = this.interactablePaletteItems;
 
         const itemsCount = items.length < headerToolKeys.length ? items.length : headerToolKeys.length;
-
-        console.log(this.isHeaderToolHintHidden);
 
         if (!this.isHeaderToolHintHidden) {
             for (let i = 0; i < itemsCount; i++) {
