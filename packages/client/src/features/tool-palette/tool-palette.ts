@@ -409,27 +409,17 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         };
 
         button.onkeydown = ev => {
-            let nextItemIndex = buttonIndex;
-            console.log('currentIndex: ' + nextItemIndex);
-
             if (matchesKeystroke(ev, 'ArrowDown')) {
-                nextItemIndex += 1;
-                if (nextItemIndex === this.keyboardIndexButtonMapping.size) {
+                if (buttonIndex + 1 > this.keyboardIndexButtonMapping.size - 1) {
                     this.selectItemViaArrowKey(this.keyboardIndexButtonMapping.get(0));
-                    buttonIndex = -1;
-                    nextItemIndex = -1;
                 } else {
-                    this.selectItemViaArrowKey(this.keyboardIndexButtonMapping.get(nextItemIndex));
+                    this.selectItemViaArrowKey(this.keyboardIndexButtonMapping.get(buttonIndex + 1));
                 }
             } else if (matchesKeystroke(ev, 'ArrowUp')) {
-                nextItemIndex -= 1;
-
-                if (nextItemIndex < 0) {
+                if (buttonIndex - 1 < 0) {
                     this.selectItemViaArrowKey(this.keyboardIndexButtonMapping.get(this.keyboardIndexButtonMapping.size - 1));
-                    buttonIndex = this.keyboardIndexButtonMapping.size;
-                    nextItemIndex = this.keyboardIndexButtonMapping.size;
                 } else {
-                    this.selectItemViaArrowKey(this.keyboardIndexButtonMapping.get(nextItemIndex));
+                    this.selectItemViaArrowKey(this.keyboardIndexButtonMapping.get(buttonIndex - 1));
                 }
             } else if (matchesKeystroke(ev, 'Enter')) {
                 this.keyboardIndexButtonMapping.get(buttonIndex)?.click();
