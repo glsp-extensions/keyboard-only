@@ -409,10 +409,28 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         };
 
         button.onkeydown = ev => {
+            let nextItemIndex = buttonIndex;
+            console.log('currentIndex: ' + nextItemIndex);
+
             if (matchesKeystroke(ev, 'ArrowDown')) {
-                this.selectToolPaletteItemViaArrowKey(this.keyboardIndexButtonMapping.get(++buttonIndex));
+                nextItemIndex += 1;
+                if (nextItemIndex === this.keyboardIndexButtonMapping.size) {
+                    this.selectItemViaArrowKey(this.keyboardIndexButtonMapping.get(0));
+                    buttonIndex = -1;
+                    nextItemIndex = -1;
+                } else {
+                    this.selectItemViaArrowKey(this.keyboardIndexButtonMapping.get(nextItemIndex));
+                }
             } else if (matchesKeystroke(ev, 'ArrowUp')) {
-                this.selectToolPaletteItemViaArrowKey(this.keyboardIndexButtonMapping.get(--buttonIndex));
+                nextItemIndex -= 1;
+
+                if (nextItemIndex < 0) {
+                    this.selectItemViaArrowKey(this.keyboardIndexButtonMapping.get(this.keyboardIndexButtonMapping.size - 1));
+                    buttonIndex = this.keyboardIndexButtonMapping.size;
+                    nextItemIndex = this.keyboardIndexButtonMapping.size;
+                } else {
+                    this.selectItemViaArrowKey(this.keyboardIndexButtonMapping.get(nextItemIndex));
+                }
             } else if (matchesKeystroke(ev, 'Enter')) {
                 this.keyboardIndexButtonMapping.get(buttonIndex)?.click();
             }
@@ -554,8 +572,9 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         }
     }
 
-    protected selectToolPaletteItemViaArrowKey(currentButton: HTMLElement | undefined): void {
+    protected selectItemViaArrowKey(currentButton: HTMLElement | undefined): void {
         // eslint-disable-next-line no-null/no-null
+
         if (currentButton !== null) {
             this.changeActiveButton(currentButton);
             currentButton?.focus();
