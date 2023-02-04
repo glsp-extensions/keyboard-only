@@ -350,12 +350,17 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
     protected createHeaderSearchField(): HTMLInputElement {
         const searchField = document.createElement('input');
         searchField.classList.add('search-input');
+        searchField.tabIndex = -1;
         searchField.id = this.containerElement.id + '_search_field';
         searchField.type = 'text';
         searchField.placeholder = ' Search...';
         searchField.style.display = 'none';
-        searchField.onkeyup = () => this.requestFilterUpdate(this.searchField.value);
+        searchField.onkeyup = ev => {
+            ev.stopPropagation();
+            this.requestFilterUpdate(this.searchField.value);
+        };
         searchField.onkeydown = ev => this.clearOnEscape(ev);
+
         return searchField;
     }
 
