@@ -18,9 +18,9 @@
 .tool-palette {
     position: absolute;
     right: 40px;
-    top: 25px;
+    top: 48px;
     text-align: center;
-    width: 225px;
+    width: 240px;
     display: block;
     z-index: 1000;
     border-style: solid;
@@ -71,7 +71,8 @@
 .header-tools i {
     border: 1px solid #cccccc;
     padding: 0.15em;
-    margin-right: 0.15em;
+    margin-right: 0.5em;
+    position: relative;
 }
 
 .header-tools i:hover {
@@ -142,7 +143,8 @@
 .header-tools .key-shortcut {
     display: none;
     position: absolute;
-    left: -2rem;
+    top: -2.5rem;
+    right: -0.3rem;
 
     border-radius: 50%;
     width: 0.5rem;
@@ -157,7 +159,7 @@
     font: bold 0.8rem Arial, sans-serif;
     line-height: 0.5rem;
 }
-.tool-palette:focus-within .key-shortcut {
+.tool-palette:focus-within .tool-group .key-shortcut {
     display: block;
 }
 
@@ -180,7 +182,7 @@
 .minimize-palette-button {
     position: absolute;
     right: 20px;
-    top: 35px;
+    top: 50px;
     z-index: 1000;
 }
 

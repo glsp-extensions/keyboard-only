@@ -15,6 +15,7 @@
  ********************************************************************************/
 import { Action, PaletteItem, RequestContextActions, RequestMarkersAction, SetContextActions } from '@eclipse-glsp/protocol';
 import { inject, injectable, postConstruct } from 'inversify';
+import { Key } from 'readline';
 import {
     AbstractUIExtension,
     EnableDefaultToolsAction,
@@ -113,8 +114,8 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
     protected searchField: HTMLInputElement;
     protected keyboardIndexButtonMapping = new Map<number, HTMLElement>();
     protected headerToolsButtonMapping = new Map<number, HTMLElement>();
-    private isToolPaletteHintHidden = false;
-    private isHeaderToolHintHidden = false;
+    private isToolPaletteHintHidden = true;
+    private isHeaderToolHintHidden = true;
 
     modelRootId: string;
 
@@ -373,7 +374,14 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
     private createKeyboardShotcut(keyShortcut: KeyCode): HTMLElement {
         const hint = document.createElement('div');
         hint.classList.add('key-shortcut');
-        hint.innerHTML = keyShortcut.toString().substring(3);
+        let keyShortcutValue = keyShortcut.toString();
+
+        if (keyShortcut.includes('Key')) {
+            keyShortcutValue = keyShortcut.toString().substring(3);
+        } else if (keyShortcut.includes('Digit')) {
+            keyShortcutValue = keyShortcut.toString().substring(5);
+        }
+        hint.innerHTML = keyShortcutValue;
         return hint;
     }
 
