@@ -140,6 +140,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         let isAltPressed = false;
 
         this.containerElement.onkeydown = ev => {
+            this.triggerHeaderToolsByKey(ev);
             if (matchesKeystroke(ev, 'AltLeft', 'alt') || matchesKeystroke(ev, 'AltRight', 'alt')) {
                 isAltPressed = true;
                 console.log('Alt key is pressed' + isAltPressed);
@@ -153,7 +154,6 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         this.containerElement.onkeyup = ev => {
             this.clearToolOnEscape(ev);
             this.selectItemOnCharacter(ev);
-            this.triggerHeaderToolsByKey(ev);
 
             if (matchesKeystroke(ev, 'AltLeft', 'alt') || matchesKeystroke(ev, 'AltRight', 'alt')) {
                 isAltPressed = false;
@@ -522,7 +522,9 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             for (let i = 0; i < itemsCount; i++) {
                 const keycode = headerToolKeys[i];
 
-                if (matchesKeystroke(event, keycode)) {
+                if (matchesKeystroke(event, keycode, 'alt')) {
+                    event.stopPropagation();
+                    event.preventDefault();
                     index = i;
                     break;
                 }
