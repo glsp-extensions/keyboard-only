@@ -122,10 +122,10 @@
     margin-right: 0.4em;
 }
 
-.tool-button .key-shortcut {
+.tool-button .key-shortcut,
+.header-tools .key-shortcut {
     display: none;
     position: absolute;
-    left: -2rem;
 
     border-radius: 50%;
     width: 0.5rem;
@@ -140,24 +140,14 @@
     font: bold 0.8rem Arial, sans-serif;
     line-height: 0.5rem;
 }
+
+.tool-button .key-shortcut {
+    left: -2rem;
+}
+
 .header-tools .key-shortcut {
-    display: none;
-    position: absolute;
     top: -2.5rem;
     right: -0.3rem;
-
-    border-radius: 50%;
-    width: 0.5rem;
-    height: 0.5rem;
-    padding: 0.5rem;
-
-    background: #fff;
-    border: 2px solid #666;
-    color: black;
-    text-align: center;
-
-    font: bold 0.8rem Arial, sans-serif;
-    line-height: 0.5rem;
 }
 .tool-palette:focus-within .tool-group .key-shortcut {
     display: block;
