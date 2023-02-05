@@ -14,9 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { Action, PaletteItem, RequestContextActions, RequestMarkersAction, SetContextActions } from '@eclipse-glsp/protocol';
-import { timeStamp } from 'console';
 import { inject, injectable, postConstruct } from 'inversify';
-import { Key } from 'readline';
 import {
     AbstractUIExtension,
     EnableDefaultToolsAction,
@@ -220,18 +218,26 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         bodyDiv.classList.add('palette-body');
         const tabIndex = 21;
         let toolButtonCounter = 0;
+
         this.keyboardIndexButtonMapping.clear();
         this.paletteItems.sort(compare).forEach(item => {
             if (item.children) {
                 const group = createToolGroup(item);
-                item.children
-                    .sort(compare)
-                    .forEach(child => group.appendChild(this.createToolButton(child, tabIndex, toolButtonCounter++)));
+                item.children.sort(compare).forEach(child => {
+                    const button = this.createToolButton(child, tabIndex, toolButtonCounter);
+                    group.appendChild(button);
+                    this.keyboardIndexButtonMapping.set(toolButtonCounter, button);
+                    toolButtonCounter++;
+                });
                 bodyDiv.appendChild(group);
             } else {
-                bodyDiv.appendChild(this.createToolButton(item, tabIndex, toolButtonCounter++));
+                const button = this.createToolButton(item, tabIndex, toolButtonCounter);
+                bodyDiv.appendChild(button);
+                this.keyboardIndexButtonMapping.set(toolButtonCounter, button);
+                toolButtonCounter++;
             }
         });
+
         if (this.paletteItems.length === 0) {
             const noResultsDiv = document.createElement('div');
             noResultsDiv.innerText = 'No results found.';
@@ -257,6 +263,8 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
     }
 
     private createHeaderTools(): HTMLElement {
+        this.headerToolsButtonMapping.clear();
+
         const headerTools = document.createElement('div');
         headerTools.classList.add('header-tools');
 
@@ -288,7 +296,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         const button = createIcon('inspect');
         button.id = 'btn_default_tools';
         button.title = 'Enable selection tool';
-        button.onclick = this.onClickStaticToolButton(this.defaultToolsButton);
+        button.onclick = this.onClickStaticToolButton(button);
         button.appendChild(this.createKeyboardShotcut(SELECTION_TOOL_KEY));
 
         return button;
@@ -425,8 +433,6 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             }
         };
 
-        this.keyboardIndexButtonMapping.set(buttonIndex, button);
-
         return button;
     }
 
@@ -512,23 +518,23 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         let index: number | undefined = undefined;
         const items = this.interactablePaletteItems;
 
-        if (!this.isToolPaletteHintHidden) {
-            const itemsCount = items.length < AVAILABLE_KEYS.length ? items.length : AVAILABLE_KEYS.length;
+        // if (!this.isToolPaletteHintHidden) {
+        const itemsCount = items.length < AVAILABLE_KEYS.length ? items.length : AVAILABLE_KEYS.length;
 
-            for (let i = 0; i < itemsCount; i++) {
-                const keycode = AVAILABLE_KEYS[i];
-                if (matchesKeystroke(event, keycode)) {
-                    index = i;
-                    break;
-                }
-            }
-
-            if (index !== undefined) {
-                this.actionDispatcher.dispatchAll(items[index].actions);
-                this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
-                this.keyboardIndexButtonMapping.get(index)?.focus();
+        for (let i = 0; i < itemsCount; i++) {
+            const keycode = AVAILABLE_KEYS[i];
+            if (matchesKeystroke(event, keycode)) {
+                index = i;
+                break;
             }
         }
+
+        if (index !== undefined) {
+            this.actionDispatcher.dispatchAll(items[index].actions);
+            this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
+            this.keyboardIndexButtonMapping.get(index)?.focus();
+        }
+        // }
     }
 
     protected triggerHeaderToolsByKey(event: KeyboardEvent): void {
