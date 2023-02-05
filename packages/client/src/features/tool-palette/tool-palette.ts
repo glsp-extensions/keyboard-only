@@ -113,14 +113,25 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
     protected searchField: HTMLInputElement;
     protected keyboardIndexButtonMapping = new Map<number, HTMLElement>();
     protected headerToolsButtonMapping = new Map<number, HTMLElement>();
-    protected isToolPaletteHintHidden = true;
-    protected isHeaderToolHintHidden = true;
-    get interactablePaletteItems(): PaletteItem[] {
+    protected get interactablePaletteItems(): PaletteItem[] {
         return this.paletteItems
             .sort(compare)
             .map(item => item.children?.sort(compare) ?? [item])
             .reduce((acc, val) => acc.concat(val), []);
     }
+
+    protected get isToolButtonHintHidden(): boolean {
+        return !!Array.from(this.containerElement.querySelectorAll(TOOL_BUTTON_SHORTCUT_HINT_CLASS)).find(
+            element => (element as HTMLElement).style.display === 'none'
+        );
+    }
+
+    protected get isHeaderToolHintHidden(): boolean {
+        return !!Array.from(this.containerElement.querySelectorAll(HEADER_TOOL_SHORTCUT_HINT_CLASS)).find(
+            element => (element as HTMLElement).style.display === 'none'
+        );
+    }
+
     modelRootId: string;
 
     id(): string {
@@ -153,8 +164,6 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             if (matchesKeystroke(ev, 'AltLeft', 'alt') || matchesKeystroke(ev, 'AltRight', 'alt')) {
                 this.triggerKeyboardShortcutDisplay(TOOL_BUTTON_SHORTCUT_HINT_CLASS, true);
                 this.triggerKeyboardShortcutDisplay(HEADER_TOOL_SHORTCUT_HINT_CLASS, false);
-                this.isToolPaletteHintHidden = true;
-                this.isHeaderToolHintHidden = false;
             }
         };
 
@@ -165,8 +174,6 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             if (matchesKeystroke(ev, 'AltLeft') || matchesKeystroke(ev, 'AltRight')) {
                 this.triggerKeyboardShortcutDisplay(TOOL_BUTTON_SHORTCUT_HINT_CLASS, false);
                 this.triggerKeyboardShortcutDisplay(HEADER_TOOL_SHORTCUT_HINT_CLASS, true);
-                this.isToolPaletteHintHidden = false;
-                this.isHeaderToolHintHidden = true;
             }
         };
     }
@@ -452,7 +459,7 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
                 const action = toolId ? EnableToolsAction.create([toolId]) : EnableDefaultToolsAction.create();
                 this.actionDispatcher.dispatch(action);
                 this.changeActiveButton(button);
-                button.focus();
+                this.restoreFocus();
             }
         };
     }
@@ -559,8 +566,6 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
                 this.headerToolsButtonMapping.get(index)?.click();
                 this.triggerKeyboardShortcutDisplay(TOOL_BUTTON_SHORTCUT_HINT_CLASS, false);
                 this.triggerKeyboardShortcutDisplay(HEADER_TOOL_SHORTCUT_HINT_CLASS, true);
-                this.isToolPaletteHintHidden = false;
-                this.isHeaderToolHintHidden = true;
             }
         }
     }
