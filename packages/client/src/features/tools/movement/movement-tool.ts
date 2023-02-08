@@ -49,53 +49,28 @@ export class MovementTool implements GLSPTool {
 export class MoveKeyListener extends KeyListener {
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
         if (matchesKeystroke(event, 'ArrowUp')) {
-            const viewport = findParentByFeature(element, isViewport);
-            if (viewport) {
-                const newViewport: Viewport = {
-                    scroll: {
-                        x: viewport.scroll.x,
-                        y: viewport.scroll.y - 50
-                    },
-                    zoom: viewport.zoom
-                };
-                return [SetViewportAction.create(viewport.id, newViewport, { animate: false })];
-            }
+            return this.setNewViewPort(element, 0, -50);
         } else if (matchesKeystroke(event, 'ArrowDown')) {
-            const viewport = findParentByFeature(element, isViewport);
-            if (viewport) {
-                const newViewport: Viewport = {
-                    scroll: {
-                        x: viewport.scroll.x,
-                        y: viewport.scroll.y + 50
-                    },
-                    zoom: viewport.zoom
-                };
-                return [SetViewportAction.create(viewport.id, newViewport, { animate: false })];
-            }
+            return this.setNewViewPort(element, 0, 50);
         } else if (matchesKeystroke(event, 'ArrowRight')) {
-            const viewport = findParentByFeature(element, isViewport);
-            if (viewport) {
-                const newViewport: Viewport = {
-                    scroll: {
-                        x: viewport.scroll.x + 50,
-                        y: viewport.scroll.y
-                    },
-                    zoom: viewport.zoom
-                };
-                return [SetViewportAction.create(viewport.id, newViewport, { animate: false })];
-            }
+            return this.setNewViewPort(element, 50, 0);
         } else if (matchesKeystroke(event, 'ArrowLeft')) {
-            const viewport = findParentByFeature(element, isViewport);
-            if (viewport) {
-                const newViewport: Viewport = {
-                    scroll: {
-                        x: viewport.scroll.x - 50,
-                        y: viewport.scroll.y
-                    },
-                    zoom: viewport.zoom
-                };
-                return [SetViewportAction.create(viewport.id, newViewport, { animate: false })];
-            }
+            return this.setNewViewPort(element, -50, 0);
+        }
+        return [];
+    }
+
+    setNewViewPort(element: SModelElement, offsetX: number, offSetY: number): SetViewportAction[] {
+        const viewport = findParentByFeature(element, isViewport);
+        if (viewport) {
+            const newViewport: Viewport = {
+                scroll: {
+                    x: viewport.scroll.x + offsetX,
+                    y: viewport.scroll.y + offSetY
+                },
+                zoom: viewport.zoom
+            };
+            return [SetViewportAction.create(viewport.id, newViewport, { animate: false })];
         }
         return [];
     }
