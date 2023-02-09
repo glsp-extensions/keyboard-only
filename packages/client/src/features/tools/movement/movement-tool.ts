@@ -13,12 +13,12 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action, SetViewportAction, Viewport } from '@eclipse-glsp/protocol';
+import { Action, ChangeBoundsOperation, SetViewportAction, Viewport } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
-import { KeyListener, KeyTool, SModelElement, findParentByFeature, isViewport } from 'sprotty';
+import { KeyListener, KeyTool, SModelElement, findParentByFeature, isViewport, isSelectable, isBoundsAware } from 'sprotty';
+import { Dimension, ElementAndBounds } from 'sprotty-protocol';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../../base/tool-manager/glsp-tool-manager';
-
 /**
  * Moves viewport when its focused and arrow keys are hit.
  */
@@ -48,14 +48,133 @@ export class MovementTool implements GLSPTool {
 @injectable()
 export class MoveKeyListener extends KeyListener {
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
+        const selectedElement = Array.from(
+            element.root.index
+                .all()
+                .filter(e => isSelectable(e) && e.selected)
+                .filter(e => e.id !== e.root.id)
+                .map(e => e)
+        );
         if (matchesKeystroke(event, 'ArrowUp')) {
-            return this.setNewViewPort(element, 0, -50);
+            if (selectedElement.length !== 0) {
+                // return this.setNewPositionForElement(element, 0, -50);
+                element = selectedElement[0];
+                let width = 0;
+                let height = 0;
+                let x = 0;
+                let y = 0;
+                if (isBoundsAware(element)) {
+                    width = element.bounds.width;
+                    height = element.bounds.height;
+                    x = element.bounds.x;
+                    y = element.bounds.y;
+                }
+                const newBounds: ElementAndBounds = {
+                    elementId: element.id,
+                    newSize: {
+                        width: width,
+                        height: height
+                    },
+                    newPosition: {
+                        x: x,
+                        y: y - 10
+                    }
+                };
+
+                return [ChangeBoundsOperation.create([newBounds])];
+            } else {
+                return this.setNewViewPort(element, 0, -50);
+            }
         } else if (matchesKeystroke(event, 'ArrowDown')) {
-            return this.setNewViewPort(element, 0, 50);
+            if (selectedElement.length !== 0) {
+                // return this.setNewPositionForElement(element, 0, -50);
+                element = selectedElement[0];
+                let width = 0;
+                let height = 0;
+                let x = 0;
+                let y = 0;
+                if (isBoundsAware(element)) {
+                    width = element.bounds.width;
+                    height = element.bounds.height;
+                    x = element.bounds.x;
+                    y = element.bounds.y;
+                }
+                const newBounds: ElementAndBounds = {
+                    elementId: element.id,
+                    newSize: {
+                        width: width,
+                        height: height
+                    },
+                    newPosition: {
+                        x: x,
+                        y: y + 10
+                    }
+                };
+
+                return [ChangeBoundsOperation.create([newBounds])];
+            } else {
+                return this.setNewViewPort(element, 0, 50);
+            }
         } else if (matchesKeystroke(event, 'ArrowRight')) {
-            return this.setNewViewPort(element, 50, 0);
+            if (selectedElement.length !== 0) {
+                // return this.setNewPositionForElement(element, 0, -50);
+                element = selectedElement[0];
+                let width = 0;
+                let height = 0;
+                let x = 0;
+                let y = 0;
+                if (isBoundsAware(element)) {
+                    width = element.bounds.width;
+                    height = element.bounds.height;
+                    x = element.bounds.x;
+                    y = element.bounds.y;
+                }
+                const newBounds: ElementAndBounds = {
+                    elementId: element.id,
+                    newSize: {
+                        width: width,
+                        height: height
+                    },
+                    newPosition: {
+                        x: x + 10,
+                        y: y
+                    }
+                };
+
+                return [ChangeBoundsOperation.create([newBounds])];
+            } else {
+                return this.setNewViewPort(element, 50, 0);
+            }
         } else if (matchesKeystroke(event, 'ArrowLeft')) {
-            return this.setNewViewPort(element, -50, 0);
+            if (selectedElement.length !== 0) {
+                // return this.setNewPositionForElement(element, 0, -50);
+                element = selectedElement[0];
+                let width = 0;
+                let height = 0;
+                let x = 0;
+                let y = 0;
+                if (isBoundsAware(element)) {
+                    width = element.bounds.width;
+                    height = element.bounds.height;
+                    x = element.bounds.x;
+                    y = element.bounds.y;
+                }
+                const newBounds: ElementAndBounds = {
+                    elementId: element.id,
+                    newSize: {
+                        width: width,
+                        height: height
+                    },
+                    newPosition: {
+                        x: x - 10,
+                        y: y
+                    }
+                };
+
+                return [ChangeBoundsOperation.create([newBounds])];
+            } else {
+                return this.setNewViewPort(element, -50, 0);
+            }
         }
         return [];
     }
@@ -72,6 +191,10 @@ export class MoveKeyListener extends KeyListener {
             };
             return [SetViewportAction.create(viewport.id, newViewport, { animate: false })];
         }
+        return [];
+    }
+
+    setNewPositionForElement(element: SModelElement, offsetX: number, offSetY: number): ChangeBoundsOperation[] {
         return [];
     }
 }
