@@ -128,7 +128,7 @@ export class MoveKeyListener extends KeyListener {
                 },
                 zoom: viewport.zoom
             };
-            console.log(newViewport);
+
             return SetViewportAction.create(viewport.id, newViewport, { animate: false });
         }
         return;

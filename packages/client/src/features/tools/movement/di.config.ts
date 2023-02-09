@@ -17,6 +17,7 @@
 import { ContainerModule } from 'inversify';
 import { TYPES } from '../../../base/types';
 import { MovementTool } from './movement-tool';
+import { ZoomTool } from './zoom-tool';
 
 /**
  * Registers the default tools of GLSP (node and edge creation, changing bounds, edge editing, deletion)
@@ -25,4 +26,5 @@ import { MovementTool } from './movement-tool';
 export const glspMovementModule = new ContainerModule((bind, _unbind, isBound, rebind) => {
     // Register default tools
     bind(TYPES.IDefaultTool).to(MovementTool);
+    bind(TYPES.IDefaultTool).to(ZoomTool);
 });
