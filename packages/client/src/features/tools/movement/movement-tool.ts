@@ -18,6 +18,7 @@ import { inject, injectable } from 'inversify';
 import { KeyListener, KeyTool, SModelElement, findParentByFeature, isViewport, isSelectable, isBoundsAware } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../../base/tool-manager/glsp-tool-manager';
+
 /**
  * Moves viewport when its focused and arrow keys are hit.
  */
@@ -78,6 +79,7 @@ export class MoveKeyListener extends KeyListener {
 
     setNewViewPort(element: SModelElement, offsetX: number, offSetY: number): SetViewportAction[] {
         const viewport = findParentByFeature(element, isViewport);
+
         if (viewport) {
             const newViewport: Viewport = {
                 scroll: {
@@ -92,7 +94,14 @@ export class MoveKeyListener extends KeyListener {
     }
 
     setNewPositionForElement(element: SModelElement, offSetX: number, offSetY: number): ChangeBoundsOperation {
+        const viewport = findParentByFeature(element, isViewport);
+        const viewportBounds = viewport?.canvasBounds;
+
         const bounds = isBoundsAware(element) ? element.bounds : { width: 0, height: 0, x: 0, y: 0 };
+
+        const newX = bounds.x + offSetX;
+        const newY = bounds.y + offSetY;
+
         const newBounds: ElementAndBounds = {
             elementId: element.id,
             newSize: {
@@ -100,11 +109,26 @@ export class MoveKeyListener extends KeyListener {
                 height: bounds.height
             },
             newPosition: {
-                x: bounds.x + offSetX,
-                y: bounds.y + offSetY
+                x: newX,
+                y: newY
+            }
+        };
+        const oldBounds: ElementAndBounds = {
+            elementId: element.id,
+            newSize: {
+                width: bounds.width,
+                height: bounds.height
+            },
+            newPosition: {
+                x: bounds.x,
+                y: bounds.y
             }
         };
 
-        return ChangeBoundsOperation.create([newBounds]);
+        if (newX >= 0 && newX < viewportBounds!.width && newY >= 0 && newY < viewportBounds!.height) {
+            return ChangeBoundsOperation.create([newBounds]);
+        }
+        console.log('out of bound');
+        return ChangeBoundsOperation.create([oldBounds]);
     }
 }
