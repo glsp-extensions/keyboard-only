@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action, ChangeBoundsOperation, ElementAndBounds, SetViewportAction, Viewport } from '@eclipse-glsp/protocol';
+import { Action, ChangeBoundsOperation, SetViewportAction, Viewport } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
 import { KeyListener, KeyTool, SModelElement, findParentByFeature, isViewport, isSelectable, isBoundsAware, SModelRoot } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
@@ -59,16 +59,19 @@ export class MoveKeyListener extends KeyListener {
                 .map(e => e)
         );
         const viewport = findParentByFeature(element, isViewport);
+        if (!viewport) {
+            return [];
+        }
 
         if (matchesKeystroke(event, 'ArrowUp')) {
             if (selectedElements.length !== 0) {
                 selectedElements.map(currentElement => result.push(this.setNewPositionForElement(currentElement, 0, -this.offSetElement)));
                 selectedElements.map(currentElement => {
-                    const bounds = isBoundsAware(currentElement) ? currentElement.bounds : { width: 0, height: 0, x: 0, y: 0 };
-
-                    const newX = bounds.x;
-                    const newY = bounds.y - 50;
-                    result.push(this.adaptViewport(viewport!, newX, newY)!);
+                    const newPosition = this.getBounds(currentElement, 0, -this.offSetViewport);
+                    const viewportAction = this.adaptViewport(viewport, newPosition.x, newPosition.y);
+                    if (viewportAction) {
+                        result.push(viewportAction);
+                    }
                 });
             } else {
                 result.push(this.setNewViewport(viewport!, 0, -this.offSetViewport)!);
@@ -77,11 +80,11 @@ export class MoveKeyListener extends KeyListener {
             if (selectedElements.length !== 0) {
                 selectedElements.map(currentElement => result.push(this.setNewPositionForElement(currentElement, 0, this.offSetElement)));
                 selectedElements.map(currentElement => {
-                    const bounds = isBoundsAware(currentElement) ? currentElement.bounds : { width: 0, height: 0, x: 0, y: 0 };
-
-                    const newX = bounds.x;
-                    const newY = bounds.y + 50;
-                    result.push(this.adaptViewport(viewport!, newX, newY)!);
+                    const newPosition = this.getBounds(currentElement, 0, this.offSetViewport);
+                    const viewportAction = this.adaptViewport(viewport, newPosition.x, newPosition.y);
+                    if (viewportAction) {
+                        result.push(viewportAction);
+                    }
                 });
             } else {
                 result.push(this.setNewViewport(viewport!, 0, this.offSetViewport)!);
@@ -90,11 +93,11 @@ export class MoveKeyListener extends KeyListener {
             if (selectedElements.length !== 0) {
                 selectedElements.map(currentElement => result.push(this.setNewPositionForElement(currentElement, this.offSetElement, 0)));
                 selectedElements.map(currentElement => {
-                    const bounds = isBoundsAware(currentElement) ? currentElement.bounds : { width: 0, height: 0, x: 0, y: 0 };
-
-                    const newX = bounds.x + 50;
-                    const newY = bounds.y;
-                    result.push(this.adaptViewport(viewport!, newX, newY)!);
+                    const newPosition = this.getBounds(currentElement, this.offSetViewport, 0);
+                    const viewportAction = this.adaptViewport(viewport, newPosition.x, newPosition.y);
+                    if (viewportAction) {
+                        result.push(viewportAction);
+                    }
                 });
             } else {
                 result.push(this.setNewViewport(viewport!, this.offSetViewport, 0)!);
@@ -103,18 +106,23 @@ export class MoveKeyListener extends KeyListener {
             if (selectedElements.length !== 0) {
                 selectedElements.map(currentElement => result.push(this.setNewPositionForElement(currentElement, -this.offSetElement, 0)));
                 selectedElements.map(currentElement => {
-                    const bounds = isBoundsAware(currentElement) ? currentElement.bounds : { width: 0, height: 0, x: 0, y: 0 };
-
-                    const newX = bounds.x - 50;
-                    const newY = bounds.y;
-                    result.push(this.adaptViewport(viewport!, newX, newY)!);
+                    const newPosition = this.getBounds(currentElement, -this.offSetViewport, 0);
+                    const viewportAction = this.adaptViewport(viewport, newPosition.x, newPosition.y);
+                    if (viewportAction) {
+                        result.push(viewportAction);
+                    }
                 });
             } else {
                 result.push(this.setNewViewport(viewport!, -this.offSetViewport, 0)!);
             }
         }
-        console.log(result);
+
         return result;
+    }
+
+    getBounds(element: SModelElement, offSetX: number, offSetY: number): { x: number; y: number } {
+        const bounds = isBoundsAware(element) ? element.bounds : { width: 0, height: 0, x: 0, y: 0 };
+        return { x: bounds.x + offSetX, y: bounds.y + offSetY };
     }
 
     setNewViewport(viewport: SModelElement & SModelRoot & Viewport, offsetX: number, offSetY: number): SetViewportAction | undefined {
@@ -129,48 +137,46 @@ export class MoveKeyListener extends KeyListener {
             console.log(newViewport);
             return SetViewportAction.create(viewport.id, newViewport, { animate: false });
         }
-        return undefined;
+        return;
     }
 
     adaptViewport(viewport: SModelElement & SModelRoot & Viewport, newX: number, newY: number): SetViewportAction | undefined {
-        const viewportBounds = viewport?.canvasBounds;
+        if (!viewport || !viewport.canvasBounds) {
+            return;
+        }
 
         if (newX < 0) {
             console.log('Element is out of bounds from the left');
-            return this.setNewViewport(viewport!, -50, 0);
-        } else if (newX > viewportBounds!.width) {
+            return this.setNewViewport(viewport, -this.offSetViewport, 0);
+        } else if (newX > viewport.canvasBounds.width) {
             console.log('Element is out of bounds from the right');
-            return this.setNewViewport(viewport!, 50, 0);
+            return this.setNewViewport(viewport, this.offSetViewport, 0);
         } else if (newY < 0) {
             console.log('Element is out of bounds from the top');
-            return this.setNewViewport(viewport!, 0, -50);
-        } else if (newY > viewportBounds!.height) {
+            return this.setNewViewport(viewport, 0, -this.offSetViewport);
+        } else if (newY > viewport.canvasBounds.height) {
             console.log('Element is out of bounds from the bottom');
-            return this.setNewViewport(viewport!, 0, 50);
-        } else {
-            console.log('Element is within bounds');
+            return this.setNewViewport(viewport, 0, this.offSetViewport);
         }
-        return undefined;
+        console.log('Element is within bounds');
+        return;
     }
 
     setNewPositionForElement(element: SModelElement, offSetX: number, offSetY: number): ChangeBoundsOperation {
         const bounds = isBoundsAware(element) ? element.bounds : { width: 0, height: 0, x: 0, y: 0 };
 
-        const newX = bounds.x + offSetX;
-        const newY = bounds.y + offSetY;
-
-        const newBounds: ElementAndBounds = {
-            elementId: element.id,
-            newSize: {
-                width: bounds.width,
-                height: bounds.height
-            },
-            newPosition: {
-                x: newX,
-                y: newY
+        return ChangeBoundsOperation.create([
+            {
+                elementId: element.id,
+                newSize: {
+                    width: bounds.width,
+                    height: bounds.height
+                },
+                newPosition: {
+                    x: bounds.x + offSetX,
+                    y: bounds.y + offSetY
+                }
             }
-        };
-
-        return ChangeBoundsOperation.create([newBounds]);
+        ]);
     }
 }
