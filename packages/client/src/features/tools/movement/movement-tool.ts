@@ -13,10 +13,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action, ChangeBoundsOperation, Operation, SetViewportAction, Viewport } from '@eclipse-glsp/protocol';
+import { Action, ChangeBoundsOperation, ElementAndBounds, SetViewportAction, Viewport } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
 import { KeyListener, KeyTool, SModelElement, findParentByFeature, isViewport, isSelectable, isBoundsAware } from 'sprotty';
-import { Dimension, ElementAndBounds } from 'sprotty-protocol';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../../base/tool-manager/glsp-tool-manager';
 /**
@@ -71,7 +70,7 @@ export class MoveKeyListener extends KeyListener {
                 : this.setNewViewPort(element, this.offSetViewport, 0);
         } else if (matchesKeystroke(event, 'ArrowLeft')) {
             return selectedElements.length !== 0
-                ? selectedElements.map(currentElement => this.setNewPositionForElement(currentElement, this.offSetElement, 0))
+                ? selectedElements.map(currentElement => this.setNewPositionForElement(currentElement, -this.offSetElement, 0))
                 : this.setNewViewPort(element, -this.offSetViewport, 0);
         }
         return [];
