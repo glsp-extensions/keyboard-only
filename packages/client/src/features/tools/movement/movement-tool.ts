@@ -63,55 +63,49 @@ export class MoveKeyListener extends KeyListener {
             return [];
         }
 
+        const updateSelectedElements = (deltaX: number, deltaY: number): void => {
+            selectedElements.forEach(currentElement => {
+                result.push(this.setNewPositionForElement(currentElement, deltaX, deltaY));
+            });
+        };
+
+        const updateViewport = (deltaX: number, deltaY: number): void => {
+            if (!viewport) {
+                return;
+            }
+
+            const newPosition = this.getBounds(selectedElements[0], deltaX, deltaY);
+            const viewportAction = this.adaptViewport(viewport, newPosition.x, newPosition.y);
+            if (viewportAction) {
+                result.push(viewportAction);
+            }
+        };
+
         if (matchesKeystroke(event, 'ArrowUp')) {
             if (selectedElements.length !== 0) {
-                selectedElements.map(currentElement => result.push(this.setNewPositionForElement(currentElement, 0, -this.offSetElement)));
-                selectedElements.map(currentElement => {
-                    const newPosition = this.getBounds(currentElement, 0, -this.offSetViewport);
-                    const viewportAction = this.adaptViewport(viewport, newPosition.x, newPosition.y);
-                    if (viewportAction) {
-                        result.push(viewportAction);
-                    }
-                });
+                updateSelectedElements(0, -this.offSetElement);
+                updateViewport(0, -this.offSetViewport);
             } else {
                 result.push(this.setNewViewport(viewport!, 0, -this.offSetViewport)!);
             }
         } else if (matchesKeystroke(event, 'ArrowDown')) {
             if (selectedElements.length !== 0) {
-                selectedElements.map(currentElement => result.push(this.setNewPositionForElement(currentElement, 0, this.offSetElement)));
-                selectedElements.map(currentElement => {
-                    const newPosition = this.getBounds(currentElement, 0, this.offSetViewport);
-                    const viewportAction = this.adaptViewport(viewport, newPosition.x, newPosition.y);
-                    if (viewportAction) {
-                        result.push(viewportAction);
-                    }
-                });
+                updateSelectedElements(0, this.offSetElement);
+                updateViewport(0, this.offSetViewport);
             } else {
                 result.push(this.setNewViewport(viewport!, 0, this.offSetViewport)!);
             }
         } else if (matchesKeystroke(event, 'ArrowRight')) {
             if (selectedElements.length !== 0) {
-                selectedElements.map(currentElement => result.push(this.setNewPositionForElement(currentElement, this.offSetElement, 0)));
-                selectedElements.map(currentElement => {
-                    const newPosition = this.getBounds(currentElement, this.offSetViewport, 0);
-                    const viewportAction = this.adaptViewport(viewport, newPosition.x, newPosition.y);
-                    if (viewportAction) {
-                        result.push(viewportAction);
-                    }
-                });
+                updateSelectedElements(this.offSetElement, 0);
+                updateViewport(this.offSetViewport, 0);
             } else {
                 result.push(this.setNewViewport(viewport!, this.offSetViewport, 0)!);
             }
         } else if (matchesKeystroke(event, 'ArrowLeft')) {
             if (selectedElements.length !== 0) {
-                selectedElements.map(currentElement => result.push(this.setNewPositionForElement(currentElement, -this.offSetElement, 0)));
-                selectedElements.map(currentElement => {
-                    const newPosition = this.getBounds(currentElement, -this.offSetViewport, 0);
-                    const viewportAction = this.adaptViewport(viewport, newPosition.x, newPosition.y);
-                    if (viewportAction) {
-                        result.push(viewportAction);
-                    }
-                });
+                updateSelectedElements(-this.offSetElement, 0);
+                updateViewport(-this.offSetViewport, 0);
             } else {
                 result.push(this.setNewViewport(viewport!, -this.offSetViewport, 0)!);
             }
