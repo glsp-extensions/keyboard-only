@@ -91,6 +91,7 @@ export class ZoomKeyListener extends KeyListener {
         }
         if (selectedElements.length === 1) {
             const bounds = isBoundsAware(selectedElements[0]) ? selectedElements[0].bounds : { width: 0, height: 0, x: 0, y: 0 };
+            console.log(bounds);
             const viewportAction = this.setNewZoomFactor(viewport, zoomFactor, bounds, bounds.x, bounds.y);
             if (viewportAction) {
                 return viewportAction;
@@ -110,6 +111,7 @@ export class ZoomKeyListener extends KeyListener {
         selectedElements.forEach(currentElement => {
             allBounds.push(isBoundsAware(currentElement) ? currentElement.bounds : { width: 0, height: 0, x: 0, y: 0 });
         });
+
         const totalWidth = allBounds.reduce((sum, currentBound) => sum + currentBound.width, 0);
         const totalHeight = allBounds.reduce((sum, currentBound) => sum + currentBound.height, 0);
         const totalX = allBounds.reduce((sum, currentBound) => sum + currentBound.x, 0);
@@ -134,22 +136,22 @@ export class ZoomKeyListener extends KeyListener {
         if (viewport) {
             if (x && y && bounds) {
                 const c = Bounds.center(bounds);
-
                 newViewport = {
                     scroll: {
                         x: c.x - (0.5 * viewport.canvasBounds.width) / newZoom,
                         y: c.y - (0.5 * viewport.canvasBounds.height) / newZoom
                     },
-                    zoom: viewport.zoom * zoomFactor
+                    zoom: newZoom
+                };
+            } else {
+                newViewport = {
+                    scroll: {
+                        x: x === undefined ? viewport.scroll.x : x,
+                        y: y === undefined ? viewport.scroll.y : y
+                    },
+                    zoom: newZoom
                 };
             }
-            newViewport = {
-                scroll: {
-                    x: x === undefined ? viewport.scroll.x : x,
-                    y: y === undefined ? viewport.scroll.y : y
-                },
-                zoom: newZoom
-            };
 
             return SetViewportAction.create(viewport.id, newViewport, { animate: false });
         }
