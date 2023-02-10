@@ -13,9 +13,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action, Bounds, ChangeBoundsOperation, Point, RequestMarkersAction, SetViewportAction, Viewport } from '@eclipse-glsp/protocol';
+import { Action, Bounds, SetViewportAction, Viewport } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
-import { off } from 'process';
 import { KeyListener, KeyTool, SModelElement, findParentByFeature, isViewport, isSelectable, isBoundsAware, SModelRoot } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../../base/tool-manager/glsp-tool-manager';
@@ -61,41 +60,68 @@ export class ZoomKeyListener extends KeyListener {
                 .map(e => e)
         );
 
-        const selectedElement = selectedElements[0];
         if (!viewport) {
             return [];
         }
         if (matchesKeystroke(event, 'Minus')) {
-            if (selectedElement) {
-                const bounds = isBoundsAware(selectedElement) ? selectedElement.bounds : { width: 0, height: 0, x: 0, y: 0 };
-                const viewportAction = this.setNewZoomFactor(viewport, this.defaultZoomOutFactor, bounds, bounds.x, bounds.y);
-                if (viewportAction) {
-                    result.push(viewportAction);
-                }
-            } else {
-                const viewportAction = this.setNewZoomFactor(viewport, this.defaultZoomOutFactor, undefined, undefined, undefined);
-                if (viewportAction) {
-                    result.push(viewportAction);
-                }
+            const actions = this.executeZoomWorkflow(selectedElements, viewport, this.defaultZoomOutFactor);
+            if (actions) {
+                result.push(actions);
             }
         } else if (event.key === '+') {
-            if (selectedElement) {
-                const bounds = isBoundsAware(selectedElement) ? selectedElement.bounds : { width: 0, height: 0, x: 0, y: 0 };
-
-                const viewportAction = this.setNewZoomFactor(viewport, this.defaultZoomInFactor, bounds, bounds.x, bounds.y);
-                if (viewportAction) {
-                    result.push(viewportAction);
-                }
-            } else {
-                const viewportAction = this.setNewZoomFactor(viewport, this.defaultZoomInFactor, undefined, undefined, undefined);
-                if (viewportAction) {
-                    result.push(viewportAction);
-                }
+            const actions = this.executeZoomWorkflow(selectedElements, viewport, this.defaultZoomInFactor);
+            if (actions) {
+                result.push(actions);
             }
         }
         return result;
     }
 
+    executeZoomWorkflow(
+        selectedElements: SModelElement[],
+        viewport: SModelElement & SModelRoot & Viewport,
+        zoomFactor: number
+    ): Action | undefined {
+        if (selectedElements.length > 1) {
+            const avgBounds: Bounds = this.getAverageBounds(selectedElements);
+            const viewportAction = this.setNewZoomFactor(viewport, zoomFactor, avgBounds, avgBounds.x, avgBounds.y);
+            if (viewportAction) {
+                return viewportAction;
+            }
+        }
+        if (selectedElements.length === 1) {
+            const bounds = isBoundsAware(selectedElements[0]) ? selectedElements[0].bounds : { width: 0, height: 0, x: 0, y: 0 };
+            const viewportAction = this.setNewZoomFactor(viewport, zoomFactor, bounds, bounds.x, bounds.y);
+            if (viewportAction) {
+                return viewportAction;
+            }
+        } else {
+            const viewportAction = this.setNewZoomFactor(viewport, zoomFactor, undefined, undefined, undefined);
+            if (viewportAction) {
+                return viewportAction;
+            }
+        }
+        return;
+    }
+
+    getAverageBounds(selectedElements: SModelElement[]): Bounds {
+        const allBounds: Bounds[] = [];
+
+        selectedElements.forEach(currentElement => {
+            allBounds.push(isBoundsAware(currentElement) ? currentElement.bounds : { width: 0, height: 0, x: 0, y: 0 });
+        });
+        const totalWidth = allBounds.reduce((sum, currentBound) => sum + currentBound.width, 0);
+        const totalHeight = allBounds.reduce((sum, currentBound) => sum + currentBound.height, 0);
+        const totalX = allBounds.reduce((sum, currentBound) => sum + currentBound.x, 0);
+        const totalY = allBounds.reduce((sum, currentBound) => sum + currentBound.y, 0);
+
+        return {
+            width: totalWidth / allBounds.length,
+            height: totalHeight / allBounds.length,
+            x: totalX / allBounds.length,
+            y: totalY / allBounds.length
+        };
+    }
     setNewZoomFactor(
         viewport: SModelElement & SModelRoot & Viewport,
         zoomFactor: number,
