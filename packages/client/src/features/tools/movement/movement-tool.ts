@@ -62,53 +62,29 @@ export class MoveKeyListener extends KeyListener {
         if (!viewport) {
             return [];
         }
-
-        const updateSelectedElements = (deltaX: number, deltaY: number): void => {
-            selectedElements.forEach(currentElement => {
-                result.push(this.moveElement(currentElement, deltaX, deltaY));
-            });
-        };
-
-        const updateViewport = (deltaX: number, deltaY: number): void => {
-            if (!viewport) {
-                return;
-            }
-
-            const newPosition = this.getBounds(selectedElements[0], deltaX, deltaY);
-            const viewportAction = this.adaptViewport(viewport, newPosition.x, newPosition.y);
-            if (viewportAction) {
-                result.push(viewportAction);
+        const move = (deltaX: number, deltaY: number): void => {
+            if (selectedElements.length !== 0) {
+                selectedElements.forEach(currentElement => {
+                    result.push(this.moveElement(currentElement, deltaX, deltaY));
+                    const newPosition = this.getBounds(currentElement, deltaX, deltaY);
+                    const viewportAction = this.adaptViewport(viewport, newPosition.x, newPosition.y);
+                    if (viewportAction) {
+                        result.push(viewportAction);
+                    }
+                });
+            } else {
+                result.push(this.moveViewport(viewport, deltaX, deltaY)!);
             }
         };
 
         if (matchesKeystroke(event, 'ArrowUp')) {
-            if (selectedElements.length !== 0) {
-                updateSelectedElements(0, -this.offSetElement);
-                updateViewport(0, -this.offSetViewport);
-            } else {
-                result.push(this.moveViewport(viewport!, 0, -this.offSetViewport)!);
-            }
+            move(0, -this.offSetViewport);
         } else if (matchesKeystroke(event, 'ArrowDown')) {
-            if (selectedElements.length !== 0) {
-                updateSelectedElements(0, this.offSetElement);
-                updateViewport(0, this.offSetViewport);
-            } else {
-                result.push(this.moveViewport(viewport!, 0, this.offSetViewport)!);
-            }
+            move(0, this.offSetViewport);
         } else if (matchesKeystroke(event, 'ArrowRight')) {
-            if (selectedElements.length !== 0) {
-                updateSelectedElements(this.offSetElement, 0);
-                updateViewport(this.offSetViewport, 0);
-            } else {
-                result.push(this.moveViewport(viewport!, this.offSetViewport, 0)!);
-            }
+            move(this.offSetViewport, 0);
         } else if (matchesKeystroke(event, 'ArrowLeft')) {
-            if (selectedElements.length !== 0) {
-                updateSelectedElements(-this.offSetElement, 0);
-                updateViewport(-this.offSetViewport, 0);
-            } else {
-                result.push(this.moveViewport(viewport!, -this.offSetViewport, 0)!);
-            }
+            move(-this.offSetViewport, 0);
         }
 
         return result;

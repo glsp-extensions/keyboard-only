@@ -130,14 +130,15 @@ export class ZoomKeyListener extends KeyListener {
         y: number | undefined
     ): SetViewportAction | undefined {
         let newViewport: Viewport;
+        const newZoom = viewport.zoom * zoomFactor;
         if (viewport) {
             if (x && y && bounds) {
                 const c = Bounds.center(bounds);
 
                 newViewport = {
                     scroll: {
-                        x: c.x - (0.5 * viewport.canvasBounds.width) / (viewport.zoom * zoomFactor),
-                        y: c.y - (0.5 * viewport.canvasBounds.height) / (viewport.zoom * zoomFactor)
+                        x: c.x - (0.5 * viewport.canvasBounds.width) / newZoom,
+                        y: c.y - (0.5 * viewport.canvasBounds.height) / newZoom
                     },
                     zoom: viewport.zoom * zoomFactor
                 };
@@ -147,7 +148,7 @@ export class ZoomKeyListener extends KeyListener {
                     x: x === undefined ? viewport.scroll.x : x,
                     y: y === undefined ? viewport.scroll.y : y
                 },
-                zoom: viewport.zoom * zoomFactor
+                zoom: newZoom
             };
 
             return SetViewportAction.create(viewport.id, newViewport, { animate: false });
