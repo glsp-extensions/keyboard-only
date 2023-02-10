@@ -65,7 +65,7 @@ export class MoveKeyListener extends KeyListener {
 
         const updateSelectedElements = (deltaX: number, deltaY: number): void => {
             selectedElements.forEach(currentElement => {
-                result.push(this.setNewPositionForElement(currentElement, deltaX, deltaY));
+                result.push(this.moveElement(currentElement, deltaX, deltaY));
             });
         };
 
@@ -86,28 +86,28 @@ export class MoveKeyListener extends KeyListener {
                 updateSelectedElements(0, -this.offSetElement);
                 updateViewport(0, -this.offSetViewport);
             } else {
-                result.push(this.setNewViewport(viewport!, 0, -this.offSetViewport)!);
+                result.push(this.moveViewport(viewport!, 0, -this.offSetViewport)!);
             }
         } else if (matchesKeystroke(event, 'ArrowDown')) {
             if (selectedElements.length !== 0) {
                 updateSelectedElements(0, this.offSetElement);
                 updateViewport(0, this.offSetViewport);
             } else {
-                result.push(this.setNewViewport(viewport!, 0, this.offSetViewport)!);
+                result.push(this.moveViewport(viewport!, 0, this.offSetViewport)!);
             }
         } else if (matchesKeystroke(event, 'ArrowRight')) {
             if (selectedElements.length !== 0) {
                 updateSelectedElements(this.offSetElement, 0);
                 updateViewport(this.offSetViewport, 0);
             } else {
-                result.push(this.setNewViewport(viewport!, this.offSetViewport, 0)!);
+                result.push(this.moveViewport(viewport!, this.offSetViewport, 0)!);
             }
         } else if (matchesKeystroke(event, 'ArrowLeft')) {
             if (selectedElements.length !== 0) {
                 updateSelectedElements(-this.offSetElement, 0);
                 updateViewport(-this.offSetViewport, 0);
             } else {
-                result.push(this.setNewViewport(viewport!, -this.offSetViewport, 0)!);
+                result.push(this.moveViewport(viewport!, -this.offSetViewport, 0)!);
             }
         }
 
@@ -119,7 +119,7 @@ export class MoveKeyListener extends KeyListener {
         return { x: bounds.x + offSetX, y: bounds.y + offSetY };
     }
 
-    setNewViewport(viewport: SModelElement & SModelRoot & Viewport, offsetX: number, offSetY: number): SetViewportAction | undefined {
+    moveViewport(viewport: SModelElement & SModelRoot & Viewport, offsetX: number, offSetY: number): SetViewportAction | undefined {
         if (viewport) {
             const newViewport: Viewport = {
                 scroll: {
@@ -141,22 +141,22 @@ export class MoveKeyListener extends KeyListener {
 
         if (newX < 0) {
             console.log('Element is out of bounds from the left');
-            return this.setNewViewport(viewport, -this.offSetViewport, 0);
+            return this.moveViewport(viewport, -this.offSetViewport, 0);
         } else if (newX > viewport.canvasBounds.width) {
             console.log('Element is out of bounds from the right');
-            return this.setNewViewport(viewport, this.offSetViewport, 0);
+            return this.moveViewport(viewport, this.offSetViewport, 0);
         } else if (newY < 0) {
             console.log('Element is out of bounds from the top');
-            return this.setNewViewport(viewport, 0, -this.offSetViewport);
+            return this.moveViewport(viewport, 0, -this.offSetViewport);
         } else if (newY > viewport.canvasBounds.height) {
             console.log('Element is out of bounds from the bottom');
-            return this.setNewViewport(viewport, 0, this.offSetViewport);
+            return this.moveViewport(viewport, 0, this.offSetViewport);
         }
         console.log('Element is within bounds');
         return;
     }
 
-    setNewPositionForElement(element: SModelElement, offSetX: number, offSetY: number): ChangeBoundsOperation {
+    moveElement(element: SModelElement, offSetX: number, offSetY: number): ChangeBoundsOperation {
         const bounds = isBoundsAware(element) ? element.bounds : { width: 0, height: 0, x: 0, y: 0 };
 
         return ChangeBoundsOperation.create([

@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action, ChangeBoundsOperation, RequestMarkersAction, SetViewportAction, Viewport } from '@eclipse-glsp/protocol';
+import { Action, Bounds, ChangeBoundsOperation, Point, RequestMarkersAction, SetViewportAction, Viewport } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
 import { off } from 'process';
 import { KeyListener, KeyTool, SModelElement, findParentByFeature, isViewport, isSelectable, isBoundsAware, SModelRoot } from 'sprotty';
@@ -51,30 +51,75 @@ export class ZoomKeyListener extends KeyListener {
     defaultZoomInFactor = 1.1;
     defaultZoomOutFactor = 0.9;
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
+        const result: Action[] = [];
         const viewport = findParentByFeature(element, isViewport);
+        const selectedElements = Array.from(
+            element.root.index
+                .all()
+                .filter(e => isSelectable(e) && e.selected)
+                .filter(e => e.id !== e.root.id)
+                .map(e => e)
+        );
 
+        const selectedElement = selectedElements[0];
         if (!viewport) {
             return [];
         }
         if (matchesKeystroke(event, 'Minus')) {
-            const viewportAction = this.setNewViewport(viewport, this.defaultZoomOutFactor);
-            if (viewportAction) {
-                return [viewportAction];
+            if (selectedElement) {
+                const bounds = isBoundsAware(selectedElement) ? selectedElement.bounds : { width: 0, height: 0, x: 0, y: 0 };
+                const viewportAction = this.setNewZoomFactor(viewport, this.defaultZoomOutFactor, bounds, bounds.x, bounds.y);
+                if (viewportAction) {
+                    result.push(viewportAction);
+                }
+            } else {
+                const viewportAction = this.setNewZoomFactor(viewport, this.defaultZoomOutFactor, undefined, undefined, undefined);
+                if (viewportAction) {
+                    result.push(viewportAction);
+                }
             }
         } else if (event.key === '+') {
-            const viewportAction = this.setNewViewport(viewport, this.defaultZoomInFactor);
-            if (viewportAction) {
-                return [viewportAction];
+            if (selectedElement) {
+                const bounds = isBoundsAware(selectedElement) ? selectedElement.bounds : { width: 0, height: 0, x: 0, y: 0 };
+
+                const viewportAction = this.setNewZoomFactor(viewport, this.defaultZoomInFactor, bounds, bounds.x, bounds.y);
+                if (viewportAction) {
+                    result.push(viewportAction);
+                }
+            } else {
+                const viewportAction = this.setNewZoomFactor(viewport, this.defaultZoomInFactor, undefined, undefined, undefined);
+                if (viewportAction) {
+                    result.push(viewportAction);
+                }
             }
         }
-        return [];
+        return result;
     }
-    setNewViewport(viewport: SModelElement & SModelRoot & Viewport, zoomFactor: number): SetViewportAction | undefined {
+
+    setNewZoomFactor(
+        viewport: SModelElement & SModelRoot & Viewport,
+        zoomFactor: number,
+        bounds: Bounds | undefined,
+        x: number | undefined,
+        y: number | undefined
+    ): SetViewportAction | undefined {
+        let newViewport: Viewport;
         if (viewport) {
-            const newViewport: Viewport = {
+            if (x && y && bounds) {
+                const c = Bounds.center(bounds);
+
+                newViewport = {
+                    scroll: {
+                        x: c.x - (0.5 * viewport.canvasBounds.width) / (viewport.zoom * zoomFactor),
+                        y: c.y - (0.5 * viewport.canvasBounds.height) / (viewport.zoom * zoomFactor)
+                    },
+                    zoom: viewport.zoom * zoomFactor
+                };
+            }
+            newViewport = {
                 scroll: {
-                    x: viewport.scroll.x,
-                    y: viewport.scroll.y
+                    x: x === undefined ? viewport.scroll.x : x,
+                    y: y === undefined ? viewport.scroll.y : y
                 },
                 zoom: viewport.zoom * zoomFactor
             };
