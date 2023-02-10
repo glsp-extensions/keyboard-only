@@ -17,7 +17,7 @@ import { Action, ChangeBoundsOperation, SetViewportAction, Viewport } from '@ecl
 import { inject, injectable } from 'inversify';
 import { KeyListener, KeyTool, SModelElement, findParentByFeature, isViewport, isSelectable, isBoundsAware, SModelRoot } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
-import { GLSPTool } from '../../../base/tool-manager/glsp-tool-manager';
+import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 
 /**
  * Moves viewport when its focused and arrow keys are hit.

@@ -27,7 +27,7 @@ import {
     SChildElement
 } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
-import { GLSPTool } from '../../../base/tool-manager/glsp-tool-manager';
+import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 
 /**
  * Zoom viewport when its focused and arrow keys are hit.
