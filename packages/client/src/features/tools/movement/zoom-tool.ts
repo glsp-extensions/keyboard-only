@@ -15,7 +15,17 @@
  ********************************************************************************/
 import { Action, Bounds, SetViewportAction, Viewport } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
-import { KeyListener, KeyTool, SModelElement, findParentByFeature, isViewport, isSelectable, isBoundsAware, SModelRoot } from 'sprotty';
+import {
+    KeyListener,
+    KeyTool,
+    SModelElement,
+    findParentByFeature,
+    isViewport,
+    isSelectable,
+    isBoundsAware,
+    SModelRoot,
+    SChildElement
+} from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../../base/tool-manager/glsp-tool-manager';
 
@@ -83,7 +93,15 @@ export class ZoomKeyListener extends KeyListener {
         zoomFactor: number
     ): Action | undefined {
         if (selectedElements.length > 1) {
-            const avgBounds: Bounds = this.getAverageBounds(selectedElements);
+            const elementsAsSet = new Set(selectedElements);
+            // if element is child, only consider parents bounds
+            for (const currElem of selectedElements) {
+                if (this.isChildOfSelected(selectedElements, currElem)) {
+                    elementsAsSet.delete(currElem);
+                }
+            }
+
+            const avgBounds: Bounds = this.getAverageBounds(Array.from(elementsAsSet));
             const viewportAction = this.setNewZoomFactor(viewport, zoomFactor, avgBounds, avgBounds.x, avgBounds.y);
             if (viewportAction) {
                 return viewportAction;
@@ -91,7 +109,6 @@ export class ZoomKeyListener extends KeyListener {
         }
         if (selectedElements.length === 1) {
             const bounds = isBoundsAware(selectedElements[0]) ? selectedElements[0].bounds : { width: 0, height: 0, x: 0, y: 0 };
-            console.log(bounds);
             const viewportAction = this.setNewZoomFactor(viewport, zoomFactor, bounds, bounds.x, bounds.y);
             if (viewportAction) {
                 return viewportAction;
@@ -156,5 +173,25 @@ export class ZoomKeyListener extends KeyListener {
             return SetViewportAction.create(viewport.id, newViewport, { animate: false });
         }
         return;
+    }
+    protected isChildOfSelected(selectedElements: SModelElement[], element: SModelElement): boolean {
+        const elementsAsSet = new Set(selectedElements);
+        while (element instanceof SChildElement) {
+            element = element.parent;
+            if (elementsAsSet.has(element)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected returnParentOfChild(selectedElements: Set<SModelElement>, element: SModelElement): SModelElement | undefined {
+        while (element instanceof SChildElement) {
+            element = element.parent;
+            if (selectedElements.has(element)) {
+                return element;
+            }
+        }
+        return undefined;
     }
 }
