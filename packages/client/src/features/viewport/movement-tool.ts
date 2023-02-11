@@ -104,26 +104,19 @@ export class MoveKeyListener extends KeyListener {
         return { x: element.bounds.x + offSetX, y: element.bounds.y + offSetY };
     }
 
-    moveViewport(viewport: SModelElement & SModelRoot & Viewport, offsetX: number, offSetY: number): SetViewportAction | undefined {
-        if (viewport) {
-            const newViewport: Viewport = {
-                scroll: {
-                    x: viewport.scroll.x + offsetX,
-                    y: viewport.scroll.y + offSetY
-                },
-                zoom: viewport.zoom
-            };
+    moveViewport(viewport: SModelElement & SModelRoot & Viewport, offsetX: number, offSetY: number): SetViewportAction {
+        const newViewport: Viewport = {
+            scroll: {
+                x: viewport.scroll.x + offsetX,
+                y: viewport.scroll.y + offSetY
+            },
+            zoom: viewport.zoom
+        };
 
-            return SetViewportAction.create(viewport.id, newViewport, { animate: false });
-        }
-        return;
+        return SetViewportAction.create(viewport.id, newViewport, { animate: false });
     }
 
     adaptViewport(viewport: SModelElement & SModelRoot & Viewport, newX: number, newY: number): SetViewportAction | undefined {
-        if (!viewport || !viewport.canvasBounds) {
-            return;
-        }
-
         if (newX < 0) {
             return this.moveViewport(viewport, -this.offSetViewport, 0);
         } else if (newX > viewport.canvasBounds.width) {
