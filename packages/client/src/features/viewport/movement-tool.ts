@@ -13,9 +13,19 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action, ChangeBoundsOperation, SetViewportAction, Viewport } from '@eclipse-glsp/protocol';
+import { Action, ChangeBoundsOperation, Point, SetViewportAction, Viewport } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
-import { KeyListener, KeyTool, SModelElement, findParentByFeature, isViewport, isSelectable, isBoundsAware, SModelRoot } from 'sprotty';
+import {
+    KeyListener,
+    KeyTool,
+    SModelElement,
+    findParentByFeature,
+    isViewport,
+    isSelectable,
+    isBoundsAware,
+    SModelRoot,
+    BoundsAware
+} from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 
@@ -54,9 +64,9 @@ export class MoveKeyListener extends KeyListener {
         const selectedElements = Array.from(
             element.root.index
                 .all()
-                .filter(e => isSelectable(e) && e.selected)
+                .filter(e => isSelectable(e) && isBoundsAware(e) && e.selected)
                 .filter(e => e.id !== e.root.id)
-                .map(e => e)
+                .map(e => e) as (SModelElement & BoundsAware)[]
         );
         const viewport = findParentByFeature(element, isViewport);
         if (!viewport) {
@@ -90,9 +100,8 @@ export class MoveKeyListener extends KeyListener {
         return result;
     }
 
-    getBounds(element: SModelElement, offSetX: number, offSetY: number): { x: number; y: number } {
-        const bounds = isBoundsAware(element) ? element.bounds : { width: 0, height: 0, x: 0, y: 0 };
-        return { x: bounds.x + offSetX, y: bounds.y + offSetY };
+    getBounds(element: SModelElement & BoundsAware, offSetX: number, offSetY: number): Point {
+        return { x: element.bounds.x + offSetX, y: element.bounds.y + offSetY };
     }
 
     moveViewport(viewport: SModelElement & SModelRoot & Viewport, offsetX: number, offSetY: number): SetViewportAction | undefined {
@@ -127,19 +136,17 @@ export class MoveKeyListener extends KeyListener {
         return;
     }
 
-    moveElement(element: SModelElement, offSetX: number, offSetY: number): ChangeBoundsOperation {
-        const bounds = isBoundsAware(element) ? element.bounds : { width: 0, height: 0, x: 0, y: 0 };
-
+    moveElement(element: SModelElement & BoundsAware, offSetX: number, offSetY: number): ChangeBoundsOperation {
         return ChangeBoundsOperation.create([
             {
                 elementId: element.id,
                 newSize: {
-                    width: bounds.width,
-                    height: bounds.height
+                    width: element.bounds.width,
+                    height: element.bounds.height
                 },
                 newPosition: {
-                    x: bounds.x + offSetX,
-                    y: bounds.y + offSetY
+                    x: element.bounds.x + offSetX,
+                    y: element.bounds.y + offSetY
                 }
             }
         ]);
