@@ -74,14 +74,14 @@ export class ZoomKeyListener extends KeyListener {
             return [];
         }
         if (matchesKeystroke(event, 'Minus')) {
-            const actions = this.executeZoomWorkflow(selectedElements, viewport, this.defaultZoomOutFactor);
-            if (actions) {
-                result.push(actions);
+            const action = this.executeZoomWorkflow(selectedElements, viewport, this.defaultZoomOutFactor);
+            if (action) {
+                result.push(action);
             }
         } else if (event.key === '+') {
-            const actions = this.executeZoomWorkflow(selectedElements, viewport, this.defaultZoomInFactor);
-            if (actions) {
-                result.push(actions);
+            const action = this.executeZoomWorkflow(selectedElements, viewport, this.defaultZoomInFactor);
+            if (action) {
+                result.push(action);
             }
         }
         return result;
@@ -101,7 +101,7 @@ export class ZoomKeyListener extends KeyListener {
                 }
             }
 
-            const avgBounds: Bounds = this.getAverageBounds(Array.from(elementsAsSet));
+            const avgBounds: Bounds = this.getCenter(Array.from(elementsAsSet));
             const viewportAction = this.setNewZoomFactor(viewport, zoomFactor, avgBounds, avgBounds.x, avgBounds.y);
             if (viewportAction) {
                 return viewportAction;
@@ -122,7 +122,7 @@ export class ZoomKeyListener extends KeyListener {
         return;
     }
 
-    getAverageBounds(selectedElements: SModelElement[]): Bounds {
+    getCenter(selectedElements: SModelElement[]): Bounds {
         const allBounds: Bounds[] = [];
 
         selectedElements.forEach(currentElement => {
