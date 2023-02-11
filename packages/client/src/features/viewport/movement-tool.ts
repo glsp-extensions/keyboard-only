@@ -72,29 +72,15 @@ export class MoveKeyListener extends KeyListener {
         if (!viewport) {
             return [];
         }
-        const move = (deltaX: number, deltaY: number): void => {
-            if (selectedElements.length !== 0) {
-                selectedElements.forEach(currentElement => {
-                    result.push(this.moveElement(currentElement, deltaX, deltaY));
-                    const newPosition = this.getBounds(currentElement, deltaX, deltaY);
-                    const viewportAction = this.adaptViewport(viewport, newPosition.x, newPosition.y);
-                    if (viewportAction) {
-                        result.push(viewportAction);
-                    }
-                });
-            } else {
-                result.push(this.moveViewport(viewport, deltaX, deltaY)!);
-            }
-        };
 
         if (matchesKeystroke(event, 'ArrowUp')) {
-            move(0, -this.offSetViewport);
+            return this.move(selectedElements, 0, -this.offSetViewport, viewport);
         } else if (matchesKeystroke(event, 'ArrowDown')) {
-            move(0, this.offSetViewport);
+            return this.move(selectedElements, 0, this.offSetViewport, viewport);
         } else if (matchesKeystroke(event, 'ArrowRight')) {
-            move(this.offSetViewport, 0);
+            return this.move(selectedElements, this.offSetViewport, 0, viewport);
         } else if (matchesKeystroke(event, 'ArrowLeft')) {
-            move(-this.offSetViewport, 0);
+            return this.move(selectedElements, -this.offSetViewport, 0, viewport);
         }
 
         return result;
@@ -143,5 +129,28 @@ export class MoveKeyListener extends KeyListener {
                 }
             }
         ]);
+    }
+    move(
+        selectedElements: (SModelElement & BoundsAware)[],
+        deltaX: number,
+        deltaY: number,
+        viewport: SModelElement & SModelRoot & Viewport
+    ): Action[] {
+        const results: Action[] = [];
+
+        if (selectedElements.length !== 0) {
+            selectedElements.forEach(currentElement => {
+                results.push(this.moveElement(currentElement, deltaX, deltaY));
+                const newPosition = this.getBounds(currentElement, deltaX, deltaY);
+                const viewportAction = this.adaptViewport(viewport, newPosition.x, newPosition.y);
+                if (viewportAction) {
+                    results.push(viewportAction);
+                }
+            });
+        } else {
+            results.push(this.moveViewport(viewport, deltaX, deltaY)!);
+        }
+
+        return results;
     }
 }
