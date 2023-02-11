@@ -15,8 +15,7 @@
  ********************************************************************************/
 import { Action } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
-import { KeyListener, KeyTool, SModelElement } from 'sprotty';
-
+import { KeyListener, KeyTool, SModelElement, isSelectable } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 
@@ -45,146 +44,49 @@ export class ResizeTool implements GLSPTool {
 
 @injectable()
 export class ResizeKeyListener extends KeyListener {
+    isEditMode = false;
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
-        if (matchesKeystroke(event, 'KeyR')) {
+        if (matchesKeystroke(event, 'KeyR', 'alt')) {
             console.log('welcome to resize part via key');
+            this.isEditMode = true;
+            // TODO: mark selected node to state that node is in edit mode
+        }
+        if (this.isEditMode) {
+            const selectedElements = Array.from(
+                element.root.index
+                    .all()
+                    .filter(e => isSelectable(e) && e.selected)
+                    .filter(e => e.id !== e.root.id)
+                    .map(e => e)
+            );
+            if (selectedElements.length > 0) {
+                //   const selectedElement = selectedElements[0];
+                // const bounds = isBoundsAware(selectedElement) ? selectedElement.bounds : { width: 0, height: 0, x: 0, y: 0 };
+
+                if (matchesKeystroke(event, 'Digit1')) {
+                    /*    console.log(bounds.width + ' ' + bounds.height);
+                    const newBounds: ElementAndBounds = {
+                        elementId: element.id,
+                        newSize: {
+                            width: bounds.width,
+                            height: bounds.height
+                        },
+                        newPosition: {
+                            x: bounds.x,
+                            y: bounds.y
+                        }
+                    };
+
+                    return ChangeBoundsOperation.create([newBounds]);**/
+                } else if (matchesKeystroke(event, 'Digit2')) {
+                    console.log('right right');
+                } else if (matchesKeystroke(event, 'Digit3')) {
+                    console.log('left bottom');
+                } else if (matchesKeystroke(event, 'Digit4')) {
+                    console.log('right bottom');
+                }
+            }
         }
         return [];
     }
-    /* defaultZoomInFactor = 1.1;
-    defaultZoomOutFactor = 0.9;
-    override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
-        const result: Action[] = [];
-        const viewport = findParentByFeature(element, isViewport);
-        const selectedElements = Array.from(
-            element.root.index
-                .all()
-                .filter(e => isSelectable(e) && e.selected)
-                .filter(e => e.id !== e.root.id)
-                .map(e => e)
-        );
-
-        if (!viewport) {
-            return [];
-        }
-        if (matchesKeystroke(event, 'Minus')) {
-            const actions = this.executeZoomWorkflow(selectedElements, viewport, this.defaultZoomOutFactor);
-            if (actions) {
-                result.push(actions);
-            }
-        } else if (event.key === '+') {
-            const actions = this.executeZoomWorkflow(selectedElements, viewport, this.defaultZoomInFactor);
-            if (actions) {
-                result.push(actions);
-            }
-        }
-        return result;}*/
-
-    /* executeZoomWorkflow(
-        selectedElements: SModelElement[],
-        viewport: SModelElement & SModelRoot & Viewport,
-        zoomFactor: number
-    ): Action | undefined {
-        if (selectedElements.length > 1) {
-            const elementsAsSet = new Set(selectedElements);
-            // if element is child, only consider parents bounds
-            for (const currElem of selectedElements) {
-                if (this.isChildOfSelected(selectedElements, currElem)) {
-                    elementsAsSet.delete(currElem);
-                }
-            }
-
-            const avgBounds: Bounds = this.getAverageBounds(Array.from(elementsAsSet));
-            const viewportAction = this.setNewZoomFactor(viewport, zoomFactor, avgBounds, avgBounds.x, avgBounds.y);
-            if (viewportAction) {
-                return viewportAction;
-            }
-        }
-        if (selectedElements.length === 1) {
-            const bounds = isBoundsAware(selectedElements[0]) ? selectedElements[0].bounds : { width: 0, height: 0, x: 0, y: 0 };
-            const viewportAction = this.setNewZoomFactor(viewport, zoomFactor, bounds, bounds.x, bounds.y);
-            if (viewportAction) {
-                return viewportAction;
-            }
-        } else {
-            const viewportAction = this.setNewZoomFactor(viewport, zoomFactor, undefined, undefined, undefined);
-            if (viewportAction) {
-                return viewportAction;
-            }
-        }
-        return;
-    }
-
-    getAverageBounds(selectedElements: SModelElement[]): Bounds {
-        const allBounds: Bounds[] = [];
-
-        selectedElements.forEach(currentElement => {
-            allBounds.push(isBoundsAware(currentElement) ? currentElement.bounds : { width: 0, height: 0, x: 0, y: 0 });
-        });
-
-        const totalWidth = allBounds.reduce((sum, currentBound) => sum + currentBound.width, 0);
-        const totalHeight = allBounds.reduce((sum, currentBound) => sum + currentBound.height, 0);
-        const totalX = allBounds.reduce((sum, currentBound) => sum + currentBound.x, 0);
-        const totalY = allBounds.reduce((sum, currentBound) => sum + currentBound.y, 0);
-
-        return {
-            width: totalWidth / allBounds.length,
-            height: totalHeight / allBounds.length,
-            x: totalX / allBounds.length,
-            y: totalY / allBounds.length
-        };
-    }
-    setNewZoomFactor(
-        viewport: SModelElement & SModelRoot & Viewport,
-        zoomFactor: number,
-        bounds: Bounds | undefined,
-        x: number | undefined,
-        y: number | undefined
-    ): SetViewportAction | undefined {
-        let newViewport: Viewport;
-        const newZoom = viewport.zoom * zoomFactor;
-        if (viewport) {
-            if (x && y && bounds) {
-                const c = Bounds.center(bounds);
-                newViewport = {
-                    scroll: {
-                        x: c.x - (0.5 * viewport.canvasBounds.width) / newZoom,
-                        y: c.y - (0.5 * viewport.canvasBounds.height) / newZoom
-                    },
-                    zoom: newZoom
-                };
-            } else {
-                newViewport = {
-                    scroll: {
-                        x: x === undefined ? viewport.scroll.x : x,
-                        y: y === undefined ? viewport.scroll.y : y
-                    },
-                    zoom: newZoom
-                };
-            }
-
-            return SetViewportAction.create(viewport.id, newViewport, { animate: false });
-        }
-        return;
-    }
-    protected isChildOfSelected(selectedElements: SModelElement[], element: SModelElement): boolean {
-        const elementsAsSet = new Set(selectedElements);
-        while (element instanceof SChildElement) {
-            element = element.parent;
-            if (elementsAsSet.has(element)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    protected returnParentOfChild(selectedElements: Set<SModelElement>, element: SModelElement): SModelElement | undefined {
-        while (element instanceof SChildElement) {
-            element = element.parent;
-            if (selectedElements.has(element)) {
-                return element;
-            }
-        }
-        return undefined;
-    }*/
 }
