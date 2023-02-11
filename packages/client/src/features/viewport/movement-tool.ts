@@ -104,10 +104,8 @@ export class MoveKeyListener extends KeyListener {
 
     adaptViewport(viewport: SModelElement & SModelRoot & Viewport, newPoint: Point): SetViewportAction | undefined {
         if (newPoint.x < viewport.scroll.x) {
-            // todo new
             return this.moveViewport(viewport, -this.offSetViewport, 0);
         } else if (newPoint.x > viewport.scroll.x + viewport.canvasBounds.width) {
-            // todo new
             return this.moveViewport(viewport, this.offSetViewport, 0);
         } else if (newPoint.y < viewport.scroll.y) {
             return this.moveViewport(viewport, 0, -this.offSetViewport);
