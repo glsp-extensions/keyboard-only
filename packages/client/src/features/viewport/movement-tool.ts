@@ -102,14 +102,16 @@ export class MoveKeyListener extends KeyListener {
         return SetViewportAction.create(viewport.id, newViewport, { animate: false });
     }
 
-    adaptViewport(viewport: SModelElement & SModelRoot & Viewport, newX: number, newY: number): SetViewportAction | undefined {
-        if (newX < 0) {
+    adaptViewport(viewport: SModelElement & SModelRoot & Viewport, newPoint: Point): SetViewportAction | undefined {
+        if (newPoint.x < viewport.scroll.x) {
+            // todo new
             return this.moveViewport(viewport, -this.offSetViewport, 0);
-        } else if (newX > viewport.canvasBounds.width) {
+        } else if (newPoint.x > viewport.scroll.x + viewport.canvasBounds.width) {
+            // todo new
             return this.moveViewport(viewport, this.offSetViewport, 0);
-        } else if (newY < 0) {
+        } else if (newPoint.y < viewport.scroll.y) {
             return this.moveViewport(viewport, 0, -this.offSetViewport);
-        } else if (newY > viewport.canvasBounds.height) {
+        } else if (newPoint.y > viewport.scroll.y + viewport.canvasBounds.height) {
             return this.moveViewport(viewport, 0, this.offSetViewport);
         }
         return;
@@ -142,7 +144,7 @@ export class MoveKeyListener extends KeyListener {
             selectedElements.forEach(currentElement => {
                 results.push(this.moveElement(currentElement, deltaX, deltaY));
                 const newPosition = this.getBounds(currentElement, deltaX, deltaY);
-                const viewportAction = this.adaptViewport(viewport, newPosition.x, newPosition.y);
+                const viewportAction = this.adaptViewport(viewport, newPosition);
                 if (viewportAction) {
                     results.push(viewportAction);
                 }
