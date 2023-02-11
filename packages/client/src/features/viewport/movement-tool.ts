@@ -116,19 +116,14 @@ export class MoveKeyListener extends KeyListener {
         }
 
         if (newX < 0) {
-            console.log('Element is out of bounds from the left');
             return this.moveViewport(viewport, -this.offSetViewport, 0);
         } else if (newX > viewport.canvasBounds.width) {
-            console.log('Element is out of bounds from the right');
             return this.moveViewport(viewport, this.offSetViewport, 0);
         } else if (newY < 0) {
-            console.log('Element is out of bounds from the top');
             return this.moveViewport(viewport, 0, -this.offSetViewport);
         } else if (newY > viewport.canvasBounds.height) {
-            console.log('Element is out of bounds from the bottom');
             return this.moveViewport(viewport, 0, this.offSetViewport);
         }
-        console.log('Element is within bounds');
         return;
     }
 

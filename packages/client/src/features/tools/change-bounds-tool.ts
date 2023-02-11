@@ -185,7 +185,6 @@ export class ChangeBoundsListener extends DragAwareMouseListener implements Sele
         const actions: Action[] = [];
 
         if (this.activeResizeHandle) {
-            console.log('resize');
             // Resize
             actions.push(...this.handleResize(this.activeResizeHandle));
         } else {
