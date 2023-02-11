@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action, Bounds, SetViewportAction, Viewport } from '@eclipse-glsp/protocol';
+import { Action, Bounds, Point, SetViewportAction, Viewport } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
 import {
     KeyListener,
@@ -24,7 +24,8 @@ import {
     isSelectable,
     isBoundsAware,
     SModelRoot,
-    SChildElement
+    SChildElement,
+    BoundsAware
 } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
@@ -65,9 +66,10 @@ export class ZoomKeyListener extends KeyListener {
         const selectedElements = Array.from(
             element.root.index
                 .all()
-                .filter(e => isSelectable(e) && e.selected)
+                //  .filter(e => isSelectable(e) && e.selected)
+                .filter(e => isSelectable(e) && isBoundsAware(e) && e.selected)
                 .filter(e => e.id !== e.root.id)
-                .map(e => e)
+                .map(e => e) as (SModelElement & BoundsAware)[]
         );
 
         if (!viewport) {
@@ -86,93 +88,64 @@ export class ZoomKeyListener extends KeyListener {
         }
         return result;
     }
-
     executeZoomWorkflow(
-        selectedElements: SModelElement[],
+        selectedElements: (SModelElement & BoundsAware)[],
         viewport: SModelElement & SModelRoot & Viewport,
         zoomFactor: number
-    ): Action | undefined {
-        if (selectedElements.length > 1) {
-            const elementsAsSet = new Set(selectedElements);
-            // if element is child, only consider parents bounds
-            for (const currElem of selectedElements) {
-                if (this.isChildOfSelected(selectedElements, currElem)) {
-                    elementsAsSet.delete(currElem);
+    ): Action {
+        // Zoom to element
+        if (selectedElements.length > 0) {
+            let bounds: (SModelElement & BoundsAware)[] = [];
+
+            if (selectedElements.length === 1) {
+                // Zoom based on single bounds
+                bounds = Array.from(selectedElements);
+            } else {
+                // Zoom based on multiple bounds
+                const elementsAsSet = new Set(selectedElements) as Set<SModelElement & BoundsAware>;
+                // if element is child, only consider parents bounds
+                for (const currElem of selectedElements) {
+                    if (this.isChildOfSelected(selectedElements, currElem)) {
+                        elementsAsSet.delete(currElem);
+                    }
                 }
+
+                bounds = Array.from(elementsAsSet);
             }
 
-            const avgBounds: Bounds = this.getCenter(Array.from(elementsAsSet));
-            const viewportAction = this.setNewZoomFactor(viewport, zoomFactor, avgBounds, avgBounds.x, avgBounds.y);
-            if (viewportAction) {
-                return viewportAction;
-            }
-        }
-        if (selectedElements.length === 1) {
-            const bounds = isBoundsAware(selectedElements[0]) ? selectedElements[0].bounds : { width: 0, height: 0, x: 0, y: 0 };
-            const viewportAction = this.setNewZoomFactor(viewport, zoomFactor, bounds, bounds.x, bounds.y);
-            if (viewportAction) {
-                return viewportAction;
-            }
+            const center = this.getCenter(bounds);
+            return this.setNewZoomFactor(viewport, zoomFactor, center);
         } else {
-            const viewportAction = this.setNewZoomFactor(viewport, zoomFactor, undefined, undefined, undefined);
-            if (viewportAction) {
-                return viewportAction;
-            }
+            // Zoom to viewport
+            return this.setNewZoomFactor(viewport, zoomFactor);
         }
-        return;
     }
 
-    getCenter(selectedElements: SModelElement[]): Bounds {
-        const allBounds: Bounds[] = [];
-
-        selectedElements.forEach(currentElement => {
-            allBounds.push(isBoundsAware(currentElement) ? currentElement.bounds : { width: 0, height: 0, x: 0, y: 0 });
-        });
-
-        const totalWidth = allBounds.reduce((sum, currentBound) => sum + currentBound.width, 0);
-        const totalHeight = allBounds.reduce((sum, currentBound) => sum + currentBound.height, 0);
-        const totalX = allBounds.reduce((sum, currentBound) => sum + currentBound.x, 0);
-        const totalY = allBounds.reduce((sum, currentBound) => sum + currentBound.y, 0);
-
-        return {
-            width: totalWidth / allBounds.length,
-            height: totalHeight / allBounds.length,
-            x: totalX / allBounds.length,
-            y: totalY / allBounds.length
-        };
+    getCenter(selectedElements: (SModelElement & BoundsAware)[]): Point {
+        const allBounds = selectedElements.map(e => e.bounds);
+        const mergedBounds = allBounds.reduce((b0, b1) => Bounds.combine(b0, b1));
+        return Bounds.center(mergedBounds);
     }
-    setNewZoomFactor(
-        viewport: SModelElement & SModelRoot & Viewport,
-        zoomFactor: number,
-        bounds: Bounds | undefined,
-        x: number | undefined,
-        y: number | undefined
-    ): SetViewportAction | undefined {
+    setNewZoomFactor(viewport: SModelElement & SModelRoot & Viewport, zoomFactor: number, point?: Point): SetViewportAction {
         let newViewport: Viewport;
         const newZoom = viewport.zoom * zoomFactor;
-        if (viewport) {
-            if (x && y && bounds) {
-                const c = Bounds.center(bounds);
-                newViewport = {
-                    scroll: {
-                        x: c.x - (0.5 * viewport.canvasBounds.width) / newZoom,
-                        y: c.y - (0.5 * viewport.canvasBounds.height) / newZoom
-                    },
-                    zoom: newZoom
-                };
-            } else {
-                newViewport = {
-                    scroll: {
-                        x: x === undefined ? viewport.scroll.x : x,
-                        y: y === undefined ? viewport.scroll.y : y
-                    },
-                    zoom: newZoom
-                };
-            }
 
-            return SetViewportAction.create(viewport.id, newViewport, { animate: false });
+        if (point) {
+            newViewport = {
+                scroll: {
+                    x: point.x - (0.5 * viewport.canvasBounds.width) / newZoom,
+                    y: point.y - (0.5 * viewport.canvasBounds.height) / newZoom
+                },
+                zoom: newZoom
+            };
+        } else {
+            newViewport = {
+                scroll: viewport.scroll,
+                zoom: newZoom
+            };
         }
-        return;
+
+        return SetViewportAction.create(viewport.id, newViewport, { animate: false });
     }
     protected isChildOfSelected(selectedElements: SModelElement[], element: SModelElement): boolean {
         const elementsAsSet = new Set(selectedElements);
