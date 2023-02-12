@@ -66,7 +66,6 @@ export class ZoomKeyListener extends KeyListener {
         const selectedElements = Array.from(
             element.root.index
                 .all()
-                //  .filter(e => isSelectable(e) && e.selected)
                 .filter(e => isSelectable(e) && isBoundsAware(e) && e.selected)
                 .filter(e => e.id !== e.root.id)
                 .map(e => e) as (SModelElement & BoundsAware)[]
@@ -88,6 +87,7 @@ export class ZoomKeyListener extends KeyListener {
         }
         return result;
     }
+
     executeZoomWorkflow(
         selectedElements: (SModelElement & BoundsAware)[],
         viewport: SModelElement & SModelRoot & Viewport,
@@ -95,36 +95,27 @@ export class ZoomKeyListener extends KeyListener {
     ): Action {
         // Zoom to element
         if (selectedElements.length > 0) {
-            let bounds: (SModelElement & BoundsAware)[] = [];
-
-            if (selectedElements.length === 1) {
-                // Zoom based on single bounds
-                bounds = Array.from(selectedElements);
-            } else {
-                // Zoom based on multiple bounds
-                const elementsAsSet = new Set(selectedElements) as Set<SModelElement & BoundsAware>;
-                // if element is child, only consider parents bounds
-                for (const currElem of selectedElements) {
-                    if (this.isChildOfSelected(selectedElements, currElem)) {
-                        elementsAsSet.delete(currElem);
-                    }
-                }
-
-                bounds = Array.from(elementsAsSet);
-            }
-
-            const center = this.getCenter(bounds);
+            const center = this.getCenter(selectedElements, viewport);
             return this.setNewZoomFactor(viewport, zoomFactor, center);
         } else {
             // Zoom to viewport
             return this.setNewZoomFactor(viewport, zoomFactor);
         }
     }
-
-    getCenter(selectedElements: (SModelElement & BoundsAware)[]): Point {
-        const allBounds = selectedElements.map(e => e.bounds);
+    getCenter(selectedElements: (SModelElement & BoundsAware)[], viewport: SModelElement & SModelRoot & Viewport): Point {
+        // Get bounds of elements based on the viewport
+        const allBounds = selectedElements.map(e => this.boundsInViewport(e, e.bounds, viewport));
         const mergedBounds = allBounds.reduce((b0, b1) => Bounds.combine(b0, b1));
         return Bounds.center(mergedBounds);
+    }
+
+    // copy from center-fit.ts, translates the children bounds to the viewport bounds
+    protected boundsInViewport(element: SModelElement, bounds: Bounds, viewport: SModelElement & SModelRoot & Viewport): Bounds {
+        if (element instanceof SChildElement && element.parent !== viewport) {
+            return this.boundsInViewport(element.parent, element.parent.localToParent(bounds) as Bounds, viewport);
+        } else {
+            return bounds;
+        }
     }
     setNewZoomFactor(viewport: SModelElement & SModelRoot & Viewport, zoomFactor: number, point?: Point): SetViewportAction {
         let newViewport: Viewport;
