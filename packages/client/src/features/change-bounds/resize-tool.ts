@@ -15,10 +15,17 @@
  ********************************************************************************/
 import { Action } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
-import { KeyListener, KeyTool, SModelElement, isSelectable } from 'sprotty';
+import { KeyListener, KeyTool, SModelElement, findParentByFeature, isSelected, isBoundsAware, isSelectable, BoundsAware } from 'sprotty';
+import { isBoundsAwareMoveable, isResizable } from '../change-bounds/model';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 
+enum EDGE {
+    TOP_RIGHT,
+    TOP_LEFT,
+    BOTTOM_RIGHT,
+    BOTTOM_LEFT
+}
 @injectable()
 export class ResizeTool implements GLSPTool {
     static ID = 'glsp.resize-keyboard';
@@ -44,7 +51,9 @@ export class ResizeTool implements GLSPTool {
 
 @injectable()
 export class ResizeKeyListener extends KeyListener {
+    protected activeResizeElement?: SModelElement;
     isEditMode = false;
+    activeEdge: EDGE | undefined = undefined;
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
         if (matchesKeystroke(event, 'KeyR', 'alt')) {
             console.log('welcome to resize part via key');
@@ -55,38 +64,46 @@ export class ResizeKeyListener extends KeyListener {
             const selectedElements = Array.from(
                 element.root.index
                     .all()
-                    .filter(e => isSelectable(e) && e.selected)
+                    .filter(e => isSelectable(e) && isBoundsAware(e) && isResizable(e) && e.selected)
                     .filter(e => e.id !== e.root.id)
-                    .map(e => e)
+                    .map(e => e) as (SModelElement & BoundsAware)[]
             );
-            if (selectedElements.length > 0) {
-                //   const selectedElement = selectedElements[0];
-                // const bounds = isBoundsAware(selectedElement) ? selectedElement.bounds : { width: 0, height: 0, x: 0, y: 0 };
 
-                if (matchesKeystroke(event, 'Digit1')) {
-                    /*    console.log(bounds.width + ' ' + bounds.height);
-                    const newBounds: ElementAndBounds = {
-                        elementId: element.id,
-                        newSize: {
-                            width: bounds.width,
-                            height: bounds.height
-                        },
-                        newPosition: {
-                            x: bounds.x,
-                            y: bounds.y
-                        }
-                    };
+            /* if (this.activeResizeElement) {
+                if (selectedElements.includes(this.activeResizeElement.id)) {
+                    // our active element is still selected, nothing to do
+                    console.log('');
+                }*/
 
-                    return ChangeBoundsOperation.create([newBounds]);**/
-                } else if (matchesKeystroke(event, 'Digit2')) {
-                    console.log('right right');
-                } else if (matchesKeystroke(event, 'Digit3')) {
-                    console.log('left bottom');
-                } else if (matchesKeystroke(event, 'Digit4')) {
-                    console.log('right bottom');
-                }
+            this.setActiveResizeElement(selectedElements[0]);
+            if (matchesKeystroke(event, 'Digit1')) {
+                console.log('right top');
+                this.activeEdge = EDGE.TOP_RIGHT;
+            } else if (matchesKeystroke(event, 'Digit2')) {
+                console.log('left top');
+                this.activeEdge = EDGE.TOP_LEFT;
+            } else if (matchesKeystroke(event, 'Digit3')) {
+                console.log('left bottom');
+                this.activeEdge = EDGE.BOTTOM_LEFT;
+            } else if (matchesKeystroke(event, 'Digit4')) {
+                console.log('right bottom');
+                this.activeEdge = EDGE.BOTTOM_RIGHT;
             }
         }
         return [];
+    }
+    protected setActiveResizeElement(target: SModelElement): boolean {
+        // check if we have a selected, moveable element (multi-selection allowed)
+        const moveableElement = findParentByFeature(target, isBoundsAwareMoveable);
+        if (isSelected(moveableElement)) {
+            // only allow one element to have the element resize handles
+            this.activeResizeElement = moveableElement;
+            if (isResizable(this.activeResizeElement)) {
+                console.log('element resizable');
+                // this.tool.dispatchFeedback([ShowChangeBoundsToolResizeFeedbackAction.create(this.activeResizeElement.id)], this);
+            }
+            return true;
+        }
+        return false;
     }
 }
