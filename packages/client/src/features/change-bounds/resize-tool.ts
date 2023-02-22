@@ -15,13 +15,13 @@
  ********************************************************************************/
 import { Action, Bounds, ChangeBoundsOperation, Dimension, Point } from '@eclipse-glsp/protocol';
 import { inject, injectable, optional } from 'inversify';
-import { KeyListener, KeyTool, SModelElement, isBoundsAware, isSelectable, BoundsAware, SParentElement, Layouter } from 'sprotty';
+import { KeyListener, KeyTool, SModelElement, isBoundsAware, isSelectable, BoundsAware, SParentElement, ISnapper } from 'sprotty';
 import { TYPES } from '../../base/types';
 import { isResizable, Resizable, SResizeHandle } from '../change-bounds/model';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 import { toElementAndBounds } from '../../utils/smodel-util';
-import { PointPositionUpdater } from './snap';
+import { GridSnapper, PointPositionUpdater } from './snap';
 import { isValidMove, isValidSize } from '../../utils/layout-utils';
 import { IMovementRestrictor } from './movement-restrictor';
 
@@ -30,14 +30,19 @@ export class ResizeTool implements GLSPTool {
     static ID = 'glsp.resize-keyboard';
 
     isEditTool = true;
-    protected resizeKeyListener: ResizeKeyListener = new ResizeKeyListener();
+
     @inject(KeyTool) protected readonly keytool: KeyTool;
+    @inject(TYPES.IMovementRestrictor) @optional() readonly movementRestrictor?: IMovementRestrictor;
+    @inject(TYPES.ISnapper) @optional() readonly snapper?: ISnapper;
+
+    protected resizeKeyListener: ResizeKeyListener;
 
     get id(): string {
         return ResizeTool.ID;
     }
 
     enable(): void {
+        this.resizeKeyListener = new ResizeKeyListener(this);
         this.keytool.register(this.resizeKeyListener);
     }
 
@@ -45,9 +50,18 @@ export class ResizeTool implements GLSPTool {
         this.keytool.deregister(this.resizeKeyListener);
     }
 }
-
 @injectable()
 export class ResizeKeyListener extends KeyListener {
+    protected grid = { x: 20, y: 20 };
+
+    constructor(protected readonly tool: ResizeTool) {
+        super();
+
+        if (this.tool.snapper instanceof GridSnapper) {
+            this.grid = this.tool.snapper?.grid;
+            console.log('Grid', this.grid);
+        }
+    }
     protected activeResizeElement?: SModelElement;
     protected activeResizeHandle?: SResizeHandle;
     protected pointPositionUpdater: PointPositionUpdater;
@@ -73,14 +87,14 @@ export class ResizeKeyListener extends KeyListener {
 
             if (event.key === '+') {
                 for (const elem of selectedElements) {
-                    const action = this.handleResizeElement(elem, 10, 10);
+                    const action = this.handleResizeElement(elem, this.grid.x, this.grid.y);
                     if (action) {
                         actions.push(action);
                     }
                 }
             } else if (matchesKeystroke(event, 'Minus')) {
                 for (const elem of selectedElements) {
-                    const action = this.handleResizeElement(elem, -10, -10);
+                    const action = this.handleResizeElement(elem, -this.grid.x, -this.grid.y);
                     if (action) {
                         actions.push(action);
                     }
