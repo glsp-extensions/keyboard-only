@@ -13,27 +13,24 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action } from '@eclipse-glsp/protocol';
-import { inject, injectable } from 'inversify';
-import { KeyListener, KeyTool, SModelElement, findParentByFeature, isSelected, isBoundsAware, isSelectable, BoundsAware } from 'sprotty';
-import { isBoundsAwareMoveable, isResizable } from '../change-bounds/model';
+import { Action, Bounds, ChangeBoundsOperation, Dimension, Point } from '@eclipse-glsp/protocol';
+import { inject, injectable, optional } from 'inversify';
+import { KeyListener, KeyTool, SModelElement, isBoundsAware, isSelectable, BoundsAware, SParentElement, Layouter } from 'sprotty';
+import { TYPES } from '../../base/types';
+import { isResizable, Resizable, SResizeHandle } from '../change-bounds/model';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
+import { toElementAndBounds } from '../../utils/smodel-util';
+import { PointPositionUpdater } from './snap';
+import { isValidMove, isValidSize } from '../../utils/layout-utils';
+import { IMovementRestrictor } from './movement-restrictor';
 
-enum EDGE {
-    TOP_RIGHT,
-    TOP_LEFT,
-    BOTTOM_RIGHT,
-    BOTTOM_LEFT
-}
 @injectable()
 export class ResizeTool implements GLSPTool {
     static ID = 'glsp.resize-keyboard';
 
     isEditTool = true;
-
     protected resizeKeyListener: ResizeKeyListener = new ResizeKeyListener();
-
     @inject(KeyTool) protected readonly keytool: KeyTool;
 
     get id(): string {
@@ -52,13 +49,18 @@ export class ResizeTool implements GLSPTool {
 @injectable()
 export class ResizeKeyListener extends KeyListener {
     protected activeResizeElement?: SModelElement;
+    protected activeResizeHandle?: SResizeHandle;
+    protected pointPositionUpdater: PointPositionUpdater;
+    protected initialBounds: Bounds | undefined;
+    @inject(TYPES.IMovementRestrictor) @optional() readonly movementRestrictor?: IMovementRestrictor;
+
     isEditMode = false;
-    activeEdge: EDGE | undefined = undefined;
+
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
+        const actions: Action[] = [];
         if (matchesKeystroke(event, 'KeyR', 'alt')) {
-            console.log('welcome to resize part via key');
-            this.isEditMode = true;
-            // TODO: mark selected node to state that node is in edit mode
+            this.isEditMode = !this.isEditMode;
+            console.log('Edit mode is activated: ' + this.isEditMode);
         }
         if (this.isEditMode) {
             const selectedElements = Array.from(
@@ -69,41 +71,58 @@ export class ResizeKeyListener extends KeyListener {
                     .map(e => e) as (SModelElement & BoundsAware)[]
             );
 
-            /* if (this.activeResizeElement) {
-                if (selectedElements.includes(this.activeResizeElement.id)) {
-                    // our active element is still selected, nothing to do
-                    console.log('');
-                }*/
+            if (event.key === '+') {
+                for (const elem of selectedElements) {
+                    const action = this.handleResizeElement(elem, 10, 10);
+                    if (action) {
+                        actions.push(action);
+                    }
+                }
+            } else if (matchesKeystroke(event, 'Minus')) {
+                for (const elem of selectedElements) {
+                    const action = this.handleResizeElement(elem, -10, -10);
+                    if (action) {
+                        actions.push(action);
+                    }
+                }
+            }
+        } else {
+            console.log('not in edit mode anymore');
+        }
 
-            this.setActiveResizeElement(selectedElements[0]);
-            if (matchesKeystroke(event, 'Digit1')) {
-                console.log('right top');
-                this.activeEdge = EDGE.TOP_RIGHT;
-            } else if (matchesKeystroke(event, 'Digit2')) {
-                console.log('left top');
-                this.activeEdge = EDGE.TOP_LEFT;
-            } else if (matchesKeystroke(event, 'Digit3')) {
-                console.log('left bottom');
-                this.activeEdge = EDGE.BOTTOM_LEFT;
-            } else if (matchesKeystroke(event, 'Digit4')) {
-                console.log('right bottom');
-                this.activeEdge = EDGE.BOTTOM_RIGHT;
-            }
-        }
-        return [];
+        return actions;
     }
-    protected setActiveResizeElement(target: SModelElement): boolean {
-        // check if we have a selected, moveable element (multi-selection allowed)
-        const moveableElement = findParentByFeature(target, isBoundsAwareMoveable);
-        if (isSelected(moveableElement)) {
-            // only allow one element to have the element resize handles
-            this.activeResizeElement = moveableElement;
-            if (isResizable(this.activeResizeElement)) {
-                console.log('element resizable');
-                // this.tool.dispatchFeedback([ShowChangeBoundsToolResizeFeedbackAction.create(this.activeResizeElement.id)], this);
-            }
-            return true;
+
+    protected handleResizeElement(
+        element: SModelElement & BoundsAware,
+
+        deltaWidth: number,
+        deltaHeight: number
+    ): Action | undefined {
+        const x = element.bounds.x;
+        const y = element.bounds.y;
+        const width = element.bounds.width + deltaWidth;
+        const height = element.bounds.height + deltaHeight;
+        const newPosition = { x, y };
+        const newSize = { width, height };
+
+        const resizeElement = { id: element.id, bounds: { x, y, width, height } } as SModelElement & SParentElement & Resizable;
+
+        if (this.isValidBoundChange(resizeElement, newPosition, newSize)) {
+            return ChangeBoundsOperation.create([toElementAndBounds(resizeElement)]);
         }
-        return false;
+
+        return undefined;
+    }
+
+    protected isValidBoundChange(element: SModelElement & BoundsAware, newPosition: Point, newSize: Dimension): boolean {
+        return this.isValidSize(element, newSize) && this.isValidMove(element, newPosition);
+    }
+    protected isValidSize(element: SModelElement & BoundsAware, size: Dimension): boolean {
+        return isValidSize(element, size);
+    }
+
+    protected isValidMove(element: SModelElement & BoundsAware, newPosition: Point): boolean {
+        return isValidMove(element, newPosition, this.movementRestrictor);
     }
 }
