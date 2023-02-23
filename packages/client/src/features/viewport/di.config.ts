@@ -30,6 +30,7 @@ import { MovementTool } from './movement-tool';
 import { GLSPScrollMouseListener } from './glsp-scroll-mouse-listener';
 import { ZoomTool } from './zoom-tool';
 import { TYPES } from '../../base/types';
+import { SelectKeyListener, SelectTool } from './select-tool';
 
 const glspViewportModule = new ContainerModule((bind, _unbind, isBound) => {
     configureCommand({ bind, isBound }, CenterCommand);
@@ -42,6 +43,8 @@ const glspViewportModule = new ContainerModule((bind, _unbind, isBound) => {
     bind(TYPES.MouseListener).toService(GLSPScrollMouseListener);
     bind(TYPES.IDefaultTool).to(MovementTool);
     bind(TYPES.IDefaultTool).to(ZoomTool);
+    bind(TYPES.IDefaultTool).to(SelectTool);
+    bind(TYPES.KeyListener).to(SelectKeyListener);
     configureActionHandler({ bind, isBound }, EnableToolsAction.KIND, GLSPScrollMouseListener);
     configureActionHandler({ bind, isBound }, EnableDefaultToolsAction.KIND, GLSPScrollMouseListener);
 });
