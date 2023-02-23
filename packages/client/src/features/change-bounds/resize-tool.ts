@@ -59,7 +59,6 @@ export class ResizeKeyListener extends KeyListener {
 
         if (this.tool.snapper instanceof GridSnapper) {
             this.grid = this.tool.snapper?.grid;
-            console.log('Grid', this.grid);
         }
     }
     protected activeResizeElement?: SModelElement;
@@ -74,7 +73,6 @@ export class ResizeKeyListener extends KeyListener {
         const actions: Action[] = [];
         if (matchesKeystroke(event, 'KeyR', 'alt')) {
             this.isEditMode = !this.isEditMode;
-            console.log('Edit mode is activated: ' + this.isEditMode);
         }
         if (this.isEditMode) {
             const selectedElements = Array.from(
@@ -100,19 +98,12 @@ export class ResizeKeyListener extends KeyListener {
                     }
                 }
             }
-        } else {
-            console.log('not in edit mode anymore');
         }
 
         return actions;
     }
 
-    protected handleResizeElement(
-        element: SModelElement & BoundsAware,
-
-        deltaWidth: number,
-        deltaHeight: number
-    ): Action | undefined {
+    protected handleResizeElement(element: SModelElement & BoundsAware, deltaWidth: number, deltaHeight: number): Action | undefined {
         const x = element.bounds.x;
         const y = element.bounds.y;
         const width = element.bounds.width + deltaWidth;
