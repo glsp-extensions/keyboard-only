@@ -136,7 +136,7 @@ export class ZoomKeyListener extends KeyListener {
             };
         }
 
-        return SetViewportAction.create(viewport.id, newViewport, { animate: false });
+        return SetViewportAction.create(viewport.id, newViewport, { animate: true });
     }
     protected isChildOfSelected(selectedElements: SModelElement[], element: SModelElement): boolean {
         const elementsAsSet = new Set(selectedElements);
