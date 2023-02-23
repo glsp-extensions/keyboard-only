@@ -150,11 +150,11 @@
     right: -0.3rem;
 }
 
-.tool-palette.alt-active:focus-within .header-tools .key-shortcut {
+.tool-palette:focus-within .header-tools .key-shortcut {
     display: block;
 }
 
-.tool-palette:focus-within:not(.alt-active) .tool-group .key-shortcut {
+.tool-palette:focus-within .tool-group .key-shortcut {
     display: block;
 }
 

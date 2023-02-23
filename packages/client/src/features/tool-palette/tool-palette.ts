@@ -35,13 +35,10 @@ import { MouseDeleteTool } from '../tools/delete-tool';
 import { MarqueeMouseTool } from '../tools/marquee-mouse-tool';
 
 const CLICKED_CSS_CLASS = 'clicked';
-const ALT_ACTIVE_CSS_CLASS = 'alt-active';
 const SEARCH_ICON_ID = 'search';
 const PALETTE_ICON_ID = 'symbol-color';
 const CHEVRON_DOWN_ICON_ID = 'chevron-right';
 const PALETTE_HEIGHT = '500px';
-const TOOL_BUTTON_SHORTCUT_HINT_CLASS = '.tool-button .key-shortcut';
-const HEADER_TOOL_SHORTCUT_HINT_CLASS = '.header-tools .key-shortcut';
 const SELECTION_TOOL_KEY: KeyCode = 'Digit1';
 const DELETION_TOOL_KEY: KeyCode = 'Digit2';
 const MARQUEE_TOOL_KEY: KeyCode = 'Digit3';
@@ -121,18 +118,6 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
             .reduce((acc, val) => acc.concat(val), []);
     }
 
-    protected get isToolButtonHintHidden(): boolean {
-        return !!Array.from(this.containerElement.querySelectorAll(TOOL_BUTTON_SHORTCUT_HINT_CLASS)).find(
-            element => (element as HTMLElement).style.display === 'none'
-        );
-    }
-
-    protected get isHeaderToolHintHidden(): boolean {
-        return !!Array.from(this.containerElement.querySelectorAll(HEADER_TOOL_SHORTCUT_HINT_CLASS)).find(
-            element => (element as HTMLElement).style.display === 'none'
-        );
-    }
-
     modelRootId: string;
 
     id(): string {
@@ -160,20 +145,10 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         this.createBody();
         this.lastActivebutton = this.defaultToolsButton;
 
-        this.containerElement.onkeydown = ev => {
-            this.triggerHeaderToolsByKey(ev);
-            if (matchesKeystroke(ev, 'AltLeft', 'alt') || matchesKeystroke(ev, 'AltRight', 'alt')) {
-                this.containerElement.classList.add(ALT_ACTIVE_CSS_CLASS);
-            }
-        };
-
         this.containerElement.onkeyup = ev => {
             this.clearToolOnEscape(ev);
             this.selectItemOnCharacter(ev);
-
-            if (matchesKeystroke(ev, 'AltLeft') || matchesKeystroke(ev, 'AltRight')) {
-                this.containerElement.classList.remove(ALT_ACTIVE_CSS_CLASS);
-            }
+            this.triggerHeaderToolsByKey(ev);
         };
     }
 
@@ -522,44 +497,39 @@ export class ToolPalette extends AbstractUIExtension implements IActionHandler, 
         let index: number | undefined = undefined;
         const items = this.interactablePaletteItems;
 
-        if (!this.isToolButtonHintHidden) {
-            const itemsCount = items.length < AVAILABLE_KEYS.length ? items.length : AVAILABLE_KEYS.length;
+        const itemsCount = items.length < AVAILABLE_KEYS.length ? items.length : AVAILABLE_KEYS.length;
 
-            for (let i = 0; i < itemsCount; i++) {
-                const keycode = AVAILABLE_KEYS[i];
-                if (matchesKeystroke(event, keycode)) {
-                    index = i;
-                    break;
-                }
+        for (let i = 0; i < itemsCount; i++) {
+            const keycode = AVAILABLE_KEYS[i];
+            if (matchesKeystroke(event, keycode)) {
+                index = i;
+                break;
             }
+        }
 
-            if (index !== undefined) {
-                this.actionDispatcher.dispatchAll(items[index].actions);
-                this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
-                this.keyboardIndexButtonMapping.get(index)?.focus();
-            }
+        if (index !== undefined) {
+            this.actionDispatcher.dispatchAll(items[index].actions);
+            this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
+            this.keyboardIndexButtonMapping.get(index)?.focus();
         }
     }
 
     protected triggerHeaderToolsByKey(event: KeyboardEvent): void {
         let index: number | undefined = undefined;
 
-        if (!this.isHeaderToolHintHidden) {
-            for (let i = 0; i < HEADER_TOOL_KEYS.length; i++) {
-                const keycode = HEADER_TOOL_KEYS[i];
+        for (let i = 0; i < HEADER_TOOL_KEYS.length; i++) {
+            const keycode = HEADER_TOOL_KEYS[i];
 
-                if (matchesKeystroke(event, keycode, 'alt')) {
-                    event.stopPropagation();
-                    event.preventDefault();
-                    index = i;
-                    break;
-                }
+            if (matchesKeystroke(event, keycode)) {
+                event.stopPropagation();
+                event.preventDefault();
+                index = i;
+                break;
             }
+        }
 
-            if (index !== undefined) {
-                this.headerToolsButtonMapping.get(index)?.click();
-                this.containerElement.classList.remove(ALT_ACTIVE_CSS_CLASS);
-            }
+        if (index !== undefined) {
+            this.headerToolsButtonMapping.get(index)?.click();
         }
     }
 
