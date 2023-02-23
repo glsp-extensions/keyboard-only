@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { Action, ChangeBoundsOperation, Point, SetViewportAction, Viewport } from '@eclipse-glsp/protocol';
-import { inject, injectable } from 'inversify';
+import { inject, injectable, optional } from 'inversify';
 import {
     KeyListener,
     KeyTool,
@@ -24,10 +24,13 @@ import {
     isSelectable,
     isBoundsAware,
     SModelRoot,
-    BoundsAware
+    BoundsAware,
+    ISnapper
 } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
+import { TYPES } from '../../base/types';
+import { GridSnapper } from '../change-bounds/snap';
 
 /**
  * Moves viewport when its focused and arrow keys are hit.
@@ -38,10 +41,10 @@ export class MovementTool implements GLSPTool {
 
     isEditTool = true;
 
-    protected movementKeyListener: MoveKeyListener = new MoveKeyListener();
+    protected movementKeyListener: MoveKeyListener = new MoveKeyListener(this);
 
     @inject(KeyTool) protected readonly keytool: KeyTool;
-
+    @inject(TYPES.ISnapper) @optional() readonly snapper?: ISnapper;
     get id(): string {
         return MovementTool.ID;
     }
@@ -57,8 +60,16 @@ export class MovementTool implements GLSPTool {
 
 @injectable()
 export class MoveKeyListener extends KeyListener {
-    offSetViewport = 50;
-    offSetElement = 10;
+    protected grid = { x: 20, y: 20 };
+
+    constructor(protected readonly tool: MovementTool) {
+        super();
+
+        if (this.tool.snapper instanceof GridSnapper) {
+            this.grid = this.tool.snapper?.grid;
+        }
+    }
+
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
         const result: Action[] = [];
         const selectedElements = Array.from(
@@ -74,13 +85,13 @@ export class MoveKeyListener extends KeyListener {
         }
 
         if (matchesKeystroke(event, 'ArrowUp')) {
-            return this.move(selectedElements, 0, -this.offSetViewport, viewport);
+            return this.move(selectedElements, 0, -this.grid.x, viewport);
         } else if (matchesKeystroke(event, 'ArrowDown')) {
-            return this.move(selectedElements, 0, this.offSetViewport, viewport);
+            return this.move(selectedElements, 0, this.grid.x, viewport);
         } else if (matchesKeystroke(event, 'ArrowRight')) {
-            return this.move(selectedElements, this.offSetViewport, 0, viewport);
+            return this.move(selectedElements, this.grid.x, 0, viewport);
         } else if (matchesKeystroke(event, 'ArrowLeft')) {
-            return this.move(selectedElements, -this.offSetViewport, 0, viewport);
+            return this.move(selectedElements, -this.grid.x, 0, viewport);
         }
 
         return result;
@@ -99,18 +110,18 @@ export class MoveKeyListener extends KeyListener {
             zoom: viewport.zoom
         };
 
-        return SetViewportAction.create(viewport.id, newViewport, { animate: false });
+        return SetViewportAction.create(viewport.id, newViewport, { animate: true });
     }
 
     adaptViewport(viewport: SModelElement & SModelRoot & Viewport, newPoint: Point): SetViewportAction | undefined {
         if (newPoint.x < viewport.scroll.x) {
-            return this.moveViewport(viewport, -this.offSetViewport, 0);
+            return this.moveViewport(viewport, -this.grid.x, 0);
         } else if (newPoint.x > viewport.scroll.x + viewport.canvasBounds.width) {
-            return this.moveViewport(viewport, this.offSetViewport, 0);
+            return this.moveViewport(viewport, this.grid.x, 0);
         } else if (newPoint.y < viewport.scroll.y) {
-            return this.moveViewport(viewport, 0, -this.offSetViewport);
+            return this.moveViewport(viewport, 0, -this.grid.x);
         } else if (newPoint.y > viewport.scroll.y + viewport.canvasBounds.height) {
-            return this.moveViewport(viewport, 0, this.offSetViewport);
+            return this.moveViewport(viewport, 0, this.grid.x);
         }
         return;
     }
