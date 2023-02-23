@@ -37,6 +37,8 @@ import {
     StructureCompartmentView,
     TYPES
 } from '@eclipse-glsp/client';
+import toolPaletteModule from '@eclipse-glsp/client/lib/features/tool-palette/di.config';
+import keyboardToolPaletteModule from '@eclipse-glsp/client/lib/features/keyboard/di.config';
 import { DefaultTypes } from '@eclipse-glsp/protocol';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
@@ -75,6 +77,8 @@ const workflowDiagramModule = new ContainerModule((bind, unbind, isBound, rebind
 
 export default function createContainer(widgetId: string): Container {
     const container = createDiagramContainer(workflowDiagramModule, directTaskEditor);
+    container.unload(toolPaletteModule);
+    container.load(keyboardToolPaletteModule);
     overrideViewerOptions(container, {
         baseDiv: widgetId,
         hiddenDiv: widgetId + '_hidden'
