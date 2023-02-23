@@ -252,18 +252,8 @@ export class KeyboardToolPalette extends ToolPalette {
         searchField.type = 'text';
         searchField.placeholder = ' Search...';
         searchField.style.display = 'none';
-        searchField.onkeyup = ev => {
-            if (!(matchesKeystroke(ev, 'AltLeft') || matchesKeystroke(ev, 'AltRight'))) {
-                ev.stopPropagation();
-                this.requestFilterUpdate(this.searchField.value);
-            }
-        };
-        searchField.onkeydown = ev => {
-            if (!ev.altKey) {
-                ev.stopPropagation();
-                this.clearOnEscape(ev);
-            }
-        };
+        searchField.onkeyup = () => this.requestFilterUpdate(this.searchField.value);
+        searchField.onkeydown = ev => this.clearOnEscape(ev);
 
         return searchField;
     }
