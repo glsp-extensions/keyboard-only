@@ -40,19 +40,8 @@ export class RevealNamedElementAutocompleteSuggestionProvider implements IAutoco
             )
         }));
     }
-
-    async getActions(root: Readonly<SModelRoot>, text: string): Promise<LabeledAction[]> {
-        const nameables = toArray(root.index.all().filter(element => isNameable(element)));
-        return nameables.map(
-            nameable =>
-                new LabeledAction(
-                    `[${nameable.type}] ${name(nameable) ?? '<no-name>'}`,
-                    [SelectAction.create({ selectedElementsIDs: [nameable.id] }), CenterAction.create([nameable.id])],
-                    codiconCSSString('eye')
-                )
-        );
-    }
 }
+
 @injectable()
 export class RevealEdgeElementAutocompleteSuggestionProvider implements IAutocompleteSuggestionProvider {
     async retrieveSuggestions(root: Readonly<SModelRoot>, text: string): Promise<AutocompleteSuggestion[]> {
@@ -65,19 +54,6 @@ export class RevealEdgeElementAutocompleteSuggestionProvider implements IAutocom
                 codiconCSSString('arrow-both')
             )
         }));
-    }
-    async getActions(root: Readonly<SModelRoot>, text: string): Promise<LabeledAction[]> {
-        let edges = toArray(root.index.all().filter(element => element instanceof SEdge)) as SEdge[];
-        edges = edges.filter(edge => edge.source && edge.target).filter(edge => isNameable(edge.source!) || isNameable(edge.target!));
-
-        return edges.map(
-            edge =>
-                new LabeledAction(
-                    `[${edge.type}] ` + this.getEdgeLabel(root, edge),
-                    [SelectAction.create({ selectedElementsIDs: [edge.id] }), CenterAction.create([edge.sourceId, edge.targetId])],
-                    codiconCSSString('arrow-both')
-                )
-        );
     }
 
     private getEdgeLabel(root: Readonly<SModelRoot>, edge: SEdge): string {

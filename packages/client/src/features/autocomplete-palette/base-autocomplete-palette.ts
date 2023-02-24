@@ -68,7 +68,8 @@ export abstract class BaseAutocompletePalette extends AbstractUIExtension {
             { provideSuggestions: input => this.retrieveSuggestions(this.root!, input) },
             { executeFromSuggestion: input => this.executeSuggestion(input) },
             reason => this.autocompleteHide(reason),
-            this.logger
+            this.logger,
+            suggestions => this.visibleSuggestions(this.root!, suggestions)
         );
         this.autocompleteWidget.initialize(containerElement);
     }
@@ -78,6 +79,10 @@ export abstract class BaseAutocompletePalette extends AbstractUIExtension {
     }
 
     protected abstract retrieveSuggestions(root: Readonly<SModelRoot>, input: string): Promise<LabeledAction[]>;
+
+    protected async visibleSuggestions(root: Readonly<SModelRoot>, suggestions: LabeledAction[]): Promise<void> {
+        return;
+    }
 
     protected autocompleteHide(reason: CloseReason): void {
         this.hide();

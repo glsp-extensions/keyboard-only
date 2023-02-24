@@ -80,7 +80,9 @@ export class AutoCompleteWidget {
         public suggestionSubmitHandler: SuggestionSubmitHandler,
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         protected notifyClose: (reason: CloseReason) => void = () => {},
-        protected logger?: ILogger
+        protected logger?: ILogger,
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        protected visibleSuggestions: (suggestions: LabeledAction[]) => void = () => {}
     ) {}
 
     configureValidation(
@@ -195,6 +197,7 @@ export class AutoCompleteWidget {
             .then(actions => {
                 this.contextActions = this.filterActions(text, actions);
                 update(this.contextActions);
+                this.visibleSuggestions(this.contextActions);
                 this.onLoaded('success');
             })
             .catch(reason => {
