@@ -25,7 +25,6 @@ import {
     RevealNamedElementAutocompleteSuggestionProvider
 } from '../autocomplete-suggestion-providers';
 import { BaseAutocompletePalette } from '../base-autocomplete-palette';
-import { CloseReason } from 'src/base/auto-complete/auto-complete-widget';
 
 @injectable()
 export class SearchAutocompletePalette extends BaseAutocompletePalette {
@@ -59,12 +58,26 @@ export class SearchAutocompletePalette extends BaseAutocompletePalette {
         return suggestions.map(s => s.action);
     }
 
-    protected override async visibleSuggestions(root: Readonly<SModelRoot>, suggestions: LabeledAction[]): Promise<void> {
+    protected override async visibleSuggestionsChanged(root: Readonly<SModelRoot>, labeledActions: LabeledAction[]): Promise<void> {
         await this.deleteCSS(root);
-        await this.applyCSS(this.getSuggestionsFromLabeledActions(suggestions));
+        await this.applyCSS(this.getSuggestionsFromLabeledActions(labeledActions));
     }
 
-    protected override hide(): void {
+    protected override async selectedSuggestionChanged(
+        root: Readonly<SModelRoot>,
+        labeledAction?: LabeledAction | undefined
+    ): Promise<void> {
+        console.log('Selected LabeledAction', labeledAction);
+
+        if (labeledAction !== undefined) {
+            const suggestion = this.getSuggestionsFromLabeledActions([labeledAction]);
+            console.log('Selected Suggestion', suggestion);
+
+            // TODO: throw new action, to focus element/center element
+        }
+    }
+
+    public override hide(): void {
         if (this.root !== undefined) {
             this.deleteCSS(this.root);
         }

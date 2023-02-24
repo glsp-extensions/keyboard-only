@@ -49,6 +49,11 @@ export interface TextSubmitHandler {
     executeFromTextOnlyInput(input: string): void;
 }
 
+export interface AutoCompleteWidgetOptions {
+    visibleSuggestionsChanged?: (suggestions: LabeledAction[]) => void;
+    selectedSuggestionChanged?: (suggestion?: LabeledAction) => void;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const configureAutocomplete: (settings: AutocompleteSettings<LabeledAction>) => AutocompleteResult = require('autocompleter');
 
@@ -81,8 +86,7 @@ export class AutoCompleteWidget {
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         protected notifyClose: (reason: CloseReason) => void = () => {},
         protected logger?: ILogger,
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        protected visibleSuggestions: (suggestions: LabeledAction[]) => void = () => {}
+        protected options?: AutoCompleteWidgetOptions
     ) {}
 
     configureValidation(
@@ -183,6 +187,16 @@ export class AutoCompleteWidget {
         // move container into our UIExtension container as this is already positioned correctly
         if (this.containerElement) {
             this.containerElement.appendChild(container);
+
+            const selectedElement = container.querySelector('.selected');
+            // eslint-disable-next-line no-null/no-null
+            if (selectedElement !== null && selectedElement !== undefined) {
+                const index = Array.from(container.children).indexOf(selectedElement);
+
+                this.options?.selectedSuggestionChanged?.(this.contextActions?.[index]);
+            } else {
+                this.options?.selectedSuggestionChanged?.(undefined);
+            }
         }
     }
 
@@ -197,7 +211,7 @@ export class AutoCompleteWidget {
             .then(actions => {
                 this.contextActions = this.filterActions(text, actions);
                 update(this.contextActions);
-                this.visibleSuggestions(this.contextActions);
+                this.options?.visibleSuggestionsChanged?.(this.contextActions);
                 this.onLoaded('success');
             })
             .catch(reason => {
