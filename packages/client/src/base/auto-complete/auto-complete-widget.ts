@@ -28,6 +28,7 @@ export interface AutoCompleteSettings {
     readonly showOnFocus?: boolean;
 }
 
+export type CloseReason = 'submission' | 'blur' | 'escape';
 export interface InputValidator {
     validate(input: string): Promise<ValidationStatus>;
 }
@@ -78,7 +79,7 @@ export class AutoCompleteWidget {
         public suggestionProvider: SuggestionProvider,
         public suggestionSubmitHandler: SuggestionSubmitHandler,
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        protected notifyClose: () => void = () => {},
+        protected notifyClose: (reason: CloseReason) => void = () => {},
         protected logger?: ILogger
     ) {}
 
@@ -109,13 +110,18 @@ export class AutoCompleteWidget {
         inputElement.autocomplete = 'false';
         inputElement.style.width = '100%';
         inputElement.addEventListener('keydown', event => this.handleKeyDown(event));
-        inputElement.addEventListener('blur', () => window.setTimeout(() => this.notifyClose(), 200));
+        inputElement.addEventListener('blur', () => {
+            if (this.containerElement.style.visibility !== 'hidden') {
+                window.setTimeout(() => this.notifyClose('blur'), 200);
+            }
+        });
+
         return inputElement;
     }
 
     protected handleKeyDown(event: KeyboardEvent): void {
         if (matchesKeystroke(event, 'Escape')) {
-            this.notifyClose();
+            this.notifyClose('escape');
             return;
         }
         if (matchesKeystroke(event, 'Enter') && !this.isInputElementChanged() && this.isSuggestionAvailable()) {
@@ -133,7 +139,7 @@ export class AutoCompleteWidget {
         }
         if (this.textSubmitHandler) {
             this.executeFromTextOnlyInput();
-            this.notifyClose();
+            this.notifyClose('submission');
         }
     }
 
@@ -228,7 +234,7 @@ export class AutoCompleteWidget {
         if (item.icon) {
             this.renderIcon(itemElement, item.icon);
         }
-        itemElement.innerHTML += item.label.replace(regex, match => '<em>' + match + '</em>');
+        itemElement.innerHTML += item.label.replace(regex, match => '<em>' + match + '</em>').replace(/ /g, '&nbsp;');
         return itemElement;
     }
 
@@ -257,7 +263,7 @@ export class AutoCompleteWidget {
             window.setTimeout(() => this.inputElement.dispatchEvent(new Event('keyup')));
         } else {
             this.executeFromSuggestion(item);
-            this.notifyClose();
+            this.notifyClose('submission');
         }
     }
 

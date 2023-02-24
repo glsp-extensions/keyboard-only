@@ -35,7 +35,8 @@ export const TYPES = {
     ITool: Symbol('ITool'),
     IDefaultTool: Symbol('IDefaultTool'),
     IEditModeListener: Symbol('IEditModeListener'),
-    IMarqueeBehavior: Symbol('IMarqueeBehavior')
+    IMarqueeBehavior: Symbol('IMarqueeBehavior'),
+    IAutocompleteSuggestionProvider: Symbol('IAutocompleteSuggestionProvider')
 };
 
 /**
