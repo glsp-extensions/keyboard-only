@@ -25,6 +25,7 @@ import {
     RevealNamedElementAutocompleteSuggestionProvider
 } from '../autocomplete-suggestion-providers';
 import { BaseAutocompletePalette } from '../base-autocomplete-palette';
+import { CenterAction, SelectAction } from 'sprotty-protocol';
 
 @injectable()
 export class SearchAutocompletePalette extends BaseAutocompletePalette {
@@ -73,7 +74,10 @@ export class SearchAutocompletePalette extends BaseAutocompletePalette {
             const suggestion = this.getSuggestionsFromLabeledActions([labeledAction]);
             console.log('Selected Suggestion', suggestion);
 
-            // TODO: throw new action, to focus element/center element
+            const actions: CenterAction[] = [];
+            suggestion.map(currElem => actions.push(CenterAction.create([currElem.element.id])));
+
+            this.actionDispatcher.dispatchAll(actions);
         }
     }
 
