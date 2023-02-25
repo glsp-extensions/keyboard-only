@@ -27,6 +27,7 @@ import {
     SChildElement,
     BoundsAware
 } from 'sprotty';
+import { CenterAction } from 'sprotty-protocol';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 
@@ -84,6 +85,12 @@ export class ZoomKeyListener extends KeyListener {
             if (action) {
                 result.push(action);
             }
+        } else if (matchesKeystroke(event, 'Digit0', 'ctrl')) {
+            return [CenterAction.create(selectedElements)];
+            /* const action = this.executeZoomWorkflow(selectedElements, viewport, 1);
+            if (action) {
+                result.push(action);
+            }*/
         }
         return result;
     }
