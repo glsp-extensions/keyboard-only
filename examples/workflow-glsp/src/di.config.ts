@@ -37,6 +37,7 @@ import {
     StructureCompartmentView,
     TYPES
 } from '@eclipse-glsp/client';
+import { diagramNavigationModule } from '@eclipse-glsp/client/lib/features/navigation/di.config';
 import { DefaultTypes } from '@eclipse-glsp/protocol';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
@@ -79,5 +80,6 @@ export default function createContainer(widgetId: string): Container {
         baseDiv: widgetId,
         hiddenDiv: widgetId + '_hidden'
     });
+    container.load(diagramNavigationModule);
     return container;
 }
