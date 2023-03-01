@@ -33,6 +33,8 @@ import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { TYPES } from '../../base/types';
+import { isSelectableAndBoundsAware } from '../../index';
+import { GEdge } from '../../lib/model';
 
 export interface ElementNavigator {
     previous(
@@ -54,8 +56,12 @@ export class DefaultElementNavigator implements ElementNavigator {
         current?: SModelElement & BoundsAware,
         predicate: (element: SModelElement) => boolean = () => true
     ): SModelElement | undefined {
-        console.log('Get previous');
-        return undefined;
+        const elements = this.getElements(root, predicate);
+
+        if (current === undefined) {
+            return elements.length > 0 ? elements[0] : undefined;
+        }
+        return elements[this.getPreviousIndex(current, elements) % elements.length];
     }
 
     next(
@@ -63,7 +69,6 @@ export class DefaultElementNavigator implements ElementNavigator {
         current?: SModelElement & BoundsAware,
         predicate: (element: SModelElement) => boolean = () => true
     ): SModelElement | undefined {
-        console.log('Get next');
         const elements = this.getElements(root, predicate);
         if (current === undefined) {
             return elements.length > 0 ? elements[0] : undefined;
@@ -72,22 +77,60 @@ export class DefaultElementNavigator implements ElementNavigator {
     }
 
     protected getElements(root: Readonly<SModelRoot>, predicate: (element: SModelElement) => boolean): SModelElement[] {
-        const elements = toArray(root.index.all().filter(e => isBoundsAware(e)));
-
-        // TODO: Sort maybe if necessary
-        return elements.filter(predicate);
+        const elements = toArray(root.index.all().filter(e => isSelectableAndBoundsAware(e) && !(e instanceof GEdge))) as (SModelElement &
+            BoundsAware)[];
+        return elements.sort((a, b) => this.compare(a, b)).filter(predicate);
     }
 
     protected getNextIndex(current: SModelElement & BoundsAware, elements: SModelElement[]): number {
-        // TODO: Previous Index
-        return elements.length - 2;
+        // console.log('=== Get Next Index', current, elements);
+
+        for (let index = 0; index < elements.length; index++) {
+            if (this.compare(elements[index], current) > 0) {
+                /* console.log('=========================');
+                console.log('Before', elements.slice(0, index));
+                console.log('Current', index, elements[index]);
+                console.log('After', elements.slice(index + 1));
+                console.log('=========================');*/
+                return index;
+            }
+        }
+        //  console.log('Return to start');
+        return 0;
     }
 
     protected getPreviousIndex(current: SModelElement & BoundsAware, elements: SModelElement[]): number {
-        // TODO: Next index
-        return 2;
+        //  console.log('=== Get Previous Index', current, elements);
+
+        for (let index = elements.length - 1; index >= 0; index--) {
+            if (this.compare(elements[index], current) < 0) {
+                /*   console.log('=========================');
+                console.log('Before', elements.slice(0, index));
+                console.log('Current', index, elements[index]);
+                console.log('After', elements.slice(index + 1));
+                console.log('=========================');*/
+                return index;
+            }
+        }
+        //  console.log('Return to end');
+        return elements.length - 1;
+    }
+    protected compare(one: SModelElement, other: SModelElement): number {
+        const boundsOne = findParentByFeature(one, isSelectableAndBoundsAware);
+        const boundsOther = findParentByFeature(other, isSelectableAndBoundsAware);
+        if (boundsOne && boundsOther) {
+            if (boundsOne.bounds.y !== boundsOther.bounds.y) {
+                return boundsOne.bounds.y - boundsOther.bounds.y;
+            }
+            if (boundsOne.bounds.x !== boundsOther.bounds.x) {
+                return boundsOne.bounds.x - boundsOther.bounds.x;
+            }
+        }
+        console.log('== ERROR ==, Comparison failed for ', one, other);
+        return 0;
     }
 }
+
 @injectable()
 export class ElementNavigatorTool implements GLSPTool {
     static ID = 'glsp.movement-keyboard';
@@ -122,7 +165,7 @@ export class ElementNavigatorKeyListener extends KeyListener {
 
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
         if (matchesKeystroke(event, 'KeyN')) {
-            console.log('activated navigation');
+            // console.log('activated navigation');
             this.isNavigationMode = !this.isNavigationMode;
         }
         const selected = this.getSelectedElements(element.root);
@@ -130,24 +173,24 @@ export class ElementNavigatorKeyListener extends KeyListener {
         const current = selected.length > 0 ? selected[0] : element;
 
         if (this.isNavigationMode && isBoundsAware(current)) {
+            let target;
             if (matchesKeystroke(event, 'ArrowLeft')) {
-                console.log('prev element');
+                target = this.getTarget(current, selected, 'previous');
             } else if (matchesKeystroke(event, 'ArrowRight')) {
-                console.log('next element');
+                target = this.getTarget(current, selected, 'next');
+            }
+            const selectableTarget = target ? findParentByFeature(target, isSelectable) : undefined;
+            console.log('Navigate to element', selectableTarget);
 
-                const target = this.getTarget(current, selected, 'next');
-
-                const selectableTarget = target ? findParentByFeature(target, isSelectable) : undefined;
-                console.log('Navigate to element', current, target, selectableTarget);
-                if (selectableTarget) {
-                    const deselectedElementsIDs = selected.map(e => e.id).filter(id => id !== selectableTarget.id);
-                    this.tool.actionDispatcher.dispatch(
-                        SelectAction.create({ selectedElementsIDs: [selectableTarget.id], deselectedElementsIDs })
-                    );
-                    this.tool.actionDispatcher.dispatch(CenterAction.create([selectableTarget.id]));
-                }
+            if (selectableTarget) {
+                const deselectedElementsIDs = selected.map(e => e.id).filter(id => id !== selectableTarget.id);
+                this.tool.actionDispatcher.dispatch(
+                    SelectAction.create({ selectedElementsIDs: [selectableTarget.id], deselectedElementsIDs })
+                );
+                this.tool.actionDispatcher.dispatch(CenterAction.create([selectableTarget.id]));
             }
         }
+
         return [];
     }
 
