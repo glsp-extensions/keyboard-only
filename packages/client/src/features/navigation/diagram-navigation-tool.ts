@@ -14,8 +14,8 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { Action, CenterAction, SelectAction } from '@eclipse-glsp/protocol';
-import { inject, injectable } from 'inversify';
+import { Action, CenterAction, Point, SelectAction } from '@eclipse-glsp/protocol';
+import { inject, injectable, optional } from 'inversify';
 import {
     KeyListener,
     KeyTool,
@@ -26,15 +26,16 @@ import {
     isSelected,
     Selectable,
     findParentByFeature,
-    isSelectable
+    isSelectable,
+    EdgeRouterRegistry,
+    SEdge
 } from 'sprotty';
 import { toArray } from 'sprotty/lib/utils/iterable';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { TYPES } from '../../base/types';
-import { isSelectableAndBoundsAware } from '../../index';
-import { GEdge } from '../../lib/model';
+import { calcElementAndRoute, calcElementAndRoutingPoints, isRoutable, isSelectableAndBoundsAware } from '../../utils/smodel-util';
 
 export interface ElementNavigator {
     previous(
@@ -51,6 +52,8 @@ export interface ElementNavigator {
 
 @injectable()
 export class DefaultElementNavigator implements ElementNavigator {
+    @inject(EdgeRouterRegistry) @optional() readonly edgeRouterRegistry?: EdgeRouterRegistry;
+
     previous(
         root: Readonly<SModelRoot>,
         current?: SModelElement & BoundsAware,
@@ -77,13 +80,12 @@ export class DefaultElementNavigator implements ElementNavigator {
     }
 
     protected getElements(root: Readonly<SModelRoot>, predicate: (element: SModelElement) => boolean): SModelElement[] {
-        const elements = toArray(root.index.all().filter(e => isSelectableAndBoundsAware(e) && !(e instanceof GEdge))) as (SModelElement &
-            BoundsAware)[];
+        const elements = toArray(root.index.all().filter(e => isSelectableAndBoundsAware(e))) as (SModelElement & BoundsAware)[];
         return elements.sort((a, b) => this.compare(a, b)).filter(predicate);
     }
 
     protected getNextIndex(current: SModelElement & BoundsAware, elements: SModelElement[]): number {
-        // console.log('=== Get Next Index', current, elements);
+        console.log('=== Get Next Index', current, elements);
 
         for (let index = 0; index < elements.length; index++) {
             if (this.compare(elements[index], current) > 0) {
@@ -116,17 +118,37 @@ export class DefaultElementNavigator implements ElementNavigator {
         return elements.length - 1;
     }
     protected compare(one: SModelElement, other: SModelElement): number {
+        let positionOne: Point | undefined = undefined;
+        let positionOther: Point | undefined = undefined;
+
+        if (one instanceof SEdge && isRoutable(one)) {
+            positionOne = calcElementAndRoute(one, this.edgeRouterRegistry).newRoutingPoints?.[0];
+        }
+
+        if (other instanceof SEdge && isRoutable(other)) {
+            positionOther = calcElementAndRoute(other, this.edgeRouterRegistry).newRoutingPoints?.[0];
+        }
+
         const boundsOne = findParentByFeature(one, isSelectableAndBoundsAware);
         const boundsOther = findParentByFeature(other, isSelectableAndBoundsAware);
-        if (boundsOne && boundsOther) {
-            if (boundsOne.bounds.y !== boundsOther.bounds.y) {
-                return boundsOne.bounds.y - boundsOther.bounds.y;
+
+        if (positionOne === undefined && boundsOne) {
+            positionOne = boundsOne.bounds;
+        }
+
+        if (positionOther === undefined && boundsOther) {
+            positionOther = boundsOther.bounds;
+        }
+
+        if (positionOne && positionOther) {
+            if (positionOne.y !== positionOther.y) {
+                return positionOne.y - positionOther.y;
             }
-            if (boundsOne.bounds.x !== boundsOther.bounds.x) {
-                return boundsOne.bounds.x - boundsOther.bounds.x;
+            if (positionOne.x !== positionOther.x) {
+                return positionOne.x - positionOther.x;
             }
         }
-        console.log('== ERROR ==, Comparison failed for ', one, other);
+
         return 0;
     }
 }
