@@ -37,6 +37,7 @@ import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { TYPES } from '../../base/types';
 import { calcElementAndRoute, isRoutable, isSelectableAndBoundsAware } from '../../utils/smodel-util';
+import { HideToastAction, ShowToastMessageAction } from '../toast/toast';
 
 export interface ElementNavigator {
     previous(
@@ -295,10 +296,12 @@ export class ElementNavigatorKeyListener extends KeyListener {
         if (matchesKeystroke(event, 'KeyN', 'alt')) {
             this.clean();
             if (this.mode !== NavigationMode.LOCAL) {
+                this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create('BLAAAAAAAAAAAA'));
                 this.navigator = this.tool.localElementNavigator;
                 this.mode = NavigationMode.LOCAL;
             } else {
                 this.mode = NavigationMode.NONE;
+                this.tool.actionDispatcher.dispatch(HideToastAction.create());
             }
         } else if (matchesKeystroke(event, 'KeyN')) {
             this.clean();

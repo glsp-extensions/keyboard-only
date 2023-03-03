@@ -18,6 +18,7 @@ import {
     BaseJsonrpcGLSPClient,
     configureServerActions,
     EnableToolPaletteAction,
+    EnableToastAction,
     GLSPActionDispatcher,
     GLSPClient,
     GLSPDiagramServer,
@@ -70,6 +71,7 @@ async function initialize(connectionProvider: MessageConnection): Promise<void> 
     actionDispatcher.dispatch(RequestTypeHintsAction.create());
     await actionDispatcher.onceModelInitialized();
     actionDispatcher.dispatch(EnableToolPaletteAction.create());
+    actionDispatcher.dispatch(EnableToastAction.create());
 }
 
 websocket.onerror = ev => alert('Connection to server errored. Please make sure that the server is running');
