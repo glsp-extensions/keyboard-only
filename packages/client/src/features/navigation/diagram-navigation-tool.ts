@@ -38,6 +38,7 @@ import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { TYPES } from '../../base/types';
 import { calcElementAndRoute, isRoutable, isSelectableAndBoundsAware } from '../../utils/smodel-util';
 import { HideToastAction, ShowToastMessageAction } from '../toast/toast';
+import { applyCssClasses, deleteCssClasses } from '../tool-feedback/css-feedback';
 
 export interface ElementNavigator {
     previous(
@@ -67,6 +68,15 @@ export interface ElementNavigator {
         previousCurrent?: SModelElement & BoundsAware,
         predicate?: (element: SModelElement) => boolean
     ): SModelElement | undefined;
+
+    process?(
+        root: Readonly<SModelRoot>,
+        current: SModelElement & BoundsAware,
+        target: SModelElement & BoundsAware,
+        previousCurrent?: SModelElement & BoundsAware,
+        predicate?: (element: SModelElement) => boolean
+    ): void;
+    clean?(root: Readonly<SModelRoot>, current: SModelElement & BoundsAware, previousCurrent?: SModelElement & BoundsAware): void;
 }
 
 @injectable()
@@ -164,6 +174,7 @@ export class LeftToRightTopToBottomElementNavigator implements ElementNavigator 
 @injectable()
 export class LocalElementNavigator implements ElementNavigator {
     @inject(EdgeRouterRegistry) @optional() readonly edgeRouterRegistry?: EdgeRouterRegistry;
+    @inject(TYPES.IActionDispatcher) protected readonly actionDispatcher: GLSPActionDispatcher;
 
     previous(
         root: Readonly<SModelRoot>,
@@ -201,11 +212,37 @@ export class LocalElementNavigator implements ElementNavigator {
         return this.getIterable(current, previousCurrent, predicate);
     }
 
-    protected getIterable(
+    process(
+        root: Readonly<SModelRoot>,
+        current: SModelElement & BoundsAware,
+        target: SModelElement & BoundsAware,
+        previousCurrent?: SModelElement & BoundsAware,
+        predicate?: (element: SModelElement) => boolean
+    ): void {
+        let elements: SModelElement[] = [];
+
+        // Mark only edges
+        if (target instanceof SEdge) {
+            // If current is a edge, we have to check the source and target
+            if (current instanceof SEdge) {
+                elements = this.getIterables(target, current.source === target.source ? current.source : current.target, predicate);
+            } else {
+                // Otherwise take the current as it is
+                elements = this.getIterables(target, current, predicate);
+            }
+        }
+
+        elements.filter(e => e.id !== target.id).forEach(e => this.actionDispatcher.dispatch(applyCssClasses(e, 'navigable-element')));
+    }
+    clean(root: Readonly<SModelRoot>, current: SModelElement & BoundsAware, previousCurrent?: SModelElement & BoundsAware): void {
+        root.index.all().forEach(e => this.actionDispatcher.dispatch(deleteCssClasses(e, 'navigable-element')));
+    }
+
+    protected getIterables(
         current: SModelElement & BoundsAware,
         previousCurrent?: SModelElement & BoundsAware,
         predicate: (element: SModelElement) => boolean = () => true
-    ): SModelElement {
+    ): SModelElement[] {
         const elements: SModelElement[] = [];
 
         if (current instanceof SEdge) {
@@ -216,9 +253,16 @@ export class LocalElementNavigator implements ElementNavigator {
             }
         }
 
-        return elements.filter(e => e.id !== current.id).filter(predicate)[0];
+        return elements.filter(predicate);
     }
 
+    protected getIterable(
+        current: SModelElement & BoundsAware,
+        previousCurrent?: SModelElement & BoundsAware,
+        predicate: (element: SModelElement) => boolean = () => true
+    ): SModelElement {
+        return this.getIterables(current, previousCurrent, predicate).filter(e => e.id !== current.id)[0];
+    }
     protected getNextElement(
         current: SModelElement & BoundsAware,
         predicate: (element: SModelElement) => boolean = () => true
@@ -296,7 +340,7 @@ export class ElementNavigatorKeyListener extends KeyListener {
         if (matchesKeystroke(event, 'KeyN', 'alt')) {
             this.clean();
             if (this.mode !== NavigationMode.LOCAL) {
-                this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create('BLAAAAAAAAAAAA'));
+                this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create('TEST'));
                 this.navigator = this.tool.localElementNavigator;
                 this.mode = NavigationMode.LOCAL;
             } else {
@@ -319,6 +363,7 @@ export class ElementNavigatorKeyListener extends KeyListener {
 
         if (this.mode !== NavigationMode.NONE && this.navigator !== undefined && current !== undefined && isBoundsAware(current)) {
             let target;
+            this.navigator.clean?.(current.root, current, this.previousNode);
             if (matchesKeystroke(event, 'ArrowLeft')) {
                 target = this.navigator.previous(current.root, current);
             } else if (matchesKeystroke(event, 'ArrowRight')) {
@@ -328,7 +373,9 @@ export class ElementNavigatorKeyListener extends KeyListener {
             } else if (matchesKeystroke(event, 'ArrowDown')) {
                 target = this.navigator.down?.(current.root, current, this.previousNode);
             }
-
+            if (target !== undefined) {
+                this.navigator.process?.(current.root, current, target as SModelElement & BoundsAware, this.previousNode);
+            }
             const selectableTarget = target ? findParentByFeature(target, isSelectable) : undefined;
 
             if (selectableTarget) {

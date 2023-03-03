@@ -1,0 +1,9 @@
+.navigable-element {
+    stroke: rgb(68, 136, 136) !important;
+    opacity: 0.7;
+}
+.navigable-element .sprotty-edge.arrow {
+    fill: rgb(68, 136, 136) !important;
+    stroke: rgb(68, 136, 136) !important;
+    opacity: 0.8;
+}

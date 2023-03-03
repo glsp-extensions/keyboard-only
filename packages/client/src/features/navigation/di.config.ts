@@ -20,6 +20,7 @@ import { TYPES } from '../../base/types';
 import { LeftToRightTopToBottomElementNavigator, ElementNavigatorTool, LocalElementNavigator } from './diagram-navigation-tool';
 import { NavigateAction, NavigationActionHandler, ProcessNavigationArgumentsAction } from './navigation-action-handler';
 import { NavigationTargetResolver } from './navigation-target-resolver';
+import '../../../css/navigation.css';
 
 export const navigationModule = new ContainerModule((bind, _unbind, isBound) => {
     bind(NavigationTargetResolver).toSelf().inSingletonScope();
