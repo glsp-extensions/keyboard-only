@@ -167,53 +167,44 @@ export class LocalElementNavigator implements ElementNavigator {
     previous(
         root: Readonly<SModelRoot>,
         current: SModelElement & BoundsAware,
-        previousCurrent: SModelElement & BoundsAware,
-        predicate: (element: SModelElement) => boolean = () => true
+        previousCurrent?: SModelElement & BoundsAware,
+        predicate?: (element: SModelElement) => boolean
     ): SModelElement | undefined {
-        const elements = this.getPreviousElements(root, predicate, current);
-
-        return elements[this.getPreviousIndex(current, elements) % elements.length];
+        return this.getPreviousElement(current, predicate);
     }
 
     next(
         root: Readonly<SModelRoot>,
         current: SModelElement & BoundsAware,
-        previousCurrent: SModelElement & BoundsAware,
-        predicate: (element: SModelElement) => boolean = () => true
+        previousCurrent?: SModelElement & BoundsAware,
+        predicate?: (element: SModelElement) => boolean
     ): SModelElement | undefined {
-        const elements = this.getNextElements(root, predicate, current);
-
-        return elements[this.getNextIndex(current, elements) % elements.length];
+        return this.getNextElement(current, predicate);
     }
 
     up(
         root: Readonly<SModelRoot>,
         current: SModelElement & BoundsAware,
         previousCurrent?: SModelElement & BoundsAware,
-        predicate: (element: SModelElement) => boolean = () => true
+        predicate?: (element: SModelElement) => boolean
     ): SModelElement | undefined {
-        const elements = this.getIterables(root, predicate, current, previousCurrent);
-
-        return elements[this.getNextIndex(current, elements) % elements.length];
+        return this.getIterable(current, previousCurrent, predicate);
     }
 
     down(
         root: Readonly<SModelRoot>,
         current: SModelElement & BoundsAware,
         previousCurrent?: SModelElement & BoundsAware,
-        predicate: (element: SModelElement) => boolean = () => true
+        predicate?: (element: SModelElement) => boolean
     ): SModelElement | undefined {
-        const elements = this.getIterables(root, predicate, current, previousCurrent);
-
-        return elements[this.getNextIndex(current, elements) % elements.length];
+        return this.getIterable(current, previousCurrent, predicate);
     }
 
-    protected getIterables(
-        root: Readonly<SModelRoot>,
-        predicate: (element: SModelElement) => boolean,
-        current?: SModelElement & BoundsAware,
-        previousCurrent?: SModelElement & BoundsAware
-    ): SModelElement[] {
+    protected getIterable(
+        current: SModelElement & BoundsAware,
+        previousCurrent?: SModelElement & BoundsAware,
+        predicate: (element: SModelElement) => boolean = () => true
+    ): SModelElement {
         const elements: SModelElement[] = [];
 
         if (current instanceof SEdge) {
@@ -224,15 +215,14 @@ export class LocalElementNavigator implements ElementNavigator {
             }
         }
 
-        return elements.sort((a, b) => this.compare(a, b)).filter(predicate);
+        return elements.filter(e => e.id !== current.id).filter(predicate)[0];
     }
 
-    protected getNextElements(
-        root: Readonly<SModelRoot>,
-        predicate: (element: SModelElement) => boolean,
-        current: SModelElement & BoundsAware
-    ): SModelElement[] {
-        const elements: SModelElement[] = [current];
+    protected getNextElement(
+        current: SModelElement & BoundsAware,
+        predicate: (element: SModelElement) => boolean = () => true
+    ): SModelElement {
+        const elements: SModelElement[] = [];
 
         if (current instanceof SConnectableElement) {
             current.outgoingEdges.forEach(e => elements.push(e));
@@ -241,15 +231,14 @@ export class LocalElementNavigator implements ElementNavigator {
             elements.push(target);
         }
 
-        return elements.sort((a, b) => this.compare(a, b)).filter(predicate);
+        return elements.filter(predicate)[0];
     }
 
-    protected getPreviousElements(
-        root: Readonly<SModelRoot>,
-        predicate: (element: SModelElement) => boolean,
-        current: SModelElement & BoundsAware
-    ): SModelElement[] {
-        const elements: SModelElement[] = [current];
+    protected getPreviousElement(
+        current: SModelElement & BoundsAware,
+        predicate: (element: SModelElement) => boolean = () => true
+    ): SModelElement {
+        const elements: SModelElement[] = [];
 
         if (current instanceof SConnectableElement) {
             current.incomingEdges.forEach(e => elements.push(e));
@@ -258,62 +247,7 @@ export class LocalElementNavigator implements ElementNavigator {
             elements.push(source);
         }
 
-        return elements.sort((a, b) => this.compare(a, b)).filter(predicate);
-    }
-
-    protected getNextIndex(current: SModelElement & BoundsAware, elements: SModelElement[]): number {
-        for (let index = 0; index < elements.length; index++) {
-            if (this.compare(elements[index], current) > 0) {
-                return index;
-            }
-        }
-
-        return 0;
-    }
-
-    protected getPreviousIndex(current: SModelElement & BoundsAware, elements: SModelElement[]): number {
-        for (let index = elements.length - 1; index >= 0; index--) {
-            if (this.compare(elements[index], current) < 0) {
-                return index;
-            }
-        }
-
-        return elements.length - 1;
-    }
-
-    protected compare(one: SModelElement, other: SModelElement): number {
-        let positionOne: Point | undefined = undefined;
-        let positionOther: Point | undefined = undefined;
-
-        if (one instanceof SEdge && isRoutable(one)) {
-            positionOne = calcElementAndRoute(one, this.edgeRouterRegistry).newRoutingPoints?.[0];
-        }
-
-        if (other instanceof SEdge && isRoutable(other)) {
-            positionOther = calcElementAndRoute(other, this.edgeRouterRegistry).newRoutingPoints?.[0];
-        }
-
-        const boundsOne = findParentByFeature(one, isSelectableAndBoundsAware);
-        const boundsOther = findParentByFeature(other, isSelectableAndBoundsAware);
-
-        if (positionOne === undefined && boundsOne) {
-            positionOne = boundsOne.bounds;
-        }
-
-        if (positionOther === undefined && boundsOther) {
-            positionOther = boundsOther.bounds;
-        }
-
-        if (positionOne && positionOther) {
-            if (positionOne.y !== positionOther.y) {
-                return positionOne.y - positionOther.y;
-            }
-            if (positionOne.x !== positionOther.x) {
-                return positionOne.x - positionOther.x;
-            }
-        }
-
-        return 0;
+        return elements.filter(predicate)[0];
     }
 }
 
