@@ -29,39 +29,53 @@ import {
     isSelectable,
     EdgeRouterRegistry,
     SEdge,
-    SConnectableElement,
-    SGraph,
-    IActionHandler,
-    Action,
-    ICommand
+    SConnectableElement
 } from 'sprotty';
 import { toArray } from 'sprotty/lib/utils/iterable';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { TYPES } from '../../base/types';
-import { calcElementAndRoute, calcElementAndRoutingPoints, isRoutable, isSelectableAndBoundsAware } from '../../utils/smodel-util';
+import { calcElementAndRoute, isRoutable, isSelectableAndBoundsAware } from '../../utils/smodel-util';
 
 export interface ElementNavigator {
     previous(
         root: Readonly<SModelRoot>,
-        current?: SModelElement & BoundsAware,
+        current: SModelElement & BoundsAware,
+        previousCurrent?: SModelElement & BoundsAware,
         predicate?: (element: SModelElement) => boolean
     ): SModelElement | undefined;
+
     next(
         root: Readonly<SModelRoot>,
-        current?: SModelElement & BoundsAware,
+        current: SModelElement & BoundsAware,
+        previousCurrent?: SModelElement & BoundsAware,
+        predicate?: (element: SModelElement) => boolean
+    ): SModelElement | undefined;
+
+    up?(
+        root: Readonly<SModelRoot>,
+        current: SModelElement & BoundsAware,
+        previousCurrent?: SModelElement & BoundsAware,
+        predicate?: (element: SModelElement) => boolean
+    ): SModelElement | undefined;
+
+    down?(
+        root: Readonly<SModelRoot>,
+        current: SModelElement & BoundsAware,
+        previousCurrent?: SModelElement & BoundsAware,
         predicate?: (element: SModelElement) => boolean
     ): SModelElement | undefined;
 }
 
 @injectable()
-export class DefaultElementNavigator implements ElementNavigator {
+export class LeftToRightTopToBottomElementNavigator implements ElementNavigator {
     @inject(EdgeRouterRegistry) @optional() readonly edgeRouterRegistry?: EdgeRouterRegistry;
 
     previous(
         root: Readonly<SModelRoot>,
         current?: SModelElement & BoundsAware,
+        previousCurrent?: SModelElement & BoundsAware,
         predicate: (element: SModelElement) => boolean = () => true
     ): SModelElement | undefined {
         const elements = this.getElements(root, predicate);
@@ -75,6 +89,7 @@ export class DefaultElementNavigator implements ElementNavigator {
     next(
         root: Readonly<SModelRoot>,
         current?: SModelElement & BoundsAware,
+        previousCurrent?: SModelElement & BoundsAware,
         predicate: (element: SModelElement) => boolean = () => true
     ): SModelElement | undefined {
         const elements = this.getElements(root, predicate);
@@ -90,38 +105,25 @@ export class DefaultElementNavigator implements ElementNavigator {
     }
 
     protected getNextIndex(current: SModelElement & BoundsAware, elements: SModelElement[]): number {
-        console.log('=== Get Next Index', current, elements);
-
         for (let index = 0; index < elements.length; index++) {
             if (this.compare(elements[index], current) > 0) {
-                /* console.log('=========================');
-                console.log('Before', elements.slice(0, index));
-                console.log('Current', index, elements[index]);
-                console.log('After', elements.slice(index + 1));
-                console.log('=========================');*/
                 return index;
             }
         }
-        //  console.log('Return to start');
+
         return 0;
     }
 
     protected getPreviousIndex(current: SModelElement & BoundsAware, elements: SModelElement[]): number {
-        //  console.log('=== Get Previous Index', current, elements);
-
         for (let index = elements.length - 1; index >= 0; index--) {
             if (this.compare(elements[index], current) < 0) {
-                /*   console.log('=========================');
-                console.log('Before', elements.slice(0, index));
-                console.log('Current', index, elements[index]);
-                console.log('After', elements.slice(index + 1));
-                console.log('=========================');*/
                 return index;
             }
         }
-        //  console.log('Return to end');
+
         return elements.length - 1;
     }
+
     protected compare(one: SModelElement, other: SModelElement): number {
         let positionOne: Point | undefined = undefined;
         let positionOther: Point | undefined = undefined;
@@ -165,6 +167,7 @@ export class LocalElementNavigator implements ElementNavigator {
     previous(
         root: Readonly<SModelRoot>,
         current: SModelElement & BoundsAware,
+        previousCurrent: SModelElement & BoundsAware,
         predicate: (element: SModelElement) => boolean = () => true
     ): SModelElement | undefined {
         const elements = this.getPreviousElements(root, predicate, current);
@@ -175,6 +178,7 @@ export class LocalElementNavigator implements ElementNavigator {
     next(
         root: Readonly<SModelRoot>,
         current: SModelElement & BoundsAware,
+        previousCurrent: SModelElement & BoundsAware,
         predicate: (element: SModelElement) => boolean = () => true
     ): SModelElement | undefined {
         const elements = this.getNextElements(root, predicate, current);
@@ -220,8 +224,6 @@ export class LocalElementNavigator implements ElementNavigator {
             }
         }
 
-        console.log('Iterables', elements, current, previousCurrent);
-
         return elements.sort((a, b) => this.compare(a, b)).filter(predicate);
     }
 
@@ -238,8 +240,6 @@ export class LocalElementNavigator implements ElementNavigator {
             const target = current.target as SModelElement;
             elements.push(target);
         }
-
-        console.log('Next Elements', elements, current);
 
         return elements.sort((a, b) => this.compare(a, b)).filter(predicate);
     }
@@ -258,14 +258,10 @@ export class LocalElementNavigator implements ElementNavigator {
             elements.push(source);
         }
 
-        console.log('Previous Elements', elements, current);
-
         return elements.sort((a, b) => this.compare(a, b)).filter(predicate);
     }
 
     protected getNextIndex(current: SModelElement & BoundsAware, elements: SModelElement[]): number {
-        console.log('=== Get Next Index', current, elements);
-
         for (let index = 0; index < elements.length; index++) {
             if (this.compare(elements[index], current) > 0) {
                 return index;
@@ -330,8 +326,8 @@ export class ElementNavigatorTool implements GLSPTool {
     protected elementNavigatorKeyListener: ElementNavigatorKeyListener = new ElementNavigatorKeyListener(this);
 
     @inject(KeyTool) protected readonly keytool: KeyTool;
-    // @inject(DefaultElementNavigator) readonly elementNavigator: DefaultElementNavigator;
-    @inject(LocalElementNavigator) readonly elementNavigator: LocalElementNavigator;
+    @inject(TYPES.IElementNavigator) readonly elementNavigator: ElementNavigator;
+    @inject(TYPES.ILocalElementNavigator) readonly localElementNavigator: ElementNavigator;
     @inject(TYPES.IActionDispatcher) readonly actionDispatcher: GLSPActionDispatcher;
 
     get id(): string {
@@ -347,44 +343,60 @@ export class ElementNavigatorTool implements GLSPTool {
     }
 }
 
+enum NavigationMode {
+    LOCAL = 'local',
+    DEFAULT = 'default',
+    NONE = 'none'
+}
 export class ElementNavigatorKeyListener extends KeyListener {
-    protected isNavigationMode = false;
+    protected mode = NavigationMode.NONE;
     protected previousNode?: SModelElement & BoundsAware;
+    protected navigator?: ElementNavigator;
 
     constructor(protected readonly tool: ElementNavigatorTool) {
         super();
     }
 
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
-        if (matchesKeystroke(event, 'KeyN')) {
-            // console.log('activated navigation');
-            this.isNavigationMode = !this.isNavigationMode;
+        if (matchesKeystroke(event, 'KeyN', 'alt')) {
+            this.clean();
+            if (this.mode !== NavigationMode.LOCAL) {
+                this.navigator = this.tool.localElementNavigator;
+                this.mode = NavigationMode.LOCAL;
+            } else {
+                this.mode = NavigationMode.NONE;
+            }
+        } else if (matchesKeystroke(event, 'KeyN')) {
+            this.clean();
+            if (this.mode !== NavigationMode.DEFAULT) {
+                this.navigator = this.tool.elementNavigator;
+                this.mode = NavigationMode.DEFAULT;
+            } else {
+                this.mode = NavigationMode.NONE;
+            }
         }
+
         const selected = this.getSelectedElements(element.root);
 
-        // TODO: nur iwas machen wenn selektiert ist
-        const current = selected.length > 0 ? selected[0] : element;
-        console.log('Test', selected, current, element);
+        const current = selected.length > 0 ? selected[0] : undefined;
 
-        if (this.isNavigationMode && !(current instanceof SGraph) && isBoundsAware(current)) {
+        if (this.mode !== NavigationMode.NONE && this.navigator !== undefined && current !== undefined && isBoundsAware(current)) {
             let target;
             if (matchesKeystroke(event, 'ArrowLeft')) {
-                target = this.tool.elementNavigator.previous(current.root, current);
+                target = this.navigator.previous(current.root, current);
             } else if (matchesKeystroke(event, 'ArrowRight')) {
-                target = this.tool.elementNavigator.next(current.root, current);
+                target = this.navigator.next(current.root, current);
             } else if (matchesKeystroke(event, 'ArrowUp')) {
-                target = this.tool.elementNavigator.up(current.root, current, this.previousNode);
+                target = this.navigator.up?.(current.root, current, this.previousNode);
             } else if (matchesKeystroke(event, 'ArrowDown')) {
-                target = this.tool.elementNavigator.down(current.root, current, this.previousNode);
+                target = this.navigator.down?.(current.root, current, this.previousNode);
             }
 
             const selectableTarget = target ? findParentByFeature(target, isSelectable) : undefined;
-            console.log('Navigate to element', selectableTarget);
 
             if (selectableTarget) {
                 if (!(current instanceof SEdge)) {
                     this.previousNode = current;
-                    console.log('Previos Node Set to', this.previousNode);
                 }
                 const deselectedElementsIDs = selected.map(e => e.id).filter(id => id !== selectableTarget.id);
                 this.tool.actionDispatcher.dispatchAll([
@@ -397,9 +409,9 @@ export class ElementNavigatorKeyListener extends KeyListener {
         return [];
     }
 
-    // TODO: Use it
     clean(): void {
         this.previousNode = undefined;
+        this.navigator = undefined;
     }
 
     protected getSelectedElements(root: SModelRoot): (SModelElement & Selectable)[] {
