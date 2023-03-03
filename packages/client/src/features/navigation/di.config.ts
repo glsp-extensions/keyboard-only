@@ -17,7 +17,7 @@ import { NavigateToExternalTargetAction, NavigateToTargetAction } from '@eclipse
 import { ContainerModule } from 'inversify';
 import { configureActionHandler } from 'sprotty';
 import { TYPES } from '../../base/types';
-import { DefaultElementNavigator, ElementNavigatorTool } from './diagram-navigation-tool';
+import { DefaultElementNavigator, ElementNavigatorTool, LocalElementNavigator } from './diagram-navigation-tool';
 import { NavigateAction, NavigationActionHandler, ProcessNavigationArgumentsAction } from './navigation-action-handler';
 import { NavigationTargetResolver } from './navigation-target-resolver';
 
@@ -32,6 +32,7 @@ export const navigationModule = new ContainerModule((bind, _unbind, isBound) => 
 export const diagramNavigationModule = new ContainerModule((bind, _unbind, isBound) => {
     // TODO: User propery interfaces / structure
     bind(DefaultElementNavigator).toSelf().inSingletonScope();
+    bind(LocalElementNavigator).toSelf().inSingletonScope();
 
     bind(TYPES.IDefaultTool).to(ElementNavigatorTool);
 });

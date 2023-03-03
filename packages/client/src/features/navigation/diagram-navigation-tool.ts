@@ -28,7 +28,12 @@ import {
     findParentByFeature,
     isSelectable,
     EdgeRouterRegistry,
-    SEdge
+    SEdge,
+    SConnectableElement,
+    SGraph,
+    IActionHandler,
+    Action,
+    ICommand
 } from 'sprotty';
 import { toArray } from 'sprotty/lib/utils/iterable';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
@@ -154,6 +159,169 @@ export class DefaultElementNavigator implements ElementNavigator {
 }
 
 @injectable()
+export class LocalElementNavigator implements ElementNavigator {
+    @inject(EdgeRouterRegistry) @optional() readonly edgeRouterRegistry?: EdgeRouterRegistry;
+
+    previous(
+        root: Readonly<SModelRoot>,
+        current: SModelElement & BoundsAware,
+        predicate: (element: SModelElement) => boolean = () => true
+    ): SModelElement | undefined {
+        const elements = this.getPreviousElements(root, predicate, current);
+
+        return elements[this.getPreviousIndex(current, elements) % elements.length];
+    }
+
+    next(
+        root: Readonly<SModelRoot>,
+        current: SModelElement & BoundsAware,
+        predicate: (element: SModelElement) => boolean = () => true
+    ): SModelElement | undefined {
+        const elements = this.getNextElements(root, predicate, current);
+
+        return elements[this.getNextIndex(current, elements) % elements.length];
+    }
+
+    up(
+        root: Readonly<SModelRoot>,
+        current: SModelElement & BoundsAware,
+        previousCurrent?: SModelElement & BoundsAware,
+        predicate: (element: SModelElement) => boolean = () => true
+    ): SModelElement | undefined {
+        const elements = this.getIterables(root, predicate, current, previousCurrent);
+
+        return elements[this.getNextIndex(current, elements) % elements.length];
+    }
+
+    down(
+        root: Readonly<SModelRoot>,
+        current: SModelElement & BoundsAware,
+        previousCurrent?: SModelElement & BoundsAware,
+        predicate: (element: SModelElement) => boolean = () => true
+    ): SModelElement | undefined {
+        const elements = this.getIterables(root, predicate, current, previousCurrent);
+
+        return elements[this.getNextIndex(current, elements) % elements.length];
+    }
+
+    protected getIterables(
+        root: Readonly<SModelRoot>,
+        predicate: (element: SModelElement) => boolean,
+        current?: SModelElement & BoundsAware,
+        previousCurrent?: SModelElement & BoundsAware
+    ): SModelElement[] {
+        const elements: SModelElement[] = [];
+
+        if (current instanceof SEdge) {
+            if (current.target === previousCurrent) {
+                current.target?.incomingEdges.forEach(e => elements.push(e));
+            } else {
+                current.source?.outgoingEdges.forEach(e => elements.push(e));
+            }
+        }
+
+        console.log('Iterables', elements, current, previousCurrent);
+
+        return elements.sort((a, b) => this.compare(a, b)).filter(predicate);
+    }
+
+    protected getNextElements(
+        root: Readonly<SModelRoot>,
+        predicate: (element: SModelElement) => boolean,
+        current: SModelElement & BoundsAware
+    ): SModelElement[] {
+        const elements: SModelElement[] = [current];
+
+        if (current instanceof SConnectableElement) {
+            current.outgoingEdges.forEach(e => elements.push(e));
+        } else if (current instanceof SEdge) {
+            const target = current.target as SModelElement;
+            elements.push(target);
+        }
+
+        console.log('Next Elements', elements, current);
+
+        return elements.sort((a, b) => this.compare(a, b)).filter(predicate);
+    }
+
+    protected getPreviousElements(
+        root: Readonly<SModelRoot>,
+        predicate: (element: SModelElement) => boolean,
+        current: SModelElement & BoundsAware
+    ): SModelElement[] {
+        const elements: SModelElement[] = [current];
+
+        if (current instanceof SConnectableElement) {
+            current.incomingEdges.forEach(e => elements.push(e));
+        } else if (current instanceof SEdge) {
+            const source = current.source as SModelElement;
+            elements.push(source);
+        }
+
+        console.log('Previous Elements', elements, current);
+
+        return elements.sort((a, b) => this.compare(a, b)).filter(predicate);
+    }
+
+    protected getNextIndex(current: SModelElement & BoundsAware, elements: SModelElement[]): number {
+        console.log('=== Get Next Index', current, elements);
+
+        for (let index = 0; index < elements.length; index++) {
+            if (this.compare(elements[index], current) > 0) {
+                return index;
+            }
+        }
+
+        return 0;
+    }
+
+    protected getPreviousIndex(current: SModelElement & BoundsAware, elements: SModelElement[]): number {
+        for (let index = elements.length - 1; index >= 0; index--) {
+            if (this.compare(elements[index], current) < 0) {
+                return index;
+            }
+        }
+
+        return elements.length - 1;
+    }
+
+    protected compare(one: SModelElement, other: SModelElement): number {
+        let positionOne: Point | undefined = undefined;
+        let positionOther: Point | undefined = undefined;
+
+        if (one instanceof SEdge && isRoutable(one)) {
+            positionOne = calcElementAndRoute(one, this.edgeRouterRegistry).newRoutingPoints?.[0];
+        }
+
+        if (other instanceof SEdge && isRoutable(other)) {
+            positionOther = calcElementAndRoute(other, this.edgeRouterRegistry).newRoutingPoints?.[0];
+        }
+
+        const boundsOne = findParentByFeature(one, isSelectableAndBoundsAware);
+        const boundsOther = findParentByFeature(other, isSelectableAndBoundsAware);
+
+        if (positionOne === undefined && boundsOne) {
+            positionOne = boundsOne.bounds;
+        }
+
+        if (positionOther === undefined && boundsOther) {
+            positionOther = boundsOther.bounds;
+        }
+
+        if (positionOne && positionOther) {
+            if (positionOne.y !== positionOther.y) {
+                return positionOne.y - positionOther.y;
+            }
+            if (positionOne.x !== positionOther.x) {
+                return positionOne.x - positionOther.x;
+            }
+        }
+
+        return 0;
+    }
+}
+
+@injectable()
 export class ElementNavigatorTool implements GLSPTool {
     static ID = 'glsp.movement-keyboard';
 
@@ -162,7 +330,8 @@ export class ElementNavigatorTool implements GLSPTool {
     protected elementNavigatorKeyListener: ElementNavigatorKeyListener = new ElementNavigatorKeyListener(this);
 
     @inject(KeyTool) protected readonly keytool: KeyTool;
-    @inject(DefaultElementNavigator) readonly elementNavigator: DefaultElementNavigator;
+    // @inject(DefaultElementNavigator) readonly elementNavigator: DefaultElementNavigator;
+    @inject(LocalElementNavigator) readonly elementNavigator: LocalElementNavigator;
     @inject(TYPES.IActionDispatcher) readonly actionDispatcher: GLSPActionDispatcher;
 
     get id(): string {
@@ -179,7 +348,8 @@ export class ElementNavigatorTool implements GLSPTool {
 }
 
 export class ElementNavigatorKeyListener extends KeyListener {
-    isNavigationMode = false;
+    protected isNavigationMode = false;
+    protected previousNode?: SModelElement & BoundsAware;
 
     constructor(protected readonly tool: ElementNavigatorTool) {
         super();
@@ -192,43 +362,47 @@ export class ElementNavigatorKeyListener extends KeyListener {
         }
         const selected = this.getSelectedElements(element.root);
 
+        // TODO: nur iwas machen wenn selektiert ist
         const current = selected.length > 0 ? selected[0] : element;
+        console.log('Test', selected, current, element);
 
-        if (this.isNavigationMode && isBoundsAware(current)) {
+        if (this.isNavigationMode && !(current instanceof SGraph) && isBoundsAware(current)) {
             let target;
             if (matchesKeystroke(event, 'ArrowLeft')) {
-                target = this.getTarget(current, selected, 'previous');
+                target = this.tool.elementNavigator.previous(current.root, current);
             } else if (matchesKeystroke(event, 'ArrowRight')) {
-                target = this.getTarget(current, selected, 'next');
+                target = this.tool.elementNavigator.next(current.root, current);
+            } else if (matchesKeystroke(event, 'ArrowUp')) {
+                target = this.tool.elementNavigator.up(current.root, current, this.previousNode);
+            } else if (matchesKeystroke(event, 'ArrowDown')) {
+                target = this.tool.elementNavigator.down(current.root, current, this.previousNode);
             }
+
             const selectableTarget = target ? findParentByFeature(target, isSelectable) : undefined;
             console.log('Navigate to element', selectableTarget);
 
             if (selectableTarget) {
+                if (!(current instanceof SEdge)) {
+                    this.previousNode = current;
+                    console.log('Previos Node Set to', this.previousNode);
+                }
                 const deselectedElementsIDs = selected.map(e => e.id).filter(id => id !== selectableTarget.id);
-                this.tool.actionDispatcher.dispatch(
-                    SelectAction.create({ selectedElementsIDs: [selectableTarget.id], deselectedElementsIDs })
-                );
-                this.tool.actionDispatcher.dispatch(CenterAction.create([selectableTarget.id]));
+                this.tool.actionDispatcher.dispatchAll([
+                    SelectAction.create({ selectedElementsIDs: [selectableTarget.id], deselectedElementsIDs }),
+                    CenterAction.create([selectableTarget.id])
+                ]);
             }
         }
 
         return [];
     }
 
-    protected getSelectedElements(root: SModelRoot): (SModelElement & Selectable)[] {
-        return toArray(root.index.all().filter(e => isSelected(e))) as (SModelElement & Selectable)[];
+    // TODO: Use it
+    clean(): void {
+        this.previousNode = undefined;
     }
 
-    protected getTarget(
-        current: SModelElement & BoundsAware,
-        selected: SModelElement[],
-        direction: 'previous' | 'next'
-    ): SModelElement | undefined {
-        if (direction === 'previous') {
-            return this.tool.elementNavigator.previous(current.root, current);
-        } else {
-            return this.tool.elementNavigator.next(current.root, current);
-        }
+    protected getSelectedElements(root: SModelRoot): (SModelElement & Selectable)[] {
+        return toArray(root.index.all().filter(e => isSelected(e))) as (SModelElement & Selectable)[];
     }
 }
