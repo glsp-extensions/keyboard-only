@@ -39,6 +39,7 @@ import { TYPES } from '../../base/types';
 import { calcElementAndRoute, isRoutable, isSelectableAndBoundsAware } from '../../utils/smodel-util';
 import { HideToastAction, ShowToastMessageAction } from '../toast/toast';
 import { applyCssClasses, deleteCssClasses } from '../tool-feedback/css-feedback';
+import * as messages from '../toast/messages.json';
 
 export interface ElementNavigator {
     previous(
@@ -340,20 +341,24 @@ export class ElementNavigatorKeyListener extends KeyListener {
         if (matchesKeystroke(event, 'KeyN', 'alt')) {
             this.clean();
             if (this.mode !== NavigationMode.LOCAL) {
-                this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create('TEST'));
+                this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create(messages.navigation.local_navigation_mode_activated));
                 this.navigator = this.tool.localElementNavigator;
                 this.mode = NavigationMode.LOCAL;
             } else {
                 this.mode = NavigationMode.NONE;
                 this.tool.actionDispatcher.dispatch(HideToastAction.create());
+                this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create(messages.navigation.local_navigation_mode_deactivated));
             }
         } else if (matchesKeystroke(event, 'KeyN')) {
             this.clean();
             if (this.mode !== NavigationMode.DEFAULT) {
+                this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create(messages.navigation.default_navigation_mode_activated));
                 this.navigator = this.tool.elementNavigator;
                 this.mode = NavigationMode.DEFAULT;
             } else {
                 this.mode = NavigationMode.NONE;
+                this.tool.actionDispatcher.dispatch(HideToastAction.create());
+                this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create(messages.navigation.default_navigation_mode_deactivated));
             }
         }
 

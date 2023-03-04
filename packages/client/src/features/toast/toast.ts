@@ -36,6 +36,7 @@ export namespace EnableToastAction {
 
 export interface HideToastAction extends Action {
     kind: typeof HideToastAction.KIND;
+    timeout: number;
 }
 
 export namespace HideToastAction {
@@ -45,14 +46,15 @@ export namespace HideToastAction {
         return Action.hasKind(object, KIND);
     }
 
-    export function create(): HideToastAction {
-        return { kind: KIND };
+    export function create(timeout = 8000): HideToastAction {
+        return { kind: KIND, timeout };
     }
 }
 
 export interface ShowToastMessageAction extends Action {
     kind: typeof ShowToastMessageAction.KIND;
     message: string;
+    timeout: number;
 }
 
 export namespace ShowToastMessageAction {
@@ -62,8 +64,8 @@ export namespace ShowToastMessageAction {
         return Action.hasKind(object, KIND);
     }
 
-    export function create(message: string): ShowToastMessageAction {
-        return { kind: KIND, message };
+    export function create(message: string, timeout = 8000): ShowToastMessageAction {
+        return { kind: KIND, message, timeout };
     }
 }
 
@@ -97,9 +99,14 @@ export class Toast extends AbstractUIExtension implements IActionHandler {
         } else if (ShowToastMessageAction.is(action)) {
             this.text.textContent = action.message;
             this.container.style.visibility = 'visible';
+            setTimeout(() => {
+                this.container.style.visibility = 'hidden';
+            }, action.timeout);
         } else if (HideToastAction.is(action)) {
-            this.text.textContent = '';
-            this.container.style.visibility = 'hidden';
+            setTimeout(() => {
+                this.text.textContent = '';
+                this.container.style.visibility = 'hidden';
+            }, action.timeout);
         }
     }
 }
