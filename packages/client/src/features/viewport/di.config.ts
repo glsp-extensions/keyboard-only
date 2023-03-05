@@ -28,6 +28,7 @@ import {
     ZoomMouseListener
 } from 'sprotty';
 import { GLSPScrollMouseListener } from './glsp-scroll-mouse-listener';
+import { RepositionCommand } from './reposition';
 
 const glspViewportModule = new ContainerModule((bind, _unbind, isBound) => {
     configureCommand({ bind, isBound }, CenterCommand);
@@ -41,6 +42,7 @@ const glspViewportModule = new ContainerModule((bind, _unbind, isBound) => {
 
     configureActionHandler({ bind, isBound }, EnableToolsAction.KIND, GLSPScrollMouseListener);
     configureActionHandler({ bind, isBound }, EnableDefaultToolsAction.KIND, GLSPScrollMouseListener);
+    configureCommand({ bind, isBound }, RepositionCommand);
 });
 
 export default glspViewportModule;

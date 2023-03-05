@@ -40,6 +40,7 @@ import { calcElementAndRoute, isRoutable, isSelectableAndBoundsAware } from '../
 import { HideToastAction, ShowToastMessageAction } from '../toast/toast';
 import { applyCssClasses, deleteCssClasses } from '../tool-feedback/css-feedback';
 import * as messages from '../toast/messages.json';
+import { RepositionAction } from '../viewport/reposition';
 
 export interface ElementNavigator {
     previous(
@@ -390,7 +391,7 @@ export class ElementNavigatorKeyListener extends KeyListener {
                 const deselectedElementsIDs = selected.map(e => e.id).filter(id => id !== selectableTarget.id);
                 this.tool.actionDispatcher.dispatchAll([
                     SelectAction.create({ selectedElementsIDs: [selectableTarget.id], deselectedElementsIDs }),
-                    CenterAction.create([selectableTarget.id], { animate: true, retainZoom: true })
+                    RepositionAction.create([selectableTarget.id])
                 ]);
             }
         }
