@@ -86,12 +86,9 @@ export class ZoomKeyListener extends KeyListener {
                 result.push(action);
             }
         } else if (matchesKeystroke(event, 'Digit0', 'ctrl')) {
-            return [CenterAction.create(selectedElements)];
-            /* const action = this.executeZoomWorkflow(selectedElements, viewport, 1);
-            if (action) {
-                result.push(action);
-            }*/
+            return [CenterAction.create(selectedElements.map(e => e.id))];
         }
+
         return result;
     }
 
