@@ -15,7 +15,8 @@
  ********************************************************************************/
 import { Action, Bounds, Dimension, hasArrayProp, Viewport } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
-import { BoundsAwareViewportCommand, isBoundsAware, isSelectable, isViewport, SModelRoot } from 'sprotty';
+import { BoundsAwareViewportCommand, getRouteBounds, isViewport, SChildElement, SEdge, SModelElement, SModelRoot } from 'sprotty';
+import { calcElementAndRoute } from '../../utils/smodel-util';
 import { TYPES } from '../../base/types';
 
 export interface RepositionAction extends Action {
@@ -45,40 +46,13 @@ export class RepositionCommand extends BoundsAwareViewportCommand {
         super(true);
     }
 
-    protected override initialize(model: SModelRoot): void {
-        if (isViewport(model)) {
-            this.oldViewport = {
-                scroll: model.scroll,
-                zoom: model.zoom
-            };
-            const allBounds: Bounds[] = [];
-            this.getElementIds().forEach(id => {
-                const element = model.index.getById(id);
-                if (element && isBoundsAware(element)) {
-                    allBounds.push(this.boundsInViewport(element, element.bounds, model));
-                }
-            });
-            if (allBounds.length === 0) {
-                model.index.all().forEach(element => {
-                    if (isSelectable(element) && element.selected && isBoundsAware(element)) {
-                        allBounds.push(this.boundsInViewport(element, element.bounds, model));
-                    }
-                });
-            }
-            if (allBounds.length === 0) {
-                model.index.all().forEach(element => {
-                    if (isBoundsAware(element)) {
-                        allBounds.push(this.boundsInViewport(element, element.bounds, model));
-                    }
-                });
-            }
-
-            if (allBounds.length !== 0) {
-                const bounds = allBounds.reduce((b0, b1) => Bounds.combine(b0, b1));
-                if (Dimension.isValid(bounds)) {
-                    this.newViewport = this.getNewViewport(bounds, model);
-                }
-            }
+    protected override boundsInViewport(element: SModelElement, bounds: Bounds, viewport: SModelRoot & Viewport): Bounds {
+        if (element instanceof SChildElement && element.parent !== viewport) {
+            return this.boundsInViewport(element.parent, element.parent.localToParent(bounds) as Bounds, viewport);
+        } else if (element instanceof SEdge) {
+            return getRouteBounds(calcElementAndRoute(element).newRoutingPoints ?? []);
+        } else {
+            return bounds;
         }
     }
 
@@ -107,6 +81,8 @@ export class RepositionCommand extends BoundsAwareViewportCommand {
                 };
             }
         }
+
+        return undefined;
     }
 
     protected isFullyVisible(bounds: Bounds, viewport: SModelRoot & Viewport): boolean {
