@@ -390,7 +390,7 @@ export class ElementNavigatorKeyListener extends KeyListener {
                 const deselectedElementsIDs = selected.map(e => e.id).filter(id => id !== selectableTarget.id);
                 this.tool.actionDispatcher.dispatchAll([
                     SelectAction.create({ selectedElementsIDs: [selectableTarget.id], deselectedElementsIDs }),
-                    CenterAction.create([selectableTarget.id])
+                    CenterAction.create([selectableTarget.id], { animate: true, retainZoom: true })
                 ]);
             }
         }
