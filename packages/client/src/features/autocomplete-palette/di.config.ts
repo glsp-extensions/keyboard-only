@@ -29,10 +29,8 @@ const glspAutocompletePaletteModule = new ContainerModule(bind => {
     bind(TYPES.IUIExtension).toService(SearchAutocompletePalette);
 
     bind(RevealNamedElementAutocompleteSuggestionProvider).toSelf().inSingletonScope();
-    bind(TYPES.IAutocompleteSuggestionProvider).to(RevealNamedElementAutocompleteSuggestionProvider);
 
     bind(RevealEdgeElementAutocompleteSuggestionProvider).toSelf().inSingletonScope();
-    bind(TYPES.IAutocompleteSuggestionProvider).to(RevealEdgeElementAutocompleteSuggestionProvider);
 
     bind(TYPES.IDefaultTool).to(SearchAutocompletePaletteTool);
 });
