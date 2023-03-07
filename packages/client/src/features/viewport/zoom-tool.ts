@@ -59,8 +59,9 @@ export class ZoomTool implements GLSPTool {
 
 @injectable()
 export class ZoomKeyListener extends KeyListener {
-    defaultZoomInFactor = 1.1;
-    defaultZoomOutFactor = 0.9;
+    protected defaultZoomInFactor = 1.1;
+    protected defaultZoomOutFactor = 0.9;
+
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
         const result: Action[] = [];
         const viewport = findParentByFeature(element, isViewport);
@@ -92,7 +93,7 @@ export class ZoomKeyListener extends KeyListener {
         return result;
     }
 
-    executeZoomWorkflow(
+    protected executeZoomWorkflow(
         selectedElements: (SModelElement & BoundsAware)[],
         viewport: SModelElement & SModelRoot & Viewport,
         zoomFactor: number
@@ -106,7 +107,7 @@ export class ZoomKeyListener extends KeyListener {
             return this.setNewZoomFactor(viewport, zoomFactor);
         }
     }
-    getCenter(selectedElements: (SModelElement & BoundsAware)[], viewport: SModelElement & SModelRoot & Viewport): Point {
+    protected getCenter(selectedElements: (SModelElement & BoundsAware)[], viewport: SModelElement & SModelRoot & Viewport): Point {
         // Get bounds of elements based on the viewport
         const allBounds = selectedElements.map(e => this.boundsInViewport(e, e.bounds, viewport));
         const mergedBounds = allBounds.reduce((b0, b1) => Bounds.combine(b0, b1));
@@ -121,7 +122,7 @@ export class ZoomKeyListener extends KeyListener {
             return bounds;
         }
     }
-    setNewZoomFactor(viewport: SModelElement & SModelRoot & Viewport, zoomFactor: number, point?: Point): SetViewportAction {
+    protected setNewZoomFactor(viewport: SModelElement & SModelRoot & Viewport, zoomFactor: number, point?: Point): SetViewportAction {
         let newViewport: Viewport;
         const newZoom = viewport.zoom * zoomFactor;
 

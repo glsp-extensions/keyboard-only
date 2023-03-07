@@ -97,11 +97,11 @@ export class MoveKeyListener extends KeyListener {
         return result;
     }
 
-    getBounds(element: SModelElement & BoundsAware, offSetX: number, offSetY: number): Point {
+    protected getBounds(element: SModelElement & BoundsAware, offSetX: number, offSetY: number): Point {
         return { x: element.bounds.x + offSetX, y: element.bounds.y + offSetY };
     }
 
-    moveViewport(viewport: SModelElement & SModelRoot & Viewport, offsetX: number, offSetY: number): SetViewportAction {
+    protected moveViewport(viewport: SModelElement & SModelRoot & Viewport, offsetX: number, offSetY: number): SetViewportAction {
         const newViewport: Viewport = {
             scroll: {
                 x: viewport.scroll.x + offsetX,
@@ -113,7 +113,7 @@ export class MoveKeyListener extends KeyListener {
         return SetViewportAction.create(viewport.id, newViewport, { animate: true });
     }
 
-    adaptViewport(viewport: SModelElement & SModelRoot & Viewport, newPoint: Point): SetViewportAction | undefined {
+    protected adaptViewport(viewport: SModelElement & SModelRoot & Viewport, newPoint: Point): SetViewportAction | undefined {
         if (newPoint.x < viewport.scroll.x) {
             return this.moveViewport(viewport, -this.grid.x, 0);
         } else if (newPoint.x > viewport.scroll.x + viewport.canvasBounds.width) {
@@ -126,7 +126,7 @@ export class MoveKeyListener extends KeyListener {
         return;
     }
 
-    moveElement(element: SModelElement & BoundsAware, offSetX: number, offSetY: number): ChangeBoundsOperation {
+    protected moveElement(element: SModelElement & BoundsAware, offSetX: number, offSetY: number): ChangeBoundsOperation {
         return ChangeBoundsOperation.create([
             {
                 elementId: element.id,
@@ -141,7 +141,7 @@ export class MoveKeyListener extends KeyListener {
             }
         ]);
     }
-    move(
+    protected move(
         selectedElements: (SModelElement & BoundsAware)[],
         deltaX: number,
         deltaY: number,
