@@ -13,16 +13,16 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action, Bounds, ChangeBoundsOperation, Dimension, Point } from '@eclipse-glsp/protocol';
+import { Action, ChangeBoundsOperation, Dimension, Point } from '@eclipse-glsp/protocol';
 import { inject, injectable, optional } from 'inversify';
 import { KeyListener, KeyTool, SModelElement, isBoundsAware, isSelectable, BoundsAware, SParentElement, ISnapper } from 'sprotty';
 import { TYPES } from '../../base/types';
-import { isResizable, Resizable, SResizeHandle } from '../change-bounds/model';
+import { isResizable, Resizable } from '../change-bounds/model';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 import { toElementAndBounds } from '../../utils/smodel-util';
-import { GridSnapper, PointPositionUpdater } from './snap';
-import { isValidMove, isValidSize } from '../../utils/layout-utils';
+import { GridSnapper } from './snap';
+import { isValidMove, isValidSize, minHeight, minWidth } from '../../utils/layout-utils';
 import { IMovementRestrictor } from './movement-restrictor';
 
 @injectable()
@@ -53,6 +53,7 @@ export class ResizeTool implements GLSPTool {
 @injectable()
 export class ResizeKeyListener extends KeyListener {
     protected grid = { x: 20, y: 20 };
+    protected isEditMode = false;
 
     constructor(protected readonly tool: ResizeTool) {
         super();
@@ -61,13 +62,6 @@ export class ResizeKeyListener extends KeyListener {
             this.grid = this.tool.snapper?.grid;
         }
     }
-    protected activeResizeElement?: SModelElement;
-    protected activeResizeHandle?: SResizeHandle;
-    protected pointPositionUpdater: PointPositionUpdater;
-    protected initialBounds: Bounds | undefined;
-    @inject(TYPES.IMovementRestrictor) @optional() readonly movementRestrictor?: IMovementRestrictor;
-
-    isEditMode = false;
 
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
         const actions: Action[] = [];
@@ -93,6 +87,14 @@ export class ResizeKeyListener extends KeyListener {
             } else if (matchesKeystroke(event, 'Minus')) {
                 for (const elem of selectedElements) {
                     const action = this.handleResizeElement(elem, -this.grid.x, -this.grid.y);
+                    if (action) {
+                        actions.push(action);
+                    }
+                }
+            } else if (matchesKeystroke(event, 'Digit0', 'ctrl')) {
+                for (const elem of selectedElements) {
+                    elem.bounds = { x: elem.bounds.x, y: elem.bounds.y, width: minWidth(elem), height: minHeight(elem) };
+                    const action = this.handleResizeElement(elem, 0, 0);
                     if (action) {
                         actions.push(action);
                     }
@@ -128,6 +130,6 @@ export class ResizeKeyListener extends KeyListener {
     }
 
     protected isValidMove(element: SModelElement & BoundsAware, newPosition: Point): boolean {
-        return isValidMove(element, newPosition, this.movementRestrictor);
+        return isValidMove(element, newPosition, this.tool.movementRestrictor);
     }
 }

@@ -45,6 +45,7 @@ import '../css/diagram.css';
 import { directTaskEditor } from './direct-task-editing/di.config';
 import { ActivityNode, CategoryNode, Icon, TaskNode, WeightedEdge } from './model';
 import { IconView, WorkflowEdgeView } from './workflow-views';
+import glspResizeModule from '@eclipse-glsp/client/lib/features/change-bounds/di.config';
 
 const workflowDiagramModule = new ContainerModule((bind, unbind, isBound, rebind) => {
     rebind(TYPES.ILogger).to(ConsoleLogger).inSingletonScope();
@@ -75,6 +76,7 @@ const workflowDiagramModule = new ContainerModule((bind, unbind, isBound, rebind
 
 export default function createContainer(widgetId: string): Container {
     const container = createDiagramContainer(workflowDiagramModule, directTaskEditor);
+    container.load(glspResizeModule);
     overrideViewerOptions(container, {
         baseDiv: widgetId,
         hiddenDiv: widgetId + '_hidden'

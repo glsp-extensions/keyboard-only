@@ -49,7 +49,6 @@ import { enableDefaultToolsOnFocusLossModule, toolsModule } from '../features/to
 import { markerNavigatorModule, validationModule } from '../features/validation/di.config';
 import glspViewportModule from '../features/viewport/di.config';
 import defaultGLSPModule from './di.config';
-import glspResizeModule from '../features/change-bounds/di.config';
 
 export const DEFAULT_MODULES = [
     defaultModule,
@@ -84,8 +83,7 @@ export const DEFAULT_MODULES = [
     toolsModule,
     enableDefaultToolsOnFocusLossModule,
     validationModule,
-    zorderModule,
-    glspResizeModule
+    zorderModule
 ] as const;
 
 /**
