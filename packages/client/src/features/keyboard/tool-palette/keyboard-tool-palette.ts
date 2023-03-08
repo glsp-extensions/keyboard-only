@@ -13,14 +13,29 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { PaletteItem, RequestMarkersAction, TriggerNodeCreationAction } from '@eclipse-glsp/protocol';
+import {
+    Action,
+    PaletteItem,
+    RequestContextActions,
+    RequestMarkersAction,
+    SetContextActions,
+    TriggerNodeCreationAction
+} from '@eclipse-glsp/protocol';
 import { injectable } from 'inversify';
-import { EnableDefaultToolsAction, SetUIExtensionVisibilityAction } from 'sprotty';
+import { EnableDefaultToolsAction, ICommand, SetUIExtensionVisibilityAction } from 'sprotty';
 import { KeyCode, matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { MouseDeleteTool } from '../../tools/delete-tool';
 import { MarqueeMouseTool } from '../../tools/marquee-mouse-tool';
-import { createIcon, changeCodiconClass, createToolGroup, ToolPalette, compare } from '../../../features/tool-palette/tool-palette';
+import {
+    createIcon,
+    changeCodiconClass,
+    createToolGroup,
+    ToolPalette,
+    compare,
+    EnableToolPaletteAction
+} from '../../../features/tool-palette/tool-palette';
 import { KeyboardGridUI } from '../grid/constants';
+import { FocusDomAction } from '../actions';
 
 const SEARCH_ICON_ID = 'search';
 const PALETTE_ICON_ID = 'symbol-color';
@@ -91,6 +106,29 @@ export class KeyboardToolPalette extends ToolPalette {
         };
     }
 
+    override handle(action: Action): ICommand | Action | void {
+        if (action.kind === EnableToolPaletteAction.KIND) {
+            const requestAction = RequestContextActions.create({
+                contextId: ToolPalette.ID,
+                editorContext: {
+                    selectedElementIds: []
+                }
+            });
+            this.actionDispatcher.requestUntil(requestAction).then(response => {
+                if (SetContextActions.is(response)) {
+                    this.paletteItems = response.actions.map(e => e as PaletteItem);
+                    this.actionDispatcher.dispatch(
+                        SetUIExtensionVisibilityAction.create({ extensionId: ToolPalette.ID, visible: !this.editorContext.isReadonly })
+                    );
+                }
+            });
+        } else if (action.kind === EnableDefaultToolsAction.KIND) {
+            this.changeActiveButton();
+            this.restoreFocus();
+        } else if (FocusDomAction.is(action) && action.id === ToolPalette.ID) {
+            this.containerElement.focus();
+        }
+    }
     protected override addMinimizePaletteButton(): void {
         const baseDiv = document.getElementById(this.options.baseDiv);
         const minPaletteDiv = document.createElement('div');
@@ -318,26 +356,6 @@ export class KeyboardToolPalette extends ToolPalette {
         }
     }
 
-    /* protected selectItemOnCharacter(event: KeyboardEvent): void {
-        let index: number | undefined = undefined;
-        const items = this.interactablePaletteItems;
-
-        const itemsCount = items.length < AVAILABLE_KEYS.length ? items.length : AVAILABLE_KEYS.length;
-
-        for (let i = 0; i < itemsCount; i++) {
-            const keycode = AVAILABLE_KEYS[i];
-            if (matchesKeystroke(event, keycode)) {
-                index = i;
-                break;
-            }
-        }
-
-        if (index !== undefined) {
-            this.actionDispatcher.dispatchAll(items[index].actions);
-            this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
-            this.keyboardIndexButtonMapping.get(index)?.focus();
-        }
-    }*/
     protected selectItemOnCharacter(event: KeyboardEvent): void {
         let index: number | undefined = undefined;
         const items = this.interactablePaletteItems;
