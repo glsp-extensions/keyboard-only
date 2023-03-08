@@ -13,13 +13,14 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { PaletteItem, RequestMarkersAction } from '@eclipse-glsp/protocol';
+import { PaletteItem, RequestMarkersAction, TriggerNodeCreationAction } from '@eclipse-glsp/protocol';
 import { injectable } from 'inversify';
-import { EnableDefaultToolsAction } from 'sprotty';
+import { EnableDefaultToolsAction, SetUIExtensionVisibilityAction } from 'sprotty';
 import { KeyCode, matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { MouseDeleteTool } from '../../tools/delete-tool';
 import { MarqueeMouseTool } from '../../tools/marquee-mouse-tool';
 import { createIcon, changeCodiconClass, createToolGroup, ToolPalette, compare } from '../../../features/tool-palette/tool-palette';
+import { KeyboardGridUI } from '../grid/constants';
 
 const SEARCH_ICON_ID = 'search';
 const PALETTE_ICON_ID = 'symbol-color';
@@ -317,7 +318,7 @@ export class KeyboardToolPalette extends ToolPalette {
         }
     }
 
-    protected selectItemOnCharacter(event: KeyboardEvent): void {
+    /* protected selectItemOnCharacter(event: KeyboardEvent): void {
         let index: number | undefined = undefined;
         const items = this.interactablePaletteItems;
 
@@ -333,6 +334,31 @@ export class KeyboardToolPalette extends ToolPalette {
 
         if (index !== undefined) {
             this.actionDispatcher.dispatchAll(items[index].actions);
+            this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
+            this.keyboardIndexButtonMapping.get(index)?.focus();
+        }
+    }*/
+    protected selectItemOnCharacter(event: KeyboardEvent): void {
+        let index: number | undefined = undefined;
+        const items = this.interactablePaletteItems;
+
+        const itemsCount = items.length < AVAILABLE_KEYS.length ? items.length : AVAILABLE_KEYS.length;
+
+        for (let i = 0; i < itemsCount; i++) {
+            const keycode = AVAILABLE_KEYS[i];
+            if (matchesKeystroke(event, keycode)) {
+                index = i;
+                break;
+            }
+        }
+
+        if (index !== undefined) {
+            if (items[index].actions.some(a => a.kind === TriggerNodeCreationAction.KIND)) {
+                this.actionDispatcher.dispatchAll([
+                    ...items[index].actions,
+                    SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: true, contextElementsId: [] })
+                ]);
+            }
             this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
             this.keyboardIndexButtonMapping.get(index)?.focus();
         }

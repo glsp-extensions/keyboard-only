@@ -38,7 +38,8 @@ import {
     TYPES
 } from '@eclipse-glsp/client';
 import toolPaletteModule from '@eclipse-glsp/client/lib/features/tool-palette/di.config';
-import keyboardToolPaletteModule from '@eclipse-glsp/client/lib/features/keyboard/di.config';
+import keyboardToolPaletteModule from '@eclipse-glsp/client/lib/features/keyboard/tool-palette/di.config';
+import { keyboardControlModule } from '@eclipse-glsp/client/lib/features/keyboard/pointer/di.config';
 import { DefaultTypes } from '@eclipse-glsp/protocol';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
@@ -79,6 +80,7 @@ export default function createContainer(widgetId: string): Container {
     const container = createDiagramContainer(workflowDiagramModule, directTaskEditor);
     container.unload(toolPaletteModule);
     container.load(keyboardToolPaletteModule);
+    container.load(keyboardControlModule);
     overrideViewerOptions(container, {
         baseDiv: widgetId,
         hiddenDiv: widgetId + '_hidden'

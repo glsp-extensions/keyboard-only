@@ -15,17 +15,19 @@
  ********************************************************************************/
 import { ContainerModule } from 'inversify';
 import { configureActionHandler, EnableDefaultToolsAction } from 'sprotty';
-import '../../../css/tool-palette.css';
-import { TYPES } from '../../base/types';
+import '../../../../css/tool-palette.css';
+import { TYPES } from '../../../base/types';
 
-import { EnableToolPaletteAction } from '../tool-palette/tool-palette';
-import { KeyboardToolPalette } from './tool-palette/keyboard-tool-palette';
+import { EnableToolPaletteAction } from '../../tool-palette/tool-palette';
+import { FocusDomAction } from '../actions';
+import { KeyboardToolPalette } from './keyboard-tool-palette';
 
 const keyboardToolPaletteModule = new ContainerModule((bind, _unbind, isBound, rebind) => {
     bind(KeyboardToolPalette).toSelf().inSingletonScope();
     bind(TYPES.IUIExtension).toService(KeyboardToolPalette);
     configureActionHandler({ bind, isBound }, EnableToolPaletteAction.KIND, KeyboardToolPalette);
     configureActionHandler({ bind, isBound }, EnableDefaultToolsAction.KIND, KeyboardToolPalette);
+    configureActionHandler({ bind, isBound }, FocusDomAction.KIND, KeyboardToolPalette);
 });
 
 export default keyboardToolPaletteModule;
