@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { Action } from '@eclipse-glsp/protocol';
+import { Action, SetTypeHintsAction } from '@eclipse-glsp/protocol';
 import { injectable } from 'inversify';
 import { AbstractUIExtension, IActionHandler, ICommand, SetUIExtensionVisibilityAction } from 'sprotty';
 
@@ -59,6 +59,12 @@ export class CheatSheet extends AbstractUIExtension implements IActionHandler {
     protected container: HTMLDivElement;
     protected registrations: SetCheatSheetKeyShortcutAction[] = [];
 
+    protected descText: string;
+    protected shortcutText: string;
+
+    protected descElement: HTMLSpanElement;
+    protected shortcutElement: HTMLSpanElement;
+
     handle(action: Action): ICommand | Action | void {
         if (EnableCheatSheetShortcutAction.is(action)) {
             return SetUIExtensionVisibilityAction.create({ extensionId: CheatSheet.ID, visible: true });
@@ -76,16 +82,44 @@ export class CheatSheet extends AbstractUIExtension implements IActionHandler {
         return CheatSheet.ID;
     }
     protected refreshUI(): void {
-        const text = this.registrations.map(r => `${r.shortcut} - ${r.description}`);
-        this.text.textContent = text.join(',');
+        const allShortcuts = this.registrations.map(r => `${r.shortcut} - ${r.description}`);
+        allShortcuts.forEach(s => {
+            const shortcut = s.split('-');
+            this.shortcutText = shortcut[0];
+            this.descText = '-' + shortcut[1];
+        });
+
+        this.shortcutElement.textContent = this.shortcutText;
+        this.descElement.textContent = this.descText;
     }
     protected initializeContents(containerElement: HTMLElement): void {
-        this.text = document.createElement('span');
-        this.text.textContent = 'Test';
+        this.shortcutElement = document.createElement('kbd');
+        this.descElement = document.createElement('span');
+
+        this.shortcutElement.classList.add('key');
+
         this.container = document.createElement('div');
         this.container.classList.add('cheat-sheet-container');
 
-        this.container.appendChild(this.text);
+        // create header
+        const menuHeader = document.createElement('div');
+        menuHeader.classList.add('menu-header');
+
+        const menuTitle = document.createElement('h2');
+        menuTitle.innerText = 'Keyboard Shortcuts';
+        menuHeader.appendChild(menuTitle);
+
+        // create unordered list
+        const unorderList = document.createElement('ul');
+        unorderList.classList.add('menu-list');
+        const listElem = document.createElement('li');
+        listElem.appendChild(this.shortcutElement);
+        listElem.appendChild(this.descElement);
+
+        unorderList.appendChild(listElem);
+
+        this.container.appendChild(menuHeader);
+        this.container.appendChild(unorderList);
         containerElement.appendChild(this.container);
         this.refreshUI();
     }

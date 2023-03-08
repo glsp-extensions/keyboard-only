@@ -18,6 +18,7 @@ import { configureActionHandler } from 'sprotty';
 import { TYPES } from '../../base/types';
 import { CheatSheet, EnableCheatSheetShortcutAction, SetCheatSheetKeyShortcutAction } from './cheat-sheet';
 import { CheatSheetKeyListener, CheatSheetTool } from './cheat-sheet-tool';
+import '../../../css/cheat-sheet.css';
 
 const cheatSheetModule = new ContainerModule((bind, unbind, isBound, rebind) => {
     bind(CheatSheet).toSelf().inSingletonScope();
