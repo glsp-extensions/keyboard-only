@@ -40,6 +40,7 @@ import {
 import toolPaletteModule from '@eclipse-glsp/client/lib/features/tool-palette/di.config';
 import keyboardToolPaletteModule from '@eclipse-glsp/client/lib/features/keyboard/tool-palette/di.config';
 import { keyboardControlModule } from '@eclipse-glsp/client/lib/features/keyboard/pointer/di.config';
+import { diagramNavigationModule } from '@eclipse-glsp/client/lib/features/navigation/di.config';
 import { DefaultTypes } from '@eclipse-glsp/protocol';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
@@ -89,5 +90,6 @@ export default function createContainer(widgetId: string): Container {
         baseDiv: widgetId,
         hiddenDiv: widgetId + '_hidden'
     });
+    container.load(diagramNavigationModule);
     return container;
 }

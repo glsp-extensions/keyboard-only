@@ -16,8 +16,11 @@
 import { NavigateToExternalTargetAction, NavigateToTargetAction } from '@eclipse-glsp/protocol';
 import { ContainerModule } from 'inversify';
 import { configureActionHandler } from 'sprotty';
+import { TYPES } from '../../base/types';
+import { LeftToRightTopToBottomElementNavigator, ElementNavigatorTool, LocalElementNavigator } from './diagram-navigation-tool';
 import { NavigateAction, NavigationActionHandler, ProcessNavigationArgumentsAction } from './navigation-action-handler';
 import { NavigationTargetResolver } from './navigation-target-resolver';
+import '../../../css/navigation.css';
 
 export const navigationModule = new ContainerModule((bind, _unbind, isBound) => {
     bind(NavigationTargetResolver).toSelf().inSingletonScope();
@@ -26,4 +29,10 @@ export const navigationModule = new ContainerModule((bind, _unbind, isBound) => 
     configureActionHandler({ bind, isBound }, NavigateToTargetAction.KIND, NavigationActionHandler);
     configureActionHandler({ bind, isBound }, ProcessNavigationArgumentsAction.KIND, NavigationActionHandler);
     configureActionHandler({ bind, isBound }, NavigateToExternalTargetAction.KIND, NavigationActionHandler);
+});
+export const diagramNavigationModule = new ContainerModule((bind, _unbind, isBound) => {
+    bind(TYPES.IDefaultTool).to(ElementNavigatorTool);
+
+    bind(TYPES.IElementNavigator).to(LeftToRightTopToBottomElementNavigator).inSingletonScope();
+    bind(TYPES.ILocalElementNavigator).to(LocalElementNavigator).inSingletonScope();
 });
