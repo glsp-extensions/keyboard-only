@@ -52,7 +52,7 @@ export abstract class BaseAutocompletePalette extends AbstractUIExtension {
     }
 
     override hide(): void {
-        this.autocompleteWidget.dispose();
+        this.autocompleteWidget?.dispose();
         this.root = undefined;
         super.hide();
     }
