@@ -23,7 +23,7 @@ import { SResizeHandle } from '../change-bounds/model';
 
 @injectable()
 export class SelectTool implements GLSPTool {
-    static ID = 'glsp.zoom-keyboard';
+    static ID = 'glsp.select-keyboard';
 
     isEditTool = true;
 
