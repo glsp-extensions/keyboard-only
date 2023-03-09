@@ -340,7 +340,21 @@ export class ElementNavigatorKeyListener extends KeyListener {
 
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
         if (this.getSelectedElements(element.root).length > 0) {
-            if (matchesKeystroke(event, 'KeyN', 'alt')) {
+            if (matchesKeystroke(event, 'Escape')) {
+                this.clean();
+
+                if (this.mode === NavigationMode.LOCAL) {
+                    this.tool.actionDispatcher.dispatch(
+                        ShowToastMessageAction.create(messages.navigation.local_navigation_mode_deactivated)
+                    );
+                } else if (this.mode === NavigationMode.DEFAULT) {
+                    this.tool.actionDispatcher.dispatch(
+                        ShowToastMessageAction.create(messages.navigation.default_navigation_mode_deactivated)
+                    );
+                }
+                this.tool.actionDispatcher.dispatch(HideToastAction.create());
+                this.mode = NavigationMode.NONE;
+            } else if (matchesKeystroke(event, 'KeyN', 'alt')) {
                 this.clean();
                 if (this.mode !== NavigationMode.LOCAL) {
                     this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create(messages.navigation.local_navigation_mode_activated));
