@@ -23,6 +23,14 @@
     background: none;
 }
 
+.sprotty .sprotty-graph-container {
+    border-top: 0.5rem solid rgba(212, 212, 212, 0.2);
+}
+
+.sprotty .sprotty-graph-container:focus {
+    border-top: 0.5rem solid rgb(27, 23, 238);
+}
+
 .sprotty-hidden {
     display: block;
     position: absolute;

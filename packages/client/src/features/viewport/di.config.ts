@@ -32,6 +32,7 @@ import { RepositionCommand } from './reposition';
 import { ZoomTool } from './zoom-tool';
 import { TYPES } from '../../base/types';
 import { SelectTool } from './select-tool';
+import { RestoreViewportHandler } from './viewport-handler';
 
 const glspViewportModule = new ContainerModule((bind, _unbind, isBound) => {
     configureCommand({ bind, isBound }, CenterCommand);
@@ -51,6 +52,8 @@ export const glspViewportInteractionsModule = new ContainerModule((bind, _unbind
     bind(TYPES.IDefaultTool).to(MovementTool);
     bind(TYPES.IDefaultTool).to(ZoomTool);
     bind(TYPES.IDefaultTool).to(SelectTool);
+    bind(RestoreViewportHandler).toSelf().inSingletonScope();
+    configureActionHandler({ bind, isBound }, EnableDefaultToolsAction.KIND, RestoreViewportHandler);
 });
 
 export default glspViewportModule;

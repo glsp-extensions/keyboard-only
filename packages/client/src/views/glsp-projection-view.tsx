@@ -47,7 +47,8 @@ export class GLSPProjectionView extends ProjectedViewportView {
                 {this.renderProjections(model, context, args)}
             </div>
         );
-        setAttr(rootNode, 'tabindex', 0);
+        setClass(rootNode, 'sprotty-graph-container', true);
+        setAttr(rootNode, 'tabindex', 1);
         return rootNode;
     }
 
