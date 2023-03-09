@@ -45,7 +45,12 @@ export class CheatSheetKeyListener extends KeyListener {
         if (event.key === '?') {
             console.log('?');
             // TODO: Remove set- only for debugging
-            return [EnableCheatSheetShortcutAction.create(), SetCheatSheetKeyShortcutAction.create('STRG+C', 'Copy')];
+            return [
+                EnableCheatSheetShortcutAction.create(),
+                SetCheatSheetKeyShortcutAction.create(['Ctrl', 'C'], 'Copy')
+                /*   SetCheatSheetKeyShortcutAction.create(['C'], 'Copy'),
+                SetCheatSheetKeyShortcutAction.create(['C', 'Alt', 'Ctrl'], 'Copy')*/
+            ];
         }
         return [];
     }

@@ -14,13 +14,14 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { Action, SetTypeHintsAction } from '@eclipse-glsp/protocol';
+import { Action } from '@eclipse-glsp/protocol';
 import { injectable } from 'inversify';
 import { AbstractUIExtension, IActionHandler, ICommand, SetUIExtensionVisibilityAction } from 'sprotty';
+import { KeyCode } from 'sprotty/lib/utils/keyboard';
 
 export interface SetCheatSheetKeyShortcutAction extends Action {
     kind: typeof SetCheatSheetKeyShortcutAction.KIND;
-    shortcut: string;
+    shortcuts: string[];
     description: string;
 }
 
@@ -47,8 +48,8 @@ export namespace SetCheatSheetKeyShortcutAction {
         return Action.hasKind(object, KIND);
     }
 
-    export function create(shortcut: string, description: string): SetCheatSheetKeyShortcutAction {
-        return { kind: KIND, shortcut, description };
+    export function create(shortcuts: string[], description: string): SetCheatSheetKeyShortcutAction {
+        return { kind: KIND, shortcuts: shortcuts, description };
     }
 }
 
@@ -59,11 +60,12 @@ export class CheatSheet extends AbstractUIExtension implements IActionHandler {
     protected container: HTMLDivElement;
     protected registrations: SetCheatSheetKeyShortcutAction[] = [];
 
-    protected descText: string;
-    protected shortcutText: string;
+    protected description: string;
+    protected shortcuts: string[];
 
-    protected descElement: HTMLSpanElement;
-    protected shortcutElement: HTMLSpanElement;
+    protected descElement: HTMLParagraphElement;
+    protected shortcutElement: HTMLParagraphElement;
+    protected shortcutEntry: HTMLSpanElement;
 
     handle(action: Action): ICommand | Action | void {
         if (EnableCheatSheetShortcutAction.is(action)) {
@@ -82,43 +84,41 @@ export class CheatSheet extends AbstractUIExtension implements IActionHandler {
         return CheatSheet.ID;
     }
     protected refreshUI(): void {
-        const allShortcuts = this.registrations.map(r => `${r.shortcut} - ${r.description}`);
-        allShortcuts.forEach(s => {
-            const shortcut = s.split('-');
-            this.shortcutText = shortcut[0];
-            this.descText = '-' + shortcut[1];
+        this.registrations.forEach(r => {
+            console.log(r);
+            this.shortcuts = r.shortcuts;
+            this.description = r.description;
         });
 
-        this.shortcutElement.textContent = this.shortcutText;
-        this.descElement.textContent = this.descText;
+        this.descElement.textContent = ' - ' + this.description;
+        this.shortcutElement.innerHTML += this.getShortcutHTML(this.shortcuts);
+    }
+    protected getShortcutHTML(shortcuts: string[]): string {
+        return shortcuts.map(key => `<kbd>${key}</kbd>`).join(' + ');
     }
     protected initializeContents(containerElement: HTMLElement): void {
-        this.shortcutElement = document.createElement('kbd');
-        this.descElement = document.createElement('span');
+        this.shortcutElement = document.createElement('p');
+        this.descElement = document.createElement('p');
+        this.shortcutEntry = document.createElement('span');
 
-        this.shortcutElement.classList.add('key');
+        this.shortcutEntry.classList.add('shortcut-entry-container');
+        this.shortcutEntry.appendChild(this.shortcutElement);
+        this.shortcutEntry.appendChild(this.descElement);
 
         this.container = document.createElement('div');
-        this.container.classList.add('cheat-sheet-container');
+        this.container.classList.add('keyboard-shortcuts-menu');
 
-        // create header
-        const menuHeader = document.createElement('div');
-        menuHeader.classList.add('menu-header');
-
-        const menuTitle = document.createElement('h2');
+        // create title
+        const menuTitle = document.createElement('h3');
         menuTitle.innerText = 'Keyboard Shortcuts';
-        menuHeader.appendChild(menuTitle);
 
         // create unordered list
         const unorderList = document.createElement('ul');
-        unorderList.classList.add('menu-list');
         const listElem = document.createElement('li');
-        listElem.appendChild(this.shortcutElement);
-        listElem.appendChild(this.descElement);
-
+        listElem.appendChild(this.shortcutEntry);
         unorderList.appendChild(listElem);
 
-        this.container.appendChild(menuHeader);
+        this.container.appendChild(menuTitle);
         this.container.appendChild(unorderList);
         containerElement.appendChild(this.container);
         this.refreshUI();

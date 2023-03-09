@@ -1,45 +1,55 @@
-.cheat-sheet-container {
+.keyboard-shortcuts-menu {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f8f8f8;
+    padding: 10px;
+    margin-bottom: 20px;
     position: fixed;
     top: 50px;
     right: 50px;
-    background-color: #fff;
-    border: 1px solid #ccc;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    padding: 20px;
-    font-size: 16px;
     line-height: 1.5;
+    font-size: 16px;
     z-index: 9999;
 }
 
-.menu-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.menu-header h2 {
-    font-size: 20px;
+.keyboard-shortcuts-menu h3 {
+    font-size: 18px;
     font-weight: bold;
     margin: 0;
+    padding-bottom: 10px;
 }
 
-.menu-list {
+.keyboard-shortcuts-menu ul {
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-.menu-list li {
-    margin-bottom: 10px;
+.keyboard-shortcuts-menu li {
+    font-size: 16px;
+    margin-bottom: 5px;
 }
 
-.key {
-    background-color: #f2f2f2;
+.keyboard-shortcuts-menu kbd {
+    background-color: #e4e1e1;
     border: 1px solid #ccc;
     border-radius: 3px;
-    padding: 2px 6px;
-    font-family: monospace;
-    font-size: 14px;
-    margin-right: 5px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+    color: #333;
+    display: inline-block;
+    font-size: 0.85em;
+    font-weight: 600;
+    line-height: 1;
+    padding: 2px 4px;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+}
+
+.keyboard-shortcuts-menu kbd:active {
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2) inset;
+}
+.shortcut-entry-container p {
+    display: inline-block;
+    margin-right: 10px;
 }
