@@ -352,6 +352,7 @@ export class KeyboardToolPalette extends ToolPalette {
             if (!this.editorContext.isReadonly) {
                 this.actionDispatcher.dispatchAll(item.actions);
                 this.changeActiveButton(button);
+                this.selectItemOnCharacter(event);
             }
         }
     }
