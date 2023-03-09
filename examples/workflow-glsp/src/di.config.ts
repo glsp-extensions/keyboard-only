@@ -49,6 +49,7 @@ import { directTaskEditor } from './direct-task-editing/di.config';
 import { ActivityNode, CategoryNode, Icon, TaskNode, WeightedEdge } from './model';
 import { IconView, WorkflowEdgeView } from './workflow-views';
 import glspAutocompletePaletteModule from '@eclipse-glsp/client/lib/features/autocomplete-palette/di.config';
+import glspResizeModule from '@eclipse-glsp/client/lib/features/change-bounds/di.config';
 
 const workflowDiagramModule = new ContainerModule((bind, unbind, isBound, rebind) => {
     rebind(TYPES.ILogger).to(ConsoleLogger).inSingletonScope();
@@ -83,6 +84,7 @@ export default function createContainer(widgetId: string): Container {
     container.load(keyboardToolPaletteModule);
     container.load(keyboardControlModule);
     container.load(glspAutocompletePaletteModule);
+    container.load(glspResizeModule);
     overrideViewerOptions(container, {
         baseDiv: widgetId,
         hiddenDiv: widgetId + '_hidden'

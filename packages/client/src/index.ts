@@ -54,6 +54,7 @@ export * from './base/tool-manager/tool-actions';
 export * from './base/types';
 export * from './base/view/view-registry';
 export * from './features/change-bounds/model';
+export * from './features/change-bounds/resize-tool';
 export * from './features/change-bounds/movement-restrictor';
 export * from './features/change-bounds/snap';
 export * from './features/command-palette/server-command-palette-provider';
