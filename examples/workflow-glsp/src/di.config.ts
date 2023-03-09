@@ -52,6 +52,7 @@ import { IconView, WorkflowEdgeView } from './workflow-views';
 import glspAutocompletePaletteModule from '@eclipse-glsp/client/lib/features/autocomplete-palette/di.config';
 import glspResizeModule from '@eclipse-glsp/client/lib/features/change-bounds/di.config';
 import { glspViewportInteractionsModule } from '@eclipse-glsp/client/lib/features/viewport/di.config';
+import cheatSheetModule from '@eclipse-glsp/client/lib/features/cheat-sheet/di.config';
 
 const workflowDiagramModule = new ContainerModule((bind, unbind, isBound, rebind) => {
     rebind(TYPES.ILogger).to(ConsoleLogger).inSingletonScope();
@@ -88,6 +89,7 @@ export default function createContainer(widgetId: string): Container {
     container.load(glspAutocompletePaletteModule);
     container.load(glspResizeModule);
     container.load(glspViewportInteractionsModule);
+    container.load(cheatSheetModule);
     overrideViewerOptions(container, {
         baseDiv: widgetId,
         hiddenDiv: widgetId + '_hidden'
