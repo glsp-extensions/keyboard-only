@@ -30,6 +30,7 @@ import {
 import { CenterAction } from 'sprotty-protocol';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
+import { KeyboardManagerService } from '../keyboard/manager/keyboard-manager-service';
 
 /**
  * Zoom viewport when its focused and arrow keys are hit.
@@ -40,9 +41,10 @@ export class ZoomTool implements GLSPTool {
 
     isEditTool = true;
 
-    protected zoomKeyListener: ZoomKeyListener = new ZoomKeyListener();
+    protected zoomKeyListener: ZoomKeyListener = new ZoomKeyListener(this);
 
     @inject(KeyTool) protected readonly keytool: KeyTool;
+    @inject(KeyboardManagerService) readonly keyboardManager: KeyboardManagerService;
 
     get id(): string {
         return ZoomTool.ID;
@@ -59,35 +61,42 @@ export class ZoomTool implements GLSPTool {
 
 @injectable()
 export class ZoomKeyListener extends KeyListener {
+    protected readonly accessToken = Symbol('ZoomKeyListener');
     protected defaultZoomInFactor = 1.1;
     protected defaultZoomOutFactor = 0.9;
+    constructor(protected readonly tool: ZoomTool) {
+        super();
+    }
 
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
         const result: Action[] = [];
-        const viewport = findParentByFeature(element, isViewport);
-        const selectedElements = Array.from(
-            element.root.index
-                .all()
-                .filter(e => isSelectable(e) && isBoundsAware(e) && e.selected)
-                .filter(e => e.id !== e.root.id)
-                .map(e => e) as (SModelElement & BoundsAware)[]
-        );
 
-        if (!viewport) {
-            return [];
-        }
-        if (matchesKeystroke(event, 'Minus')) {
-            const action = this.executeZoomWorkflow(selectedElements, viewport, this.defaultZoomOutFactor);
-            if (action) {
-                result.push(action);
+        if (this.tool.keyboardManager.access(this.accessToken)) {
+            const viewport = findParentByFeature(element, isViewport);
+            const selectedElements = Array.from(
+                element.root.index
+                    .all()
+                    .filter(e => isSelectable(e) && isBoundsAware(e) && e.selected)
+                    .filter(e => e.id !== e.root.id)
+                    .map(e => e) as (SModelElement & BoundsAware)[]
+            );
+
+            if (!viewport) {
+                return [];
             }
-        } else if (event.key === '+') {
-            const action = this.executeZoomWorkflow(selectedElements, viewport, this.defaultZoomInFactor);
-            if (action) {
-                result.push(action);
+            if (matchesKeystroke(event, 'Minus')) {
+                const action = this.executeZoomWorkflow(selectedElements, viewport, this.defaultZoomOutFactor);
+                if (action) {
+                    result.push(action);
+                }
+            } else if (event.key === '+') {
+                const action = this.executeZoomWorkflow(selectedElements, viewport, this.defaultZoomInFactor);
+                if (action) {
+                    result.push(action);
+                }
+            } else if (matchesKeystroke(event, 'Digit0', 'ctrl')) {
+                return [CenterAction.create(selectedElements.map(e => e.id))];
             }
-        } else if (matchesKeystroke(event, 'Digit0', 'ctrl')) {
-            return [CenterAction.create(selectedElements.map(e => e.id))];
         }
 
         return result;

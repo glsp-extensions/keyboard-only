@@ -24,6 +24,7 @@ import { toElementAndBounds } from '../../utils/smodel-util';
 import { GridSnapper } from './snap';
 import { isValidMove, isValidSize, minHeight, minWidth } from '../../utils/layout-utils';
 import { IMovementRestrictor } from './movement-restrictor';
+import { KeyboardManagerService } from '../keyboard/manager/keyboard-manager-service';
 
 @injectable()
 export class ResizeTool implements GLSPTool {
@@ -34,6 +35,7 @@ export class ResizeTool implements GLSPTool {
     @inject(KeyTool) protected readonly keytool: KeyTool;
     @inject(TYPES.IMovementRestrictor) @optional() readonly movementRestrictor?: IMovementRestrictor;
     @inject(TYPES.ISnapper) @optional() readonly snapper?: ISnapper;
+    @inject(KeyboardManagerService) readonly keyboardManager: KeyboardManagerService;
 
     protected resizeKeyListener: ResizeKeyListener;
 
@@ -54,6 +56,7 @@ export class ResizeTool implements GLSPTool {
 export class ResizeKeyListener extends KeyListener {
     protected grid = { x: 20, y: 20 };
     protected isEditMode = false;
+    protected readonly accessToken = Symbol('ResizeKeyListener');
 
     constructor(protected readonly tool: ResizeTool) {
         super();
@@ -65,38 +68,46 @@ export class ResizeKeyListener extends KeyListener {
 
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
         const actions: Action[] = [];
-        if (matchesKeystroke(event, 'KeyR', 'alt')) {
-            this.isEditMode = !this.isEditMode;
-        }
-        if (this.isEditMode) {
-            const selectedElements = Array.from(
-                element.root.index
-                    .all()
-                    .filter(e => isSelectable(e) && isBoundsAware(e) && isResizable(e) && e.selected)
-                    .filter(e => e.id !== e.root.id)
-                    .map(e => e) as (SModelElement & BoundsAware)[]
-            );
+        if (this.tool.keyboardManager.access(this.accessToken)) {
+            if (matchesKeystroke(event, 'KeyR', 'alt')) {
+                this.isEditMode = !this.isEditMode;
 
-            if (event.key === '+') {
-                for (const elem of selectedElements) {
-                    const action = this.handleResizeElement(elem, this.grid.x, this.grid.y);
-                    if (action) {
-                        actions.push(action);
-                    }
+                if (this.isEditMode) {
+                    this.tool.keyboardManager.lock(this.accessToken);
+                } else {
+                    this.tool.keyboardManager.unlock(this.accessToken);
                 }
-            } else if (matchesKeystroke(event, 'Minus')) {
-                for (const elem of selectedElements) {
-                    const action = this.handleResizeElement(elem, -this.grid.x, -this.grid.y);
-                    if (action) {
-                        actions.push(action);
+            }
+            if (this.isEditMode) {
+                const selectedElements = Array.from(
+                    element.root.index
+                        .all()
+                        .filter(e => isSelectable(e) && isBoundsAware(e) && isResizable(e) && e.selected)
+                        .filter(e => e.id !== e.root.id)
+                        .map(e => e) as (SModelElement & BoundsAware)[]
+                );
+
+                if (event.key === '+') {
+                    for (const elem of selectedElements) {
+                        const action = this.handleResizeElement(elem, this.grid.x, this.grid.y);
+                        if (action) {
+                            actions.push(action);
+                        }
                     }
-                }
-            } else if (matchesKeystroke(event, 'Digit0', 'ctrl')) {
-                for (const elem of selectedElements) {
-                    elem.bounds = { x: elem.bounds.x, y: elem.bounds.y, width: minWidth(elem), height: minHeight(elem) };
-                    const action = this.handleResizeElement(elem, 0, 0);
-                    if (action) {
-                        actions.push(action);
+                } else if (matchesKeystroke(event, 'Minus')) {
+                    for (const elem of selectedElements) {
+                        const action = this.handleResizeElement(elem, -this.grid.x, -this.grid.y);
+                        if (action) {
+                            actions.push(action);
+                        }
+                    }
+                } else if (matchesKeystroke(event, 'Digit0', 'ctrl')) {
+                    for (const elem of selectedElements) {
+                        elem.bounds = { x: elem.bounds.x, y: elem.bounds.y, width: minWidth(elem), height: minHeight(elem) };
+                        const action = this.handleResizeElement(elem, 0, 0);
+                        if (action) {
+                            actions.push(action);
+                        }
                     }
                 }
             }

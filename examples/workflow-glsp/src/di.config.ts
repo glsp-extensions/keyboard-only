@@ -40,6 +40,7 @@ import {
 import toolPaletteModule from '@eclipse-glsp/client/lib/features/tool-palette/di.config';
 import keyboardToolPaletteModule from '@eclipse-glsp/client/lib/features/keyboard/tool-palette/di.config';
 import { keyboardControlModule } from '@eclipse-glsp/client/lib/features/keyboard/pointer/di.config';
+import { keyboardManagerModule } from '@eclipse-glsp/client/lib/features/keyboard/manager/di.config';
 import { diagramNavigationModule } from '@eclipse-glsp/client/lib/features/navigation/di.config';
 import { DefaultTypes } from '@eclipse-glsp/protocol';
 import 'balloon-css/balloon.min.css';
@@ -90,10 +91,11 @@ export default function createContainer(widgetId: string): Container {
     container.load(glspResizeModule);
     container.load(glspViewportInteractionsModule);
     container.load(cheatSheetModule);
+    container.load(diagramNavigationModule);
+    container.load(keyboardManagerModule);
     overrideViewerOptions(container, {
         baseDiv: widgetId,
         hiddenDiv: widgetId + '_hidden'
     });
-    container.load(diagramNavigationModule);
     return container;
 }

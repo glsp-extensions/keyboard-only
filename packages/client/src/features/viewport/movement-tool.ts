@@ -31,6 +31,7 @@ import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 import { TYPES } from '../../base/types';
 import { GridSnapper } from '../change-bounds/snap';
+import { KeyboardManagerService } from '../keyboard/manager/keyboard-manager-service';
 
 /**
  * Moves viewport when its focused and arrow keys are hit.
@@ -45,6 +46,8 @@ export class MovementTool implements GLSPTool {
 
     @inject(KeyTool) protected readonly keytool: KeyTool;
     @inject(TYPES.ISnapper) @optional() readonly snapper?: ISnapper;
+    @inject(KeyboardManagerService) readonly keyboardManager: KeyboardManagerService;
+
     get id(): string {
         return MovementTool.ID;
     }
@@ -60,6 +63,7 @@ export class MovementTool implements GLSPTool {
 
 @injectable()
 export class MoveKeyListener extends KeyListener {
+    protected readonly accessToken = Symbol('MoveKeyListener');
     protected grid = { x: 20, y: 20 };
 
     constructor(protected readonly tool: MovementTool) {
@@ -71,30 +75,33 @@ export class MoveKeyListener extends KeyListener {
     }
 
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
-        const result: Action[] = [];
-        const selectedElements = Array.from(
-            element.root.index
-                .all()
-                .filter(e => isSelectable(e) && isBoundsAware(e) && e.selected)
-                .filter(e => e.id !== e.root.id)
-                .map(e => e) as (SModelElement & BoundsAware)[]
-        );
-        const viewport = findParentByFeature(element, isViewport);
-        if (!viewport) {
-            return [];
-        }
+        if (this.tool.keyboardManager.access(this.accessToken)) {
+            const result: Action[] = [];
+            const selectedElements = Array.from(
+                element.root.index
+                    .all()
+                    .filter(e => isSelectable(e) && isBoundsAware(e) && e.selected)
+                    .filter(e => e.id !== e.root.id)
+                    .map(e => e) as (SModelElement & BoundsAware)[]
+            );
+            const viewport = findParentByFeature(element, isViewport);
+            if (!viewport) {
+                return [];
+            }
 
-        if (matchesKeystroke(event, 'ArrowUp')) {
-            return this.move(selectedElements, 0, -this.grid.x, viewport);
-        } else if (matchesKeystroke(event, 'ArrowDown')) {
-            return this.move(selectedElements, 0, this.grid.x, viewport);
-        } else if (matchesKeystroke(event, 'ArrowRight')) {
-            return this.move(selectedElements, this.grid.x, 0, viewport);
-        } else if (matchesKeystroke(event, 'ArrowLeft')) {
-            return this.move(selectedElements, -this.grid.x, 0, viewport);
-        }
+            if (matchesKeystroke(event, 'ArrowUp')) {
+                return this.move(selectedElements, 0, -this.grid.x, viewport);
+            } else if (matchesKeystroke(event, 'ArrowDown')) {
+                return this.move(selectedElements, 0, this.grid.x, viewport);
+            } else if (matchesKeystroke(event, 'ArrowRight')) {
+                return this.move(selectedElements, this.grid.x, 0, viewport);
+            } else if (matchesKeystroke(event, 'ArrowLeft')) {
+                return this.move(selectedElements, -this.grid.x, 0, viewport);
+            }
 
-        return result;
+            return result;
+        }
+        return [];
     }
 
     protected getBounds(element: SModelElement & BoundsAware, offSetX: number, offSetY: number): Point {
