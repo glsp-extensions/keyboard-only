@@ -300,7 +300,7 @@ export class LocalElementNavigator implements ElementNavigator {
 
 @injectable()
 export class ElementNavigatorTool implements GLSPTool {
-    static ID = 'glsp.movement-keyboard';
+    static ID = 'glsp.diagram-navigation';
 
     isEditTool = true;
 
