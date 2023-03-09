@@ -69,15 +69,18 @@ export class ResizeKeyListener extends KeyListener {
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
         const actions: Action[] = [];
         if (this.tool.keyboardManager.access(this.accessToken)) {
-            if (matchesKeystroke(event, 'KeyR', 'alt')) {
-                this.isEditMode = !this.isEditMode;
-
-                if (this.isEditMode) {
-                    this.tool.keyboardManager.lock(this.accessToken);
-                } else {
-                    this.tool.keyboardManager.unlock(this.accessToken);
-                }
+            if (matchesKeystroke(event, 'Escape')) {
+                this.isEditMode = false;
+            } else if (matchesKeystroke(event, 'KeyR', 'alt')) {
+                this.isEditMode = true;
             }
+
+            if (this.isEditMode) {
+                this.tool.keyboardManager.lock(this.accessToken);
+            } else {
+                this.tool.keyboardManager.unlock(this.accessToken);
+            }
+
             if (this.isEditMode) {
                 const selectedElements = Array.from(
                     element.root.index
