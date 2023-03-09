@@ -84,42 +84,36 @@ export class CheatSheet extends AbstractUIExtension implements IActionHandler {
         return CheatSheet.ID;
     }
     protected refreshUI(): void {
-        this.registrations.forEach(r => {
-            console.log(r);
-            this.shortcuts = r.shortcuts;
-            this.description = r.description;
-        });
-
-        this.descElement.textContent = ' - ' + this.description;
-        this.shortcutElement.innerHTML += this.getShortcutHTML(this.shortcuts);
+        this.registrations.forEach(r => this.container.append(this.createEntry(r)));
     }
     protected getShortcutHTML(shortcuts: string[]): string {
         return shortcuts.map(key => `<kbd>${key}</kbd>`).join(' + ');
     }
-    protected initializeContents(containerElement: HTMLElement): void {
+    protected createEntry(registration: SetCheatSheetKeyShortcutAction): HTMLDivElement {
+        const divElem = document.createElement('div');
         this.shortcutElement = document.createElement('p');
         this.descElement = document.createElement('p');
         this.shortcutEntry = document.createElement('span');
 
         this.shortcutEntry.classList.add('shortcut-entry-container');
+        this.descElement.textContent = ' - ' + registration.description;
+        this.shortcutElement.innerHTML += this.getShortcutHTML(registration.shortcuts);
+
         this.shortcutEntry.appendChild(this.shortcutElement);
         this.shortcutEntry.appendChild(this.descElement);
 
+        divElem.appendChild(this.shortcutEntry);
+
+        return divElem;
+    }
+    protected initializeContents(containerElement: HTMLElement): void {
         this.container = document.createElement('div');
         this.container.classList.add('keyboard-shortcuts-menu');
-
         // create title
         const menuTitle = document.createElement('h3');
         menuTitle.innerText = 'Keyboard Shortcuts';
-
-        // create unordered list
-        const unorderList = document.createElement('ul');
-        const listElem = document.createElement('li');
-        listElem.appendChild(this.shortcutEntry);
-        unorderList.appendChild(listElem);
-
         this.container.appendChild(menuTitle);
-        this.container.appendChild(unorderList);
+
         containerElement.appendChild(this.container);
         this.refreshUI();
     }

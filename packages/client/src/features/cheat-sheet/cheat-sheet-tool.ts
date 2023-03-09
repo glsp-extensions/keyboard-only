@@ -47,9 +47,9 @@ export class CheatSheetKeyListener extends KeyListener {
             // TODO: Remove set- only for debugging
             return [
                 EnableCheatSheetShortcutAction.create(),
-                SetCheatSheetKeyShortcutAction.create(['Ctrl', 'C'], 'Copy')
-                /*   SetCheatSheetKeyShortcutAction.create(['C'], 'Copy'),
-                SetCheatSheetKeyShortcutAction.create(['C', 'Alt', 'Ctrl'], 'Copy')*/
+                SetCheatSheetKeyShortcutAction.create(['Ctrl', 'C'], 'Copy'),
+                SetCheatSheetKeyShortcutAction.create(['C'], 'Test Test Test'),
+                SetCheatSheetKeyShortcutAction.create(['C', 'Alt', 'Ctrl'], 'Test Test Test')
             ];
         }
         return [];
