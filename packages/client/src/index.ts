@@ -86,6 +86,7 @@ export * from './features/toast/toast';
 export * from './features/tools/base-glsp-tool';
 export * from './features/tools/change-bounds-tool';
 export * from './features/tools/delete-tool';
+export * from './features/viewport/movement-tool';
 export * from './features/tools/edge-creation-tool';
 export * from './features/tools/edge-edit-tool';
 export * from './features/tools/marquee-behavior';
@@ -102,6 +103,7 @@ export * from './utils/marker';
 export * from './utils/smodel-util';
 export * from './utils/viewpoint-util';
 export * from './views';
+
 export {
     validationModule,
     saveModule,

@@ -24,11 +24,14 @@ import {
     FitToScreenCommand,
     GetViewportCommand,
     SetViewportCommand,
-    TYPES,
     ZoomMouseListener
 } from 'sprotty';
+import { MovementTool } from './movement-tool';
 import { GLSPScrollMouseListener } from './glsp-scroll-mouse-listener';
 import { RepositionCommand } from './reposition';
+import { ZoomTool } from './zoom-tool';
+import { TYPES } from '../../base/types';
+import { SelectTool } from './select-tool';
 
 const glspViewportModule = new ContainerModule((bind, _unbind, isBound) => {
     configureCommand({ bind, isBound }, CenterCommand);
@@ -39,10 +42,15 @@ const glspViewportModule = new ContainerModule((bind, _unbind, isBound) => {
     bind(TYPES.MouseListener).to(ZoomMouseListener);
     bind(GLSPScrollMouseListener).toSelf().inSingletonScope();
     bind(TYPES.MouseListener).toService(GLSPScrollMouseListener);
-
     configureActionHandler({ bind, isBound }, EnableToolsAction.KIND, GLSPScrollMouseListener);
     configureActionHandler({ bind, isBound }, EnableDefaultToolsAction.KIND, GLSPScrollMouseListener);
     configureCommand({ bind, isBound }, RepositionCommand);
+});
+
+export const glspViewportInteractionsModule = new ContainerModule((bind, _unbind, isBound) => {
+    bind(TYPES.IDefaultTool).to(MovementTool);
+    bind(TYPES.IDefaultTool).to(ZoomTool);
+    bind(TYPES.IDefaultTool).to(SelectTool);
 });
 
 export default glspViewportModule;
