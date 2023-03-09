@@ -84,6 +84,7 @@ export class CheatSheet extends AbstractUIExtension implements IActionHandler {
         return CheatSheet.ID;
     }
     protected refreshUI(): void {
+        this.registrations.sort((a, b) => a.shortcuts.length - b.shortcuts.length);
         this.registrations.forEach(r => this.container.append(this.createEntry(r)));
     }
     protected getShortcutHTML(shortcuts: string[]): string {
@@ -113,6 +114,14 @@ export class CheatSheet extends AbstractUIExtension implements IActionHandler {
         const menuTitle = document.createElement('h3');
         menuTitle.innerText = 'Keyboard Shortcuts';
         this.container.appendChild(menuTitle);
+
+        const closeBtn = document.createElement('button');
+        closeBtn.id = 'close-btn';
+        closeBtn.textContent = 'X';
+        closeBtn.addEventListener('click', () => {
+            this.container.style.display = 'none';
+        });
+        this.container.appendChild(closeBtn);
 
         containerElement.appendChild(this.container);
         this.refreshUI();
