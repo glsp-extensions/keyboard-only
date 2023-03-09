@@ -339,60 +339,68 @@ export class ElementNavigatorKeyListener extends KeyListener {
     }
 
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
-        if (matchesKeystroke(event, 'KeyN', 'alt')) {
-            this.clean();
-            if (this.mode !== NavigationMode.LOCAL) {
-                this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create(messages.navigation.local_navigation_mode_activated));
-                this.navigator = this.tool.localElementNavigator;
-                this.mode = NavigationMode.LOCAL;
-            } else {
-                this.mode = NavigationMode.NONE;
-                this.tool.actionDispatcher.dispatch(HideToastAction.create());
-                this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create(messages.navigation.local_navigation_mode_deactivated));
-            }
-        } else if (matchesKeystroke(event, 'KeyN')) {
-            this.clean();
-            if (this.mode !== NavigationMode.DEFAULT) {
-                this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create(messages.navigation.default_navigation_mode_activated));
-                this.navigator = this.tool.elementNavigator;
-                this.mode = NavigationMode.DEFAULT;
-            } else {
-                this.mode = NavigationMode.NONE;
-                this.tool.actionDispatcher.dispatch(HideToastAction.create());
-                this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create(messages.navigation.default_navigation_mode_deactivated));
-            }
-        }
-
-        const selected = this.getSelectedElements(element.root);
-
-        const current = selected.length > 0 ? selected[0] : undefined;
-
-        if (this.mode !== NavigationMode.NONE && this.navigator !== undefined && current !== undefined && isBoundsAware(current)) {
-            let target;
-            this.navigator.clean?.(current.root, current, this.previousNode);
-            if (matchesKeystroke(event, 'ArrowLeft')) {
-                target = this.navigator.previous(current.root, current);
-            } else if (matchesKeystroke(event, 'ArrowRight')) {
-                target = this.navigator.next(current.root, current);
-            } else if (matchesKeystroke(event, 'ArrowUp')) {
-                target = this.navigator.up?.(current.root, current, this.previousNode);
-            } else if (matchesKeystroke(event, 'ArrowDown')) {
-                target = this.navigator.down?.(current.root, current, this.previousNode);
-            }
-            if (target !== undefined) {
-                this.navigator.process?.(current.root, current, target as SModelElement & BoundsAware, this.previousNode);
-            }
-            const selectableTarget = target ? findParentByFeature(target, isSelectable) : undefined;
-
-            if (selectableTarget) {
-                if (!(current instanceof SEdge)) {
-                    this.previousNode = current;
+        if (this.getSelectedElements(element.root).length > 0) {
+            if (matchesKeystroke(event, 'KeyN', 'alt')) {
+                this.clean();
+                if (this.mode !== NavigationMode.LOCAL) {
+                    this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create(messages.navigation.local_navigation_mode_activated));
+                    this.navigator = this.tool.localElementNavigator;
+                    this.mode = NavigationMode.LOCAL;
+                } else {
+                    this.mode = NavigationMode.NONE;
+                    this.tool.actionDispatcher.dispatch(HideToastAction.create());
+                    this.tool.actionDispatcher.dispatch(
+                        ShowToastMessageAction.create(messages.navigation.local_navigation_mode_deactivated)
+                    );
                 }
-                const deselectedElementsIDs = selected.map(e => e.id).filter(id => id !== selectableTarget.id);
-                this.tool.actionDispatcher.dispatchAll([
-                    SelectAction.create({ selectedElementsIDs: [selectableTarget.id], deselectedElementsIDs }),
-                    RepositionAction.create([selectableTarget.id])
-                ]);
+            } else if (matchesKeystroke(event, 'KeyN')) {
+                this.clean();
+                if (this.mode !== NavigationMode.DEFAULT) {
+                    this.tool.actionDispatcher.dispatch(
+                        ShowToastMessageAction.create(messages.navigation.default_navigation_mode_activated)
+                    );
+                    this.navigator = this.tool.elementNavigator;
+                    this.mode = NavigationMode.DEFAULT;
+                } else {
+                    this.mode = NavigationMode.NONE;
+                    this.tool.actionDispatcher.dispatch(HideToastAction.create());
+                    this.tool.actionDispatcher.dispatch(
+                        ShowToastMessageAction.create(messages.navigation.default_navigation_mode_deactivated)
+                    );
+                }
+            }
+
+            const selected = this.getSelectedElements(element.root);
+
+            const current = selected.length > 0 ? selected[0] : undefined;
+
+            if (this.mode !== NavigationMode.NONE && this.navigator !== undefined && current !== undefined && isBoundsAware(current)) {
+                let target;
+                this.navigator.clean?.(current.root, current, this.previousNode);
+                if (matchesKeystroke(event, 'ArrowLeft')) {
+                    target = this.navigator.previous(current.root, current);
+                } else if (matchesKeystroke(event, 'ArrowRight')) {
+                    target = this.navigator.next(current.root, current);
+                } else if (matchesKeystroke(event, 'ArrowUp')) {
+                    target = this.navigator.up?.(current.root, current, this.previousNode);
+                } else if (matchesKeystroke(event, 'ArrowDown')) {
+                    target = this.navigator.down?.(current.root, current, this.previousNode);
+                }
+                if (target !== undefined) {
+                    this.navigator.process?.(current.root, current, target as SModelElement & BoundsAware, this.previousNode);
+                }
+                const selectableTarget = target ? findParentByFeature(target, isSelectable) : undefined;
+
+                if (selectableTarget) {
+                    if (!(current instanceof SEdge)) {
+                        this.previousNode = current;
+                    }
+                    const deselectedElementsIDs = selected.map(e => e.id).filter(id => id !== selectableTarget.id);
+                    this.tool.actionDispatcher.dispatchAll([
+                        SelectAction.create({ selectedElementsIDs: [selectableTarget.id], deselectedElementsIDs }),
+                        RepositionAction.create([selectableTarget.id])
+                    ]);
+                }
             }
         }
 
