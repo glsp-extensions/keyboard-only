@@ -17,7 +17,6 @@
 import { Action } from '@eclipse-glsp/protocol';
 import { injectable } from 'inversify';
 import { AbstractUIExtension, IActionHandler, ICommand, SetUIExtensionVisibilityAction } from 'sprotty';
-import { KeyCode } from 'sprotty/lib/utils/keyboard';
 
 export interface SetCheatSheetKeyShortcutAction extends Action {
     kind: typeof SetCheatSheetKeyShortcutAction.KIND;
@@ -94,16 +93,13 @@ export class CheatSheet extends AbstractUIExtension implements IActionHandler {
         const divElem = document.createElement('div');
         this.shortcutElement = document.createElement('p');
         this.descElement = document.createElement('p');
-        this.shortcutEntry = document.createElement('span');
 
-        this.shortcutEntry.classList.add('shortcut-entry-container');
-        this.descElement.textContent = ' - ' + registration.description;
+        divElem.classList.add('shortcut-entry-container');
+        this.descElement.textContent = registration.description;
         this.shortcutElement.innerHTML += this.getShortcutHTML(registration.shortcuts);
 
-        this.shortcutEntry.appendChild(this.shortcutElement);
-        this.shortcutEntry.appendChild(this.descElement);
-
-        divElem.appendChild(this.shortcutEntry);
+        divElem.appendChild(this.shortcutElement);
+        divElem.appendChild(this.descElement);
 
         return divElem;
     }

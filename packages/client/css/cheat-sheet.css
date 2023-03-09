@@ -11,6 +11,7 @@
     line-height: 1.5;
     font-size: 16px;
     z-index: 9999;
+    width: 400px;
 }
 
 .keyboard-shortcuts-menu h3 {
@@ -18,17 +19,6 @@
     font-weight: bold;
     margin: 0;
     padding-bottom: 10px;
-}
-
-.keyboard-shortcuts-menu ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.keyboard-shortcuts-menu li {
-    font-size: 16px;
-    margin-bottom: 5px;
 }
 
 .keyboard-shortcuts-menu kbd {
@@ -49,10 +39,12 @@
 .keyboard-shortcuts-menu kbd:active {
     box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2) inset;
 }
-.shortcut-entry-container p {
-    display: inline-block;
+.shortcut-entry-container {
+    display: flex;
+    justify-content: space-between;
     margin-right: 10px;
 }
+
 #close-btn {
     position: absolute;
     top: 5px;
