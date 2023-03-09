@@ -254,3 +254,12 @@
     fill: transparent;
     width: var(--theia-scrollbar-rail-width);
 }
+
+.search-outline .sprotty-node,
+.search-outline .sprotty-edge {
+    stroke-width: 2px;
+    stroke-dashoffset: 5;
+    stroke-dasharray: 5, 5;
+    stroke-linecap: round;
+    stroke: #0e08c3 !important;
+}
