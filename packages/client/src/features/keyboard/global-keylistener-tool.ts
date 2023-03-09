@@ -59,10 +59,6 @@ export class KeyboardListener {
                 SetUIExtensionVisibilityAction.create({ extensionId: KeyboardPointerUI.ID, visible: false, contextElementsId: [] }),
                 SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: false, contextElementsId: [] })
             ];
-        } else if (matchesKeystroke(event, 'KeyM', 'alt')) {
-            return [SetUIExtensionVisibilityAction.create({ extensionId: KeyboardPointerUI.ID, visible: true })];
-        } else if (matchesKeystroke(event, 'KeyG', 'alt')) {
-            return [SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: true })];
         }
         return [];
     }
