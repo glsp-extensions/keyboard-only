@@ -37,6 +37,7 @@ import {
 import { FocusDomAction } from '../actions';
 import { EdgeAutocompletePalette } from '../interactions/edge-autocomplete/edge-autocomplete-palette';
 import { KeyboardGridUI } from '../interactions/grid/constants';
+import { SetCheatSheetKeyShortcutAction } from '../../../features/cheat-sheet/cheat-sheet';
 
 const SEARCH_ICON_ID = 'search';
 const PALETTE_ICON_ID = 'symbol-color';
@@ -118,9 +119,12 @@ export class KeyboardToolPalette extends ToolPalette {
             this.actionDispatcher.requestUntil(requestAction).then(response => {
                 if (SetContextActions.is(response)) {
                     this.paletteItems = response.actions.map(e => e as PaletteItem);
-                    this.actionDispatcher.dispatch(
-                        SetUIExtensionVisibilityAction.create({ extensionId: ToolPalette.ID, visible: !this.editorContext.isReadonly })
-                    );
+                    this.actionDispatcher.dispatchAll([
+                        SetUIExtensionVisibilityAction.create({ extensionId: ToolPalette.ID, visible: !this.editorContext.isReadonly }),
+                        SetCheatSheetKeyShortcutAction.create(Symbol('tool-palette'), [
+                            { shortcuts: ['ALT', 'P'], description: 'Focus on tool palette', group: 'Tool-Palette', position: 0 }
+                        ])
+                    ]);
                 }
             });
         } else if (action.kind === EnableDefaultToolsAction.KIND) {
