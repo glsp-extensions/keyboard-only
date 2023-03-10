@@ -16,9 +16,24 @@
 import { Action } from '@eclipse-glsp/protocol';
 import { KeyListener, SetUIExtensionVisibilityAction, SModelElement } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
+import { CheatSheetKeyShortcutProvider, SetCheatSheetKeyShortcutAction } from '../../cheat-sheet/cheat-sheet';
 import { SearchAutocompletePalette } from './search-palette';
+import { SearchAutocompletePaletteTool } from './search-tool';
 
-export class SearchAutocompletePaletteKeyListener extends KeyListener {
+export class SearchAutocompletePaletteKeyListener extends KeyListener implements CheatSheetKeyShortcutProvider {
+    constructor(protected readonly tool: SearchAutocompletePaletteTool) {
+        super();
+    }
+    registerShortcutKey(): void {
+        this.tool.actionDispatcher.onceModelInitialized().then(() => {
+            this.tool.actionDispatcher.dispatchAll([
+                SetCheatSheetKeyShortcutAction.create(Symbol('search-mode'), [
+                    { shortcuts: ['CTRL', 'F'], description: 'Activate search for elements' }
+                ])
+            ]);
+        });
+    }
+
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
         if (matchesKeystroke(event, 'Escape')) {
             return [

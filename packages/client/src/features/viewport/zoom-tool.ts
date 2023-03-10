@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action, Bounds, Point, SetViewportAction, Viewport } from '@eclipse-glsp/protocol';
+import { Action, Bounds, CenterAction, Point, SetViewportAction, Viewport } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
 import {
     KeyListener,
@@ -25,11 +25,14 @@ import {
     isBoundsAware,
     SModelRoot,
     SChildElement,
-    BoundsAware
+    BoundsAware,
+    TYPES
 } from 'sprotty';
-import { CenterAction } from 'sprotty-protocol';
+
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
+import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
+import { CheatSheetKeyShortcutProvider, SetCheatSheetKeyShortcutAction } from '../cheat-sheet/cheat-sheet';
 import { KeyboardManagerService } from '../keyboard/manager/keyboard-manager-service';
 
 /**
@@ -45,6 +48,7 @@ export class ZoomTool implements GLSPTool {
 
     @inject(KeyTool) protected readonly keytool: KeyTool;
     @inject(KeyboardManagerService) readonly keyboardManager: KeyboardManagerService;
+    @inject(TYPES.IActionDispatcher) readonly actionDispatcher: GLSPActionDispatcher;
 
     get id(): string {
         return ZoomTool.ID;
@@ -52,6 +56,7 @@ export class ZoomTool implements GLSPTool {
 
     enable(): void {
         this.keytool.register(this.zoomKeyListener);
+        this.zoomKeyListener.registerShortcutKey();
     }
 
     disable(): void {
@@ -60,12 +65,27 @@ export class ZoomTool implements GLSPTool {
 }
 
 @injectable()
-export class ZoomKeyListener extends KeyListener {
+export class ZoomKeyListener extends KeyListener implements CheatSheetKeyShortcutProvider {
     protected readonly accessToken = Symbol('ZoomKeyListener');
     protected defaultZoomInFactor = 1.1;
     protected defaultZoomOutFactor = 0.9;
     constructor(protected readonly tool: ZoomTool) {
         super();
+    }
+    registerShortcutKey(): void {
+        this.tool.actionDispatcher.onceModelInitialized().then(() => {
+            this.tool.actionDispatcher.dispatchAll([
+                SetCheatSheetKeyShortcutAction.create(Symbol('zoom-in'), [
+                    { shortcuts: ['+'], description: 'Zoom in to element or viewport' }
+                ]),
+                SetCheatSheetKeyShortcutAction.create(Symbol('zoom-out'), [
+                    { shortcuts: ['-'], description: 'Zoom out to element or viewport' }
+                ]),
+                SetCheatSheetKeyShortcutAction.create(Symbol('zoom-reset'), [
+                    { shortcuts: ['CTRL', '0'], description: 'Reset zoom to default' }
+                ])
+            ]);
+        });
     }
 
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {

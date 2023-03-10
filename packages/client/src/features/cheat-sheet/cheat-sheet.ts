@@ -17,11 +17,15 @@
 import { Action } from '@eclipse-glsp/protocol';
 import { injectable } from 'inversify';
 import { AbstractUIExtension, IActionHandler, ICommand, SetUIExtensionVisibilityAction } from 'sprotty';
-import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 
 export interface CheatSheetKeyShortcut {
     shortcuts: string[];
     description: string;
+}
+
+export interface CheatSheetKeyShortcutProvider {
+    registerShortcutKey(): void;
+    deregisterShortcutKey?(): void;
 }
 
 export interface SetCheatSheetKeyShortcutAction extends Action {
@@ -84,6 +88,7 @@ export class CheatSheet extends AbstractUIExtension implements IActionHandler {
     }
 
     protected refreshUI(): void {
+        this.shortcutsContainer.innerHTML = '';
         const keys = Object.values(this.registrations).flatMap(r => r);
         keys.sort((a, b) => a.shortcuts.length - b.shortcuts.length);
         keys.forEach(r => this.shortcutsContainer.append(this.createEntry(r)));

@@ -15,14 +15,16 @@
  ********************************************************************************/
 import { inject, injectable } from 'inversify';
 import { KeyTool, Tool } from 'sprotty';
-
 import { SearchAutocompletePaletteKeyListener } from './search-keylistener';
+import { GLSPActionDispatcher } from '../../../base/action-dispatcher';
+import { TYPES } from '../../../base/types';
 
 @injectable()
 export class SearchAutocompletePaletteTool implements Tool {
     static readonly ID = 'glsp.search-autocomplete-palette-tool';
 
-    protected readonly keyListener = new SearchAutocompletePaletteKeyListener();
+    protected readonly keyListener = new SearchAutocompletePaletteKeyListener(this);
+    @inject(TYPES.IActionDispatcher) readonly actionDispatcher: GLSPActionDispatcher;
 
     @inject(KeyTool) protected keyTool: KeyTool;
 
@@ -32,6 +34,7 @@ export class SearchAutocompletePaletteTool implements Tool {
 
     enable(): void {
         this.keyTool.register(this.keyListener);
+        this.keyListener.registerShortcutKey();
     }
 
     disable(): void {

@@ -42,6 +42,7 @@ import { applyCssClasses, deleteCssClasses } from '../tool-feedback/css-feedback
 import * as messages from '../toast/messages.json';
 import { RepositionAction } from '../viewport/reposition';
 import { KeyboardManagerService } from '../keyboard/manager/keyboard-manager-service';
+import { CheatSheetKeyShortcutProvider, SetCheatSheetKeyShortcutAction } from '../cheat-sheet/cheat-sheet';
 
 export interface ElementNavigator {
     previous(
@@ -319,6 +320,7 @@ export class ElementNavigatorTool implements GLSPTool {
 
     enable(): void {
         this.keytool.register(this.elementNavigatorKeyListener);
+        this.elementNavigatorKeyListener.registerShortcutKey();
     }
 
     disable(): void {
@@ -331,7 +333,7 @@ enum NavigationMode {
     DEFAULT = 'default',
     NONE = 'none'
 }
-export class ElementNavigatorKeyListener extends KeyListener {
+export class ElementNavigatorKeyListener extends KeyListener implements CheatSheetKeyShortcutProvider {
     protected readonly accessToken = Symbol('ElementNavigatorKeyListener');
     protected mode = NavigationMode.NONE;
     protected previousNode?: SModelElement & BoundsAware;
@@ -339,6 +341,24 @@ export class ElementNavigatorKeyListener extends KeyListener {
 
     constructor(protected readonly tool: ElementNavigatorTool) {
         super();
+    }
+    registerShortcutKey(): void {
+        this.tool.actionDispatcher.onceModelInitialized().then(() => {
+            this.tool.actionDispatcher.dispatchAll([
+                SetCheatSheetKeyShortcutAction.create(Symbol('activate-default-navigation'), [
+                    { shortcuts: ['N'], description: 'Activate default navigation mode' }
+                ]),
+                SetCheatSheetKeyShortcutAction.create(Symbol('activate-detailed-navigation'), [
+                    { shortcuts: ['ALT', 'N'], description: 'Activate detailed navigation mode' }
+                ]),
+                SetCheatSheetKeyShortcutAction.create(Symbol('default-navigation'), [
+                    { shortcuts: ['⬅ | ➡'], description: 'In Mode: navigate through nodes' }
+                ]),
+                SetCheatSheetKeyShortcutAction.create(Symbol('detailed-navigation'), [
+                    { shortcuts: ['⬅ ➡ || ⬆ ⬇'], description: 'In Mode: navigate through elements (⬅ ➡) and edges (⬆ ⬇)' }
+                ])
+            ]);
+        });
     }
 
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {

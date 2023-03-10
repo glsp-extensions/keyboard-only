@@ -31,7 +31,9 @@ import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 import { TYPES } from '../../base/types';
 import { GridSnapper } from '../change-bounds/snap';
+import { CheatSheetKeyShortcutProvider, SetCheatSheetKeyShortcutAction } from '../cheat-sheet/cheat-sheet';
 import { KeyboardManagerService } from '../keyboard/manager/keyboard-manager-service';
+import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 
 /**
  * Moves viewport when its focused and arrow keys are hit.
@@ -47,6 +49,7 @@ export class MovementTool implements GLSPTool {
     @inject(KeyTool) protected readonly keytool: KeyTool;
     @inject(TYPES.ISnapper) @optional() readonly snapper?: ISnapper;
     @inject(KeyboardManagerService) readonly keyboardManager: KeyboardManagerService;
+    @inject(TYPES.IActionDispatcher) readonly actionDispatcher: GLSPActionDispatcher;
 
     get id(): string {
         return MovementTool.ID;
@@ -54,6 +57,7 @@ export class MovementTool implements GLSPTool {
 
     enable(): void {
         this.keytool.register(this.movementKeyListener);
+        this.movementKeyListener.registerShortcutKey();
     }
 
     disable(): void {
@@ -61,8 +65,7 @@ export class MovementTool implements GLSPTool {
     }
 }
 
-@injectable()
-export class MoveKeyListener extends KeyListener {
+export class MoveKeyListener extends KeyListener implements CheatSheetKeyShortcutProvider {
     protected readonly accessToken = Symbol('MoveKeyListener');
     protected grid = { x: 20, y: 20 };
 
@@ -72,6 +75,16 @@ export class MoveKeyListener extends KeyListener {
         if (this.tool.snapper instanceof GridSnapper) {
             this.grid = this.tool.snapper?.grid;
         }
+    }
+
+    registerShortcutKey(): void {
+        this.tool.actionDispatcher.onceModelInitialized().then(() => {
+            this.tool.actionDispatcher.dispatchAll([
+                SetCheatSheetKeyShortcutAction.create(Symbol('move-via-arrow'), [
+                    { shortcuts: ['⬅ ⬆ ➡ ⬇'], description: 'Move element or viewport' }
+                ])
+            ]);
+        });
     }
 
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {

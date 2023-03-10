@@ -17,7 +17,7 @@ import { Action } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
 import { KeyListener, KeyTool, SModelElement } from 'sprotty';
 import { BaseGLSPTool } from '../tools/base-glsp-tool';
-import { EnableCheatSheetShortcutAction, SetCheatSheetKeyShortcutAction } from './cheat-sheet';
+import { EnableCheatSheetShortcutAction } from './cheat-sheet';
 
 @injectable()
 export class CheatSheetTool extends BaseGLSPTool {
@@ -44,57 +44,7 @@ export class CheatSheetKeyListener extends KeyListener {
     protected readonly token = Symbol(CheatSheetKeyListener.name);
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
         if (event.key === '?') {
-            console.log('?');
-            // TODO: Remove set- only for debugging
-            return [
-                EnableCheatSheetShortcutAction.create(),
-                SetCheatSheetKeyShortcutAction.create(this.token, [
-                    {
-                        shortcuts: ['Ctrl', 'C'],
-                        description: 'Copy'
-                    },
-                    {
-                        shortcuts: ['C'],
-                        description: 'Test Test Test'
-                    },
-                    {
-                        shortcuts: ['C', 'Alt', 'Ctrl'],
-                        description: 'Test Test Test'
-                    },
-                    {
-                        shortcuts: ['C', 'Alt', 'Ctrl'],
-                        description: 'Test Test Test'
-                    },
-                    {
-                        shortcuts: ['C', 'Alt', 'Ctrl'],
-                        description: 'Test Test Test'
-                    },
-                    {
-                        shortcuts: ['C', 'Alt', 'Ctrl'],
-                        description: 'Test Test Test'
-                    },
-                    {
-                        shortcuts: ['C', 'Alt', 'Ctrl'],
-                        description: 'Test Test Test'
-                    },
-                    {
-                        shortcuts: ['C', 'Alt', 'Ctrl'],
-                        description: 'Test Test Test'
-                    },
-                    {
-                        shortcuts: ['C', 'Alt', 'Ctrl'],
-                        description: 'Test Test Test'
-                    },
-                    {
-                        shortcuts: ['C', 'Alt', 'Ctrl'],
-                        description: 'Test Test Test'
-                    },
-                    {
-                        shortcuts: ['C', 'Alt', 'Ctrl'],
-                        description: 'Test Test Test'
-                    }
-                ])
-            ];
+            return [EnableCheatSheetShortcutAction.create()];
         }
         return [];
     }

@@ -25,6 +25,8 @@ import { GridSnapper } from './snap';
 import { isValidMove, isValidSize, minHeight, minWidth } from '../../utils/layout-utils';
 import { IMovementRestrictor } from './movement-restrictor';
 import { KeyboardManagerService } from '../keyboard/manager/keyboard-manager-service';
+import { GLSPActionDispatcher } from '../../base/action-dispatcher';
+import { CheatSheetKeyShortcutProvider, SetCheatSheetKeyShortcutAction } from '../cheat-sheet/cheat-sheet';
 
 @injectable()
 export class ResizeTool implements GLSPTool {
@@ -36,6 +38,7 @@ export class ResizeTool implements GLSPTool {
     @inject(TYPES.IMovementRestrictor) @optional() readonly movementRestrictor?: IMovementRestrictor;
     @inject(TYPES.ISnapper) @optional() readonly snapper?: ISnapper;
     @inject(KeyboardManagerService) readonly keyboardManager: KeyboardManagerService;
+    @inject(TYPES.IActionDispatcher) readonly actionDispatcher: GLSPActionDispatcher;
 
     protected resizeKeyListener: ResizeKeyListener;
 
@@ -46,6 +49,7 @@ export class ResizeTool implements GLSPTool {
     enable(): void {
         this.resizeKeyListener = new ResizeKeyListener(this);
         this.keytool.register(this.resizeKeyListener);
+        this.resizeKeyListener.registerShortcutKey();
     }
 
     disable(): void {
@@ -53,7 +57,7 @@ export class ResizeTool implements GLSPTool {
     }
 }
 @injectable()
-export class ResizeKeyListener extends KeyListener {
+export class ResizeKeyListener extends KeyListener implements CheatSheetKeyShortcutProvider {
     protected grid = { x: 20, y: 20 };
     protected isEditMode = false;
     protected readonly accessToken = Symbol('ResizeKeyListener');
@@ -65,7 +69,24 @@ export class ResizeKeyListener extends KeyListener {
             this.grid = this.tool.snapper?.grid;
         }
     }
-
+    registerShortcutKey(): void {
+        this.tool.actionDispatcher.onceModelInitialized().then(() => {
+            this.tool.actionDispatcher.dispatchAll([
+                SetCheatSheetKeyShortcutAction.create(Symbol('resize-mode'), [
+                    { shortcuts: ['ALT', 'R'], description: 'Activate resize mode for selected element' }
+                ]),
+                SetCheatSheetKeyShortcutAction.create(Symbol('resize-in'), [
+                    { shortcuts: ['+'], description: 'In Mode: Increase size of element' }
+                ]),
+                SetCheatSheetKeyShortcutAction.create(Symbol('resize-out'), [
+                    { shortcuts: ['-'], description: 'In Mode: Increase size of element' }
+                ]),
+                SetCheatSheetKeyShortcutAction.create(Symbol('resize-default'), [
+                    { shortcuts: ['CTRL', '0'], description: 'In Mode: Set element size to default' }
+                ])
+            ]);
+        });
+    }
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
         const actions: Action[] = [];
         if (this.tool.keyboardManager.access(this.accessToken)) {
