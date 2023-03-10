@@ -346,16 +346,29 @@ export class ElementNavigatorKeyListener extends KeyListener implements CheatShe
         this.tool.actionDispatcher.onceModelInitialized().then(() => {
             this.tool.actionDispatcher.dispatchAll([
                 SetCheatSheetKeyShortcutAction.create(Symbol('activate-default-navigation'), [
-                    { shortcuts: ['N'], description: 'Activate default navigation mode' }
-                ]),
-                SetCheatSheetKeyShortcutAction.create(Symbol('activate-detailed-navigation'), [
-                    { shortcuts: ['ALT', 'N'], description: 'Activate detailed navigation mode' }
+                    { shortcuts: ['N'], description: 'Activate default navigation mode', group: 'Default Navigation', position: 0 }
                 ]),
                 SetCheatSheetKeyShortcutAction.create(Symbol('default-navigation'), [
-                    { shortcuts: ['⬅ | ➡'], description: 'In Mode: navigate through nodes' }
+                    { shortcuts: ['⬅ | ➡'], description: 'Navigate through element', group: 'Default Navigation', position: 1 }
                 ]),
-                SetCheatSheetKeyShortcutAction.create(Symbol('detailed-navigation'), [
-                    { shortcuts: ['⬅ ➡ || ⬆ ⬇'], description: 'In Mode: navigate through elements (⬅ ➡) and edges (⬆ ⬇)' }
+                SetCheatSheetKeyShortcutAction.create(Symbol('activate-detailed-navigation'), [
+                    { shortcuts: ['ALT', 'N'], description: 'Activate detailed navigation mode', group: 'Detailed Navigation', position: 0 }
+                ]),
+                SetCheatSheetKeyShortcutAction.create(Symbol('detailed-navigation-elements'), [
+                    {
+                        shortcuts: ['⬅ ➡'],
+                        description: 'Navigate through elements',
+                        group: 'Detailed Navigation',
+                        position: 1
+                    }
+                ]),
+                SetCheatSheetKeyShortcutAction.create(Symbol('detailed-navigation-edges'), [
+                    {
+                        shortcuts: ['⬆ ⬇'],
+                        description: 'Navigate through edges',
+                        group: 'Detailed Navigation',
+                        position: 2
+                    }
                 ])
             ]);
         });

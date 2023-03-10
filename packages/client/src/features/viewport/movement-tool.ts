@@ -81,7 +81,7 @@ export class MoveKeyListener extends KeyListener implements CheatSheetKeyShortcu
         this.tool.actionDispatcher.onceModelInitialized().then(() => {
             this.tool.actionDispatcher.dispatchAll([
                 SetCheatSheetKeyShortcutAction.create(Symbol('move-via-arrow'), [
-                    { shortcuts: ['⬅ ⬆ ➡ ⬇'], description: 'Move element or viewport' }
+                    { shortcuts: ['⬅ ⬆ ➡ ⬇'], description: 'Move element or viewport', group: 'Move', position: 0 }
                 ])
             ]);
         });

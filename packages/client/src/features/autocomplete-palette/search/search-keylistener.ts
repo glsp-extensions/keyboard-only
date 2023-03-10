@@ -28,7 +28,7 @@ export class SearchAutocompletePaletteKeyListener extends KeyListener implements
         this.tool.actionDispatcher.onceModelInitialized().then(() => {
             this.tool.actionDispatcher.dispatchAll([
                 SetCheatSheetKeyShortcutAction.create(Symbol('search-mode'), [
-                    { shortcuts: ['CTRL', 'F'], description: 'Activate search for elements' }
+                    { shortcuts: ['CTRL', 'F'], description: 'Activate search for elements', group: 'Search', position: 0 }
                 ])
             ]);
         });

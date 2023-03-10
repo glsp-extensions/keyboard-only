@@ -73,16 +73,16 @@ export class ResizeKeyListener extends KeyListener implements CheatSheetKeyShort
         this.tool.actionDispatcher.onceModelInitialized().then(() => {
             this.tool.actionDispatcher.dispatchAll([
                 SetCheatSheetKeyShortcutAction.create(Symbol('resize-mode'), [
-                    { shortcuts: ['ALT', 'R'], description: 'Activate resize mode for selected element' }
+                    { shortcuts: ['ALT', 'R'], description: 'Activate resize mode for selected element', group: 'Resize', position: 0 }
                 ]),
                 SetCheatSheetKeyShortcutAction.create(Symbol('resize-in'), [
-                    { shortcuts: ['+'], description: 'In Mode: Increase size of element' }
+                    { shortcuts: ['+'], description: 'Increase size of element', group: 'Resize', position: 1 }
                 ]),
                 SetCheatSheetKeyShortcutAction.create(Symbol('resize-out'), [
-                    { shortcuts: ['-'], description: 'In Mode: Increase size of element' }
+                    { shortcuts: ['-'], description: 'Increase size of element', group: 'Resize', position: 2 }
                 ]),
                 SetCheatSheetKeyShortcutAction.create(Symbol('resize-default'), [
-                    { shortcuts: ['CTRL', '0'], description: 'In Mode: Set element size to default' }
+                    { shortcuts: ['CTRL', '0'], description: 'Set element size to default', group: 'Resize', position: 3 }
                 ])
             ]);
         });

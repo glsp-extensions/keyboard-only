@@ -21,6 +21,8 @@ import { AbstractUIExtension, IActionHandler, ICommand, SetUIExtensionVisibility
 export interface CheatSheetKeyShortcut {
     shortcuts: string[];
     description: string;
+    group: string;
+    position: number;
 }
 
 export interface CheatSheetKeyShortcutProvider {
@@ -90,8 +92,39 @@ export class CheatSheet extends AbstractUIExtension implements IActionHandler {
     protected refreshUI(): void {
         this.shortcutsContainer.innerHTML = '';
         const keys = Object.values(this.registrations).flatMap(r => r);
-        keys.sort((a, b) => a.shortcuts.length - b.shortcuts.length);
-        keys.forEach(r => this.shortcutsContainer.append(this.createEntry(r)));
+        keys.sort((a, b) => {
+            if (a.group < b.group) {
+                return -1;
+            }
+            if (a.group > b.group) {
+                return 1;
+            }
+            if (a.position < b.position) {
+                return -1;
+            }
+            if (a.position > b.position) {
+                return 1;
+            }
+            return 0;
+        });
+        console.log(keys);
+        keys.forEach(r => {
+            let groupDiv = document.getElementById(r.group);
+            // eslint-disable-next-line no-null/no-null
+            if (groupDiv !== null) {
+                groupDiv.append(this.createEntry(r));
+            } else {
+                groupDiv = document.createElement('div');
+                groupDiv.id = r.group;
+                // create title
+                const menuTitle = document.createElement('h4');
+                menuTitle.innerText = r.group;
+                groupDiv.appendChild(menuTitle);
+                groupDiv.append(this.createEntry(r));
+            }
+            this.shortcutsContainer.append(groupDiv);
+        });
+        // keys.forEach(r => this.shortcutsContainer.append(this.createEntry(r)));
     }
 
     protected getShortcutHTML(shortcuts: string[]): string {

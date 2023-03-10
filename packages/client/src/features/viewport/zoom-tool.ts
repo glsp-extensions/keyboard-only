@@ -76,13 +76,13 @@ export class ZoomKeyListener extends KeyListener implements CheatSheetKeyShortcu
         this.tool.actionDispatcher.onceModelInitialized().then(() => {
             this.tool.actionDispatcher.dispatchAll([
                 SetCheatSheetKeyShortcutAction.create(Symbol('zoom-in'), [
-                    { shortcuts: ['+'], description: 'Zoom in to element or viewport' }
+                    { shortcuts: ['+'], description: 'Zoom in to element or viewport', group: 'Zoom', position: 0 }
                 ]),
                 SetCheatSheetKeyShortcutAction.create(Symbol('zoom-out'), [
-                    { shortcuts: ['-'], description: 'Zoom out to element or viewport' }
+                    { shortcuts: ['-'], description: 'Zoom out to element or viewport', group: 'Zoom', position: 1 }
                 ]),
                 SetCheatSheetKeyShortcutAction.create(Symbol('zoom-reset'), [
-                    { shortcuts: ['CTRL', '0'], description: 'Reset zoom to default' }
+                    { shortcuts: ['CTRL', '0'], description: 'Reset zoom to default', group: 'Zoom', position: 2 }
                 ])
             ]);
         });
