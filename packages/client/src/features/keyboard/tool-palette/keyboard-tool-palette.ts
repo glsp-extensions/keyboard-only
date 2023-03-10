@@ -36,6 +36,7 @@ import {
 } from '../../../features/tool-palette/tool-palette';
 import { KeyboardGridUI } from '../grid/constants';
 import { FocusDomAction } from '../actions';
+import { EdgeAutocompletePalette } from '../edge-autocomplete/edge-autocomplete-palette';
 
 const SEARCH_ICON_ID = 'search';
 const PALETTE_ICON_ID = 'symbol-color';
@@ -376,6 +377,15 @@ export class KeyboardToolPalette extends ToolPalette {
                 this.actionDispatcher.dispatchAll([
                     ...items[index].actions,
                     SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: true, contextElementsId: [] })
+                ]);
+            } else {
+                this.actionDispatcher.dispatchAll([
+                    ...items[index].actions,
+                    SetUIExtensionVisibilityAction.create({
+                        extensionId: EdgeAutocompletePalette.ID,
+                        visible: true,
+                        contextElementsId: []
+                    })
                 ]);
             }
             this.changeActiveButton(this.keyboardIndexButtonMapping.get(index));
