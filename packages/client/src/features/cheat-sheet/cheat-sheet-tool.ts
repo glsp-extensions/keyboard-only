@@ -41,15 +41,59 @@ export class CheatSheetTool extends BaseGLSPTool {
 }
 
 export class CheatSheetKeyListener extends KeyListener {
+    protected readonly token = Symbol(CheatSheetKeyListener.name);
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
         if (event.key === '?') {
             console.log('?');
             // TODO: Remove set- only for debugging
             return [
                 EnableCheatSheetShortcutAction.create(),
-                SetCheatSheetKeyShortcutAction.create(['Ctrl', 'C'], 'Copy'),
-                SetCheatSheetKeyShortcutAction.create(['C'], 'Test Test Test'),
-                SetCheatSheetKeyShortcutAction.create(['C', 'Alt', 'Ctrl'], 'Test Test Test')
+                SetCheatSheetKeyShortcutAction.create(this.token, [
+                    {
+                        shortcuts: ['Ctrl', 'C'],
+                        description: 'Copy'
+                    },
+                    {
+                        shortcuts: ['C'],
+                        description: 'Test Test Test'
+                    },
+                    {
+                        shortcuts: ['C', 'Alt', 'Ctrl'],
+                        description: 'Test Test Test'
+                    },
+                    {
+                        shortcuts: ['C', 'Alt', 'Ctrl'],
+                        description: 'Test Test Test'
+                    },
+                    {
+                        shortcuts: ['C', 'Alt', 'Ctrl'],
+                        description: 'Test Test Test'
+                    },
+                    {
+                        shortcuts: ['C', 'Alt', 'Ctrl'],
+                        description: 'Test Test Test'
+                    },
+                    {
+                        shortcuts: ['C', 'Alt', 'Ctrl'],
+                        description: 'Test Test Test'
+                    },
+                    {
+                        shortcuts: ['C', 'Alt', 'Ctrl'],
+                        description: 'Test Test Test'
+                    },
+                    {
+                        shortcuts: ['C', 'Alt', 'Ctrl'],
+                        description: 'Test Test Test'
+                    },
+                    {
+                        shortcuts: ['C', 'Alt', 'Ctrl'],
+                        description: 'Test Test Test'
+                    },
+                    {
+                        shortcuts: ['C', 'Alt', 'Ctrl'],
+                        description: 'Test Test Test'
+                    }
+                ])
             ];
         }
         return [];

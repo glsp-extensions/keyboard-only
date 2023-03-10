@@ -4,14 +4,17 @@
     background-color: #f8f8f8;
     padding: 10px;
     margin-bottom: 20px;
-    position: fixed;
-    top: 420px;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    bottom: 0;
     right: 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     line-height: 1.5;
     font-size: 16px;
     z-index: 9999;
     width: 400px;
+    max-height: 512px;
 }
 
 .keyboard-shortcuts-menu h3 {
@@ -39,6 +42,14 @@
 .keyboard-shortcuts-menu kbd:active {
     box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2) inset;
 }
+
+.keyboard-shortcuts-container {
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    overflow: auto;
+}
+
 .shortcut-entry-container {
     display: flex;
     justify-content: space-between;
