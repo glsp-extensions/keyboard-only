@@ -107,7 +107,6 @@ export class CheatSheet extends AbstractUIExtension implements IActionHandler {
             }
             return 0;
         });
-        console.log(keys);
         keys.forEach(r => {
             let groupDiv = document.getElementById(r.group);
             // eslint-disable-next-line no-null/no-null
@@ -124,7 +123,6 @@ export class CheatSheet extends AbstractUIExtension implements IActionHandler {
             }
             this.shortcutsContainer.append(groupDiv);
         });
-        // keys.forEach(r => this.shortcutsContainer.append(this.createEntry(r)));
     }
 
     protected getShortcutHTML(shortcuts: string[]): string {
