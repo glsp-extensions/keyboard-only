@@ -16,8 +16,9 @@
 import { CreateNodeOperation } from '@eclipse-glsp/protocol';
 import { EnableDefaultToolsAction, IActionDispatcher, SetUIExtensionVisibilityAction } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
+import { KeyboardListener } from '../../keyboard-listener';
 import { KeyboardGridUI } from '../grid/constants';
-import { KeyboardListener } from '../keyboard-listener';
+
 import { KeyboardPointerUI } from './constants';
 import { KeyboardPointer } from './keyboard-pointer';
 import { KeyboardPointerPosition } from './keyboard-pointer.position';

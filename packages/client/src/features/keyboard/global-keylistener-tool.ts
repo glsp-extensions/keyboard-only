@@ -17,12 +17,11 @@ import { Action } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
 import { IActionDispatcher, SetUIExtensionVisibilityAction, TYPES } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
-
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 import { ToolPalette } from '../tool-palette/tool-palette';
 import { FocusDomAction } from './actions';
-import { KeyboardGridUI } from './grid/constants';
-import { KeyboardPointerUI } from './pointer/constants';
+import { KeyboardGridUI } from './interactions/grid/constants';
+import { KeyboardPointerUI } from './interactions/pointer/constants';
 
 @injectable()
 export class GlobalKeyListenerTool implements GLSPTool {

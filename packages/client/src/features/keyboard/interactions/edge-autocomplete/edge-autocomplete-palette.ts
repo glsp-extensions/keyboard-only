@@ -27,9 +27,9 @@ import {
 } from 'sprotty';
 
 import { toArray } from 'sprotty/lib/utils/iterable';
-import { CloseReason, toActionArray } from '../../../base/auto-complete/auto-complete-widget';
-import { AutocompleteSuggestion, IAutocompleteSuggestionProvider } from '../../autocomplete-palette/autocomplete-suggestion-providers';
-import { BaseAutocompletePalette } from '../../autocomplete-palette/base-autocomplete-palette';
+import { CloseReason, toActionArray } from '../../../../base/auto-complete/auto-complete-widget';
+import { AutocompleteSuggestion, IAutocompleteSuggestionProvider } from '../../../autocomplete-palette/autocomplete-suggestion-providers';
+import { BaseAutocompletePalette } from '../../../autocomplete-palette/base-autocomplete-palette';
 import { SetEdgeTargetSelectionAction } from './actions';
 import { EdgeAutocompleteContext } from './edge-autocomplete-context';
 

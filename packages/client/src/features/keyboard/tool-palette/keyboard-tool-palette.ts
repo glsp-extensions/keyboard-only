@@ -34,9 +34,9 @@ import {
     compare,
     EnableToolPaletteAction
 } from '../../../features/tool-palette/tool-palette';
-import { KeyboardGridUI } from '../grid/constants';
 import { FocusDomAction } from '../actions';
-import { EdgeAutocompletePalette } from '../edge-autocomplete/edge-autocomplete-palette';
+import { EdgeAutocompletePalette } from '../interactions/edge-autocomplete/edge-autocomplete-palette';
+import { KeyboardGridUI } from '../interactions/grid/constants';
 
 const SEARCH_ICON_ID = 'search';
 const PALETTE_ICON_ID = 'symbol-color';

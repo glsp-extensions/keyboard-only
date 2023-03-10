@@ -17,7 +17,7 @@ import { Action, TriggerNodeCreationAction } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
 import { AbstractUIExtension, IActionDispatcher, IActionHandler, SModelRoot, TYPES } from 'sprotty';
 
-import { SModelRootListener } from '../../../base/model/update-model-command';
+import { SModelRootListener } from '../../../../base/model/update-model-command';
 import { SetKeyboardPointerRenderPositionAction } from './actions';
 import { KeyboardPointerUI } from './constants';
 import { KeyboardPointerKeyboardListener } from './keyboard-pointer.listener';

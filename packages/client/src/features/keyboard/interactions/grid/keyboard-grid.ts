@@ -13,12 +13,11 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import '../../../../css/keyboard.css';
+import '../../../../../css/keyboard.css';
 
 import { inject, injectable } from 'inversify';
 import { AbstractUIExtension, ActionDispatcher, SetUIExtensionVisibilityAction, SModelRoot, TYPES } from 'sprotty';
 import { KeyCode, matchesKeystroke } from 'sprotty/lib/utils/keyboard';
-
 import { SetKeyboardPointerRenderPositionAction } from '../pointer/actions';
 import { KeyboardPointer } from '../pointer/keyboard-pointer';
 import { KeyboardPointerUI } from '../pointer/constants';

@@ -16,8 +16,8 @@
 
 import { Point } from '@eclipse-glsp/protocol';
 import { findChildrenAtPosition, findParentByFeature, SModelElement } from 'sprotty';
-import { Containable, isContainable } from '../../../features/hints/model';
-import { getAbsolutePositionByPoint } from '../../../utils/viewpoint-util';
+import { Containable, isContainable } from '../../../../features/hints/model';
+import { getAbsolutePositionByPoint } from '../../../../utils/viewpoint-util';
 import { KeyboardPointerUI } from './constants';
 import { KeyboardPointer } from './keyboard-pointer';
 
