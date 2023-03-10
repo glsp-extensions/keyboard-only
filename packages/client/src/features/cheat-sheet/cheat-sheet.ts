@@ -123,6 +123,11 @@ export class CheatSheet extends AbstractUIExtension implements IActionHandler {
         closeBtn.addEventListener('click', () => {
             this.hide();
         });
+        document.addEventListener('keydown', (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                this.hide();
+            }
+        });
         this.container.appendChild(closeBtn);
 
         // create shortcuts container
