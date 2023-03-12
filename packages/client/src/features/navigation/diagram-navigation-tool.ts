@@ -389,7 +389,7 @@ export class ElementNavigatorKeyListener extends KeyListener implements CheatShe
                             ShowToastMessageAction.create(messages.navigation.default_navigation_mode_deactivated)
                         );
                     }
-                    this.tool.actionDispatcher.dispatch(HideToastAction.create());
+                    this.tool.actionDispatcher.dispatch(HideToastAction.create(5000));
                     this.mode = NavigationMode.NONE;
                 }
                 if (matchesKeystroke(event, 'KeyN', 'alt')) {
@@ -404,7 +404,7 @@ export class ElementNavigatorKeyListener extends KeyListener implements CheatShe
                     } else {
                         this.tool.keyboardManager.unlock(this.accessToken);
                         this.mode = NavigationMode.NONE;
-                        this.tool.actionDispatcher.dispatch(HideToastAction.create());
+                        this.tool.actionDispatcher.dispatch(HideToastAction.create(5000));
                         this.tool.actionDispatcher.dispatch(
                             ShowToastMessageAction.create(messages.navigation.local_navigation_mode_deactivated)
                         );
@@ -421,7 +421,7 @@ export class ElementNavigatorKeyListener extends KeyListener implements CheatShe
                     } else {
                         this.tool.keyboardManager.unlock(this.accessToken);
                         this.mode = NavigationMode.NONE;
-                        this.tool.actionDispatcher.dispatch(HideToastAction.create());
+                        this.tool.actionDispatcher.dispatch(HideToastAction.create(5000));
                         this.tool.actionDispatcher.dispatch(
                             ShowToastMessageAction.create(messages.navigation.default_navigation_mode_deactivated)
                         );
