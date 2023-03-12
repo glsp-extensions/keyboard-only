@@ -389,7 +389,9 @@ export class ElementNavigatorKeyListener extends KeyListener implements CheatShe
                             ShowToastMessageAction.create(messages.navigation.default_navigation_mode_deactivated)
                         );
                     }
+
                     this.tool.actionDispatcher.dispatch(HideToastAction.create(5000));
+                    this.tool.keyboardManager.unlock(this.accessToken);
                     this.mode = NavigationMode.NONE;
                 }
                 if (matchesKeystroke(event, 'KeyN', 'alt')) {
