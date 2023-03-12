@@ -14,11 +14,10 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { SelectAction } from '@eclipse-glsp/protocol';
+import { CenterAction, SelectAction } from '@eclipse-glsp/protocol';
 import { codiconCSSString, isNameable, LabeledAction, name, SEdge, SModelElement, SModelRoot } from 'sprotty';
 import { toArray } from 'sprotty/lib/utils/iterable';
 import { injectable } from 'inversify';
-import { RepositionAction } from '../viewport/reposition';
 
 export interface IAutocompleteSuggestionProvider {
     retrieveSuggestions(root: Readonly<SModelRoot>, text: string): Promise<AutocompleteSuggestion[]>;
@@ -36,7 +35,7 @@ export class RevealNamedElementAutocompleteSuggestionProvider implements IAutoco
             element: nameable,
             action: new LabeledAction(
                 `[${nameable.type}] ${name(nameable) ?? '<no-name>'}`,
-                [SelectAction.create({ selectedElementsIDs: [nameable.id] }), RepositionAction.create([nameable.id])],
+                [SelectAction.create({ selectedElementsIDs: [nameable.id] }), CenterAction.create([nameable.id], { retainZoom: true })],
                 codiconCSSString('eye')
             )
         }));
@@ -51,7 +50,10 @@ export class RevealEdgeElementAutocompleteSuggestionProvider implements IAutocom
             element: edge,
             action: new LabeledAction(
                 `[${edge.type}] ` + this.getEdgeLabel(root, edge),
-                [SelectAction.create({ selectedElementsIDs: [edge.id] }), RepositionAction.create([edge.sourceId, edge.targetId])],
+                [
+                    SelectAction.create({ selectedElementsIDs: [edge.id] }),
+                    CenterAction.create([edge.sourceId, edge.targetId], { retainZoom: true })
+                ],
                 codiconCSSString('arrow-both')
             )
         }));
