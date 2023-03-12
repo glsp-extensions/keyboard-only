@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { LabeledAction, CenterAction } from '@eclipse-glsp/protocol';
+import { LabeledAction } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
 import { SModelRoot } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
@@ -25,6 +25,7 @@ import {
     RevealNamedElementAutocompleteSuggestionProvider
 } from '../autocomplete-suggestion-providers';
 import { BaseAutocompletePalette } from '../base-autocomplete-palette';
+import { RepositionAction } from '../../../features/viewport/reposition';
 
 @injectable()
 export class SearchAutocompletePalette extends BaseAutocompletePalette {
@@ -70,8 +71,8 @@ export class SearchAutocompletePalette extends BaseAutocompletePalette {
         if (labeledAction !== undefined) {
             const suggestion = this.getSuggestionsFromLabeledActions([labeledAction]);
 
-            const actions: CenterAction[] = [];
-            suggestion.map(currElem => actions.push(CenterAction.create([currElem.element.id])));
+            const actions: RepositionAction[] = [];
+            suggestion.map(currElem => actions.push(RepositionAction.create([currElem.element.id])));
 
             this.actionDispatcher.dispatchAll(actions);
         }
