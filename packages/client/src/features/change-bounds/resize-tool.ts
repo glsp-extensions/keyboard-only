@@ -27,7 +27,8 @@ import { IMovementRestrictor } from './movement-restrictor';
 import { KeyboardManagerService } from '../keyboard/manager/keyboard-manager-service';
 import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { CheatSheetKeyShortcutProvider, SetCheatSheetKeyShortcutAction } from '../cheat-sheet/cheat-sheet';
-
+import { HideToastAction, ShowToastMessageAction } from '../toast/toast';
+import * as messages from '../toast/messages.json';
 @injectable()
 export class ResizeTool implements GLSPTool {
     static ID = 'glsp.resize-keyboard';
@@ -92,8 +93,11 @@ export class ResizeKeyListener extends KeyListener implements CheatSheetKeyShort
         if (this.tool.keyboardManager.access(this.accessToken)) {
             if (matchesKeystroke(event, 'Escape')) {
                 this.isEditMode = false;
+                this.tool.actionDispatcher.dispatch(HideToastAction.create(3000));
+                this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create(messages.resize.resize_mode_deactivated));
             } else if (matchesKeystroke(event, 'KeyR', 'alt')) {
                 this.isEditMode = true;
+                this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create(messages.resize.resize_mode_activated));
             }
 
             if (this.isEditMode) {

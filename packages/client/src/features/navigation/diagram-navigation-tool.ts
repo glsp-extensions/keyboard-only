@@ -390,7 +390,7 @@ export class ElementNavigatorKeyListener extends KeyListener implements CheatShe
                         );
                     }
 
-                    this.tool.actionDispatcher.dispatch(HideToastAction.create(5000));
+                    this.tool.actionDispatcher.dispatch(HideToastAction.create(4000));
                     this.tool.keyboardManager.unlock(this.accessToken);
                     this.mode = NavigationMode.NONE;
                 }
@@ -406,7 +406,7 @@ export class ElementNavigatorKeyListener extends KeyListener implements CheatShe
                     } else {
                         this.tool.keyboardManager.unlock(this.accessToken);
                         this.mode = NavigationMode.NONE;
-                        this.tool.actionDispatcher.dispatch(HideToastAction.create(5000));
+                        this.tool.actionDispatcher.dispatch(HideToastAction.create(4000));
                         this.tool.actionDispatcher.dispatch(
                             ShowToastMessageAction.create(messages.navigation.local_navigation_mode_deactivated)
                         );
@@ -423,7 +423,7 @@ export class ElementNavigatorKeyListener extends KeyListener implements CheatShe
                     } else {
                         this.tool.keyboardManager.unlock(this.accessToken);
                         this.mode = NavigationMode.NONE;
-                        this.tool.actionDispatcher.dispatch(HideToastAction.create(5000));
+                        this.tool.actionDispatcher.dispatch(HideToastAction.create(4000));
                         this.tool.actionDispatcher.dispatch(
                             ShowToastMessageAction.create(messages.navigation.default_navigation_mode_deactivated)
                         );
