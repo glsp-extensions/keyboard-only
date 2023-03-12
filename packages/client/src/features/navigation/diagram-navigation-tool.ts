@@ -352,7 +352,7 @@ export class ElementNavigatorKeyListener extends KeyListener {
                         ShowToastMessageAction.create(messages.navigation.default_navigation_mode_deactivated)
                     );
                 }
-                this.tool.actionDispatcher.dispatch(HideToastAction.create());
+                this.tool.actionDispatcher.dispatch(HideToastAction.create(5000));
                 this.mode = NavigationMode.NONE;
             } else if (matchesKeystroke(event, 'KeyN', 'alt')) {
                 this.clean();
@@ -362,7 +362,7 @@ export class ElementNavigatorKeyListener extends KeyListener {
                     this.mode = NavigationMode.LOCAL;
                 } else {
                     this.mode = NavigationMode.NONE;
-                    this.tool.actionDispatcher.dispatch(HideToastAction.create());
+                    this.tool.actionDispatcher.dispatch(HideToastAction.create(5000));
                     this.tool.actionDispatcher.dispatch(
                         ShowToastMessageAction.create(messages.navigation.local_navigation_mode_deactivated)
                     );
@@ -377,7 +377,7 @@ export class ElementNavigatorKeyListener extends KeyListener {
                     this.mode = NavigationMode.DEFAULT;
                 } else {
                     this.mode = NavigationMode.NONE;
-                    this.tool.actionDispatcher.dispatch(HideToastAction.create());
+                    this.tool.actionDispatcher.dispatch(HideToastAction.create(5000));
                     this.tool.actionDispatcher.dispatch(
                         ShowToastMessageAction.create(messages.navigation.default_navigation_mode_deactivated)
                     );
