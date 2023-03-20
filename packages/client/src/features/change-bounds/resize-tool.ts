@@ -80,10 +80,8 @@ export class ResizeKeyListener extends KeyListener {
         const actions: Action[] = [];
         if (this.getSelectedElements(element.root).length > 0) {
             if (this.isEditMode && matchesKeystroke(event, 'Escape')) {
-                console.log('out escape');
                 this.isEditMode = false;
             } else if (!this.isEditMode && matchesKeystroke(event, 'KeyR', 'alt')) {
-                console.log('in mode');
                 this.isEditMode = true;
             }
             if (this.isEditMode) {
