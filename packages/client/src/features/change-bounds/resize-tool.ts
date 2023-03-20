@@ -15,7 +15,19 @@
  ********************************************************************************/
 import { Action, ChangeBoundsOperation, Dimension, Point } from '@eclipse-glsp/protocol';
 import { inject, injectable, optional } from 'inversify';
-import { KeyListener, KeyTool, SModelElement, isBoundsAware, isSelectable, BoundsAware, SParentElement, ISnapper } from 'sprotty';
+import {
+    KeyListener,
+    KeyTool,
+    SModelElement,
+    isBoundsAware,
+    isSelectable,
+    BoundsAware,
+    SParentElement,
+    ISnapper,
+    Selectable,
+    isSelected,
+    SModelRoot
+} from 'sprotty';
 import { TYPES } from '../../base/types';
 import { isResizable, Resizable } from '../change-bounds/model';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
@@ -24,6 +36,7 @@ import { toElementAndBounds } from '../../utils/smodel-util';
 import { GridSnapper } from './snap';
 import { isValidMove, isValidSize, minHeight, minWidth } from '../../utils/layout-utils';
 import { IMovementRestrictor } from './movement-restrictor';
+import { toArray } from 'sprotty/lib/utils/iterable';
 
 @injectable()
 export class ResizeTool implements GLSPTool {
@@ -65,40 +78,42 @@ export class ResizeKeyListener extends KeyListener {
 
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
         const actions: Action[] = [];
-        if (matchesKeystroke(event, 'Escape')) {
-            this.isEditMode = false;
-        } else if (matchesKeystroke(event, 'KeyR', 'alt')) {
-            this.isEditMode = true;
-        }
-        if (this.isEditMode) {
-            const selectedElements = Array.from(
-                element.root.index
-                    .all()
-                    .filter(e => isSelectable(e) && isBoundsAware(e) && isResizable(e) && e.selected)
-                    .filter(e => e.id !== e.root.id)
-                    .map(e => e) as (SModelElement & BoundsAware)[]
-            );
+        if (this.getSelectedElements(element.root).length > 0) {
+            if (matchesKeystroke(event, 'Escape')) {
+                this.isEditMode = false;
+            } else if (matchesKeystroke(event, 'KeyR', 'alt')) {
+                this.isEditMode = true;
+            }
+            if (this.isEditMode) {
+                const selectedElements = Array.from(
+                    element.root.index
+                        .all()
+                        .filter(e => isSelectable(e) && isBoundsAware(e) && isResizable(e) && e.selected)
+                        .filter(e => e.id !== e.root.id)
+                        .map(e => e) as (SModelElement & BoundsAware)[]
+                );
 
-            if (event.key === '+') {
-                for (const elem of selectedElements) {
-                    const action = this.handleResizeElement(elem, this.grid.x, this.grid.y);
-                    if (action) {
-                        actions.push(action);
+                if (event.key === '+') {
+                    for (const elem of selectedElements) {
+                        const action = this.handleResizeElement(elem, this.grid.x, this.grid.y);
+                        if (action) {
+                            actions.push(action);
+                        }
                     }
-                }
-            } else if (matchesKeystroke(event, 'Minus')) {
-                for (const elem of selectedElements) {
-                    const action = this.handleResizeElement(elem, -this.grid.x, -this.grid.y);
-                    if (action) {
-                        actions.push(action);
+                } else if (matchesKeystroke(event, 'Minus')) {
+                    for (const elem of selectedElements) {
+                        const action = this.handleResizeElement(elem, -this.grid.x, -this.grid.y);
+                        if (action) {
+                            actions.push(action);
+                        }
                     }
-                }
-            } else if (matchesKeystroke(event, 'Digit0', 'ctrl')) {
-                for (const elem of selectedElements) {
-                    elem.bounds = { x: elem.bounds.x, y: elem.bounds.y, width: minWidth(elem), height: minHeight(elem) };
-                    const action = this.handleResizeElement(elem, 0, 0);
-                    if (action) {
-                        actions.push(action);
+                } else if (matchesKeystroke(event, 'Digit0', 'ctrl')) {
+                    for (const elem of selectedElements) {
+                        elem.bounds = { x: elem.bounds.x, y: elem.bounds.y, width: minWidth(elem), height: minHeight(elem) };
+                        const action = this.handleResizeElement(elem, 0, 0);
+                        if (action) {
+                            actions.push(action);
+                        }
                     }
                 }
             }
@@ -133,5 +148,8 @@ export class ResizeKeyListener extends KeyListener {
 
     protected isValidMove(element: SModelElement & BoundsAware, newPosition: Point): boolean {
         return isValidMove(element, newPosition, this.tool.movementRestrictor);
+    }
+    protected getSelectedElements(root: SModelRoot): (SModelElement & Selectable)[] {
+        return toArray(root.index.all().filter(e => isSelected(e))) as (SModelElement & Selectable)[];
     }
 }
