@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { LabeledAction, CenterAction } from '@eclipse-glsp/protocol';
+import { LabeledAction, Action, CenterAction } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
 import { SModelRoot } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
@@ -25,6 +25,10 @@ import {
     RevealNamedElementAutocompleteSuggestionProvider
 } from '../autocomplete-suggestion-providers';
 import { BaseAutocompletePalette } from '../base-autocomplete-palette';
+import { isEqual } from 'lodash';
+
+const CSS_SEARCH_HIDDEN = 'search-hidden';
+const CSS_SEARCH_HIGHLIGHTED = 'search-highlighted';
 
 @injectable()
 export class SearchAutocompletePalette extends BaseAutocompletePalette {
@@ -60,29 +64,30 @@ export class SearchAutocompletePalette extends BaseAutocompletePalette {
     }
 
     protected override async visibleSuggestionsChanged(root: Readonly<SModelRoot>, labeledActions: LabeledAction[]): Promise<void> {
-        await this.deleteCSS(root, 'search-unselected');
-        if (this.cachedSuggestions.length > 0) {
-            await this.applyCSS(this.getUnselectedSuggestionsFromLabeledActions(labeledActions), 'search-unselected');
-        }
+        await this.deleteCSS(root, CSS_SEARCH_HIDDEN);
+        await this.applyCSS(this.getUnselectedSuggestionsFromLabeledActions(labeledActions), CSS_SEARCH_HIDDEN);
     }
 
     protected override async selectedSuggestionChanged(
         root: Readonly<SModelRoot>,
         labeledAction?: LabeledAction | undefined
     ): Promise<void> {
+        await this.deleteCSS(root, CSS_SEARCH_HIGHLIGHTED);
         if (labeledAction !== undefined) {
             const suggestion = this.getSuggestionsFromLabeledActions([labeledAction]);
 
-            const actions: CenterAction[] = [];
-            suggestion.map(currElem => actions.push(CenterAction.create([currElem.element.id])));
+            const actions: Action[] = [];
+            suggestion.map(currElem => actions.push(CenterAction.create([currElem.element.id], { animate: true, retainZoom: true })));
 
             this.actionDispatcher.dispatchAll(actions);
+            await this.applyCSS(suggestion, CSS_SEARCH_HIGHLIGHTED);
         }
     }
 
     public override hide(): void {
         if (this.root !== undefined) {
-            this.deleteCSS(this.root, 'search-unselected');
+            this.deleteCSS(this.root, CSS_SEARCH_HIDDEN);
+            this.deleteCSS(this.root, CSS_SEARCH_HIGHLIGHTED);
         }
 
         super.hide();
@@ -99,11 +104,10 @@ export class SearchAutocompletePalette extends BaseAutocompletePalette {
     }
 
     protected getSuggestionsFromLabeledActions(labeledActions: LabeledAction[]): AutocompleteSuggestion[] {
-        return this.cachedSuggestions.filter(c => labeledActions.find(s => s === c.action));
+        return this.cachedSuggestions.filter(c => labeledActions.find(s => isEqual(s, c.action)));
     }
+
     protected getUnselectedSuggestionsFromLabeledActions(labeledActions: LabeledAction[]): AutocompleteSuggestion[] {
-        const elements = this.cachedSuggestions.filter(c => !labeledActions.find(s => s === c.action));
-        console.log('X', this.cachedSuggestions, labeledActions, elements);
-        return elements;
+        return this.cachedSuggestions.filter(c => !labeledActions.find(s => isEqual(s, c.action)));
     }
 }
