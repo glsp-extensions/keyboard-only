@@ -53,14 +53,17 @@ export class SearchAutocompletePalette extends BaseAutocompletePalette {
         const providers = [this.revealNamedElementSuggestions, this.revealNamedEdgeSuggestions];
         const suggestions = (await Promise.all(providers.map(provider => provider.retrieveSuggestions(root, input)))).flat(1);
 
+        console.log('Update Cacha');
         this.cachedSuggestions = suggestions;
 
         return suggestions.map(s => s.action);
     }
 
     protected override async visibleSuggestionsChanged(root: Readonly<SModelRoot>, labeledActions: LabeledAction[]): Promise<void> {
-        await this.deleteCSS(root);
-        await this.applyCSS(this.getSuggestionsFromLabeledActions(labeledActions));
+        await this.deleteCSS(root, 'search-unselected');
+        if (this.cachedSuggestions.length > 0) {
+            await this.applyCSS(this.getUnselectedSuggestionsFromLabeledActions(labeledActions), 'search-unselected');
+        }
     }
 
     protected override async selectedSuggestionChanged(
@@ -79,23 +82,28 @@ export class SearchAutocompletePalette extends BaseAutocompletePalette {
 
     public override hide(): void {
         if (this.root !== undefined) {
-            this.deleteCSS(this.root);
+            this.deleteCSS(this.root, 'search-unselected');
         }
 
         super.hide();
     }
 
-    protected applyCSS(suggestions: AutocompleteSuggestion[]): Promise<void> {
-        const actions = suggestions.map(suggestion => applyCssClasses(suggestion.element, 'search-outline'));
+    protected applyCSS(suggestions: AutocompleteSuggestion[], cssClass: string): Promise<void> {
+        const actions = suggestions.map(suggestion => applyCssClasses(suggestion.element, cssClass));
         return this.actionDispatcher.dispatchAll(actions);
     }
 
-    protected deleteCSS(root: Readonly<SModelRoot>): Promise<void> {
-        const actions = toArray(root.index.all().map(element => deleteCssClasses(element, 'search-outline')));
+    protected deleteCSS(root: Readonly<SModelRoot>, cssClass: string): Promise<void> {
+        const actions = toArray(root.index.all().map(element => deleteCssClasses(element, cssClass)));
         return this.actionDispatcher.dispatchAll(actions);
     }
 
     protected getSuggestionsFromLabeledActions(labeledActions: LabeledAction[]): AutocompleteSuggestion[] {
         return this.cachedSuggestions.filter(c => labeledActions.find(s => s === c.action));
+    }
+    protected getUnselectedSuggestionsFromLabeledActions(labeledActions: LabeledAction[]): AutocompleteSuggestion[] {
+        const elements = this.cachedSuggestions.filter(c => !labeledActions.find(s => s === c.action));
+        console.log('X', this.cachedSuggestions, labeledActions, elements);
+        return elements;
     }
 }
