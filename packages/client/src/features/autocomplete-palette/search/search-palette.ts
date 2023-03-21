@@ -15,7 +15,7 @@
  ********************************************************************************/
 import { LabeledAction, Action, CenterAction } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
-import { SModelRoot } from 'sprotty';
+import { SEdge, SModelElement, SModelRoot, SNode } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { applyCssClasses, deleteCssClasses } from '../../tool-feedback/css-feedback';
 import { toArray } from 'sprotty/lib/utils/iterable';
@@ -64,50 +64,74 @@ export class SearchAutocompletePalette extends BaseAutocompletePalette {
     }
 
     protected override async visibleSuggestionsChanged(root: Readonly<SModelRoot>, labeledActions: LabeledAction[]): Promise<void> {
-        await this.deleteCSS(root, CSS_SEARCH_HIDDEN);
-        await this.applyCSS(this.getUnselectedSuggestionsFromLabeledActions(labeledActions), CSS_SEARCH_HIDDEN);
+        await this.applyCSS(this.getHiddenElements(root, this.getSuggestionsFromLabeledActions(labeledActions)), CSS_SEARCH_HIDDEN);
+        await this.deleteCSS(
+            this.getSuggestionsFromLabeledActions(labeledActions).map(s => s.element),
+            CSS_SEARCH_HIDDEN
+        );
     }
 
     protected override async selectedSuggestionChanged(
         root: Readonly<SModelRoot>,
         labeledAction?: LabeledAction | undefined
     ): Promise<void> {
-        await this.deleteCSS(root, CSS_SEARCH_HIGHLIGHTED);
+        await this.deleteAllCSS(root, CSS_SEARCH_HIGHLIGHTED);
         if (labeledAction !== undefined) {
-            const suggestion = this.getSuggestionsFromLabeledActions([labeledAction]);
+            const suggestions = this.getSuggestionsFromLabeledActions([labeledAction]);
 
             const actions: Action[] = [];
-            suggestion.map(currElem => actions.push(CenterAction.create([currElem.element.id], { animate: true, retainZoom: true })));
+            suggestions.map(currElem => actions.push(CenterAction.create([currElem.element.id], { animate: true, retainZoom: true })));
 
             this.actionDispatcher.dispatchAll(actions);
-            await this.applyCSS(suggestion, CSS_SEARCH_HIGHLIGHTED);
+            await this.applyCSS(
+                suggestions.map(s => s.element),
+                CSS_SEARCH_HIGHLIGHTED
+            );
         }
     }
 
     public override hide(): void {
         if (this.root !== undefined) {
-            this.deleteCSS(this.root, CSS_SEARCH_HIDDEN);
-            this.deleteCSS(this.root, CSS_SEARCH_HIGHLIGHTED);
+            this.deleteAllCSS(this.root, CSS_SEARCH_HIDDEN);
+            this.deleteAllCSS(this.root, CSS_SEARCH_HIGHLIGHTED);
         }
 
         super.hide();
     }
 
-    protected applyCSS(suggestions: AutocompleteSuggestion[], cssClass: string): Promise<void> {
-        const actions = suggestions.map(suggestion => applyCssClasses(suggestion.element, cssClass));
+    protected applyCSS(elements: SModelElement[], cssClass: string): Promise<void> {
+        const actions = elements.map(element => applyCssClasses(element, cssClass));
         return this.actionDispatcher.dispatchAll(actions);
     }
 
-    protected deleteCSS(root: Readonly<SModelRoot>, cssClass: string): Promise<void> {
+    protected deleteCSS(elements: SModelElement[], cssClass: string): Promise<void> {
+        const actions = elements.map(element => deleteCssClasses(element, cssClass));
+        return this.actionDispatcher.dispatchAll(actions);
+    }
+
+    protected deleteAllCSS(root: Readonly<SModelRoot>, cssClass: string): Promise<void> {
         const actions = toArray(root.index.all().map(element => deleteCssClasses(element, cssClass)));
         return this.actionDispatcher.dispatchAll(actions);
+    }
+
+    protected getUnselectedSuggestionsFromLabeledActions(labeledActions: LabeledAction[]): AutocompleteSuggestion[] {
+        return this.cachedSuggestions.filter(c => !labeledActions.find(s => isEqual(s, c.action)));
     }
 
     protected getSuggestionsFromLabeledActions(labeledActions: LabeledAction[]): AutocompleteSuggestion[] {
         return this.cachedSuggestions.filter(c => labeledActions.find(s => isEqual(s, c.action)));
     }
 
-    protected getUnselectedSuggestionsFromLabeledActions(labeledActions: LabeledAction[]): AutocompleteSuggestion[] {
+    protected getHiddenSuggestionsFromLabeledActions(labeledActions: LabeledAction[]): AutocompleteSuggestion[] {
         return this.cachedSuggestions.filter(c => !labeledActions.find(s => isEqual(s, c.action)));
+    }
+
+    protected getHiddenElements(root: Readonly<SModelRoot>, suggestions: AutocompleteSuggestion[]): SModelElement[] {
+        return toArray(
+            root.index
+                .all()
+                .filter(element => element instanceof SNode || element instanceof SEdge)
+                .filter(element => suggestions.find(suggestion => suggestion.element.id === element.id) === undefined)
+        );
     }
 }
