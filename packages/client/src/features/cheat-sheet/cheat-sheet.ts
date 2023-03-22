@@ -17,7 +17,6 @@
 import { Action } from '@eclipse-glsp/protocol';
 import { injectable } from 'inversify';
 import { AbstractUIExtension, IActionHandler, ICommand, SetUIExtensionVisibilityAction } from 'sprotty';
-import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 
 export interface CheatSheetKeyShortcut {
     shortcuts: string[];
@@ -128,13 +127,17 @@ export class CheatSheet extends AbstractUIExtension implements IActionHandler {
                 this.hide();
             }
         });
+
         this.container.appendChild(closeBtn);
 
         // create shortcuts container
         this.shortcutsContainer = document.createElement('div');
         this.shortcutsContainer.classList.add('keyboard-shortcuts-container');
+        this.shortcutsContainer.tabIndex = 30;
         this.container.appendChild(this.shortcutsContainer);
-
+        setTimeout(() => {
+            this.shortcutsContainer.focus();
+        }, 0);
         containerElement.appendChild(this.container);
         this.refreshUI();
     }
