@@ -24,6 +24,7 @@ import { GlobalKeyListenerTool } from '../global-keylistener-tool';
 import { KeyboardGrid } from './grid/keyboard-grid';
 import { KeyboardPointer } from './pointer/keyboard-pointer';
 import { SetKeyboardPointerRenderPositionAction } from './pointer/actions';
+import { GridSearchPalette } from './grid/grid-search-palette';
 
 export const keyboardControlModule = new ContainerModule((bind, _unbind, isBound, rebind) => {
     bind(TYPES.IDefaultTool).to(GlobalKeyListenerTool);
@@ -36,6 +37,9 @@ export const keyboardControlModule = new ContainerModule((bind, _unbind, isBound
     bind(TYPES.IUIExtension).toService(KeyboardGrid);
     bind(EdgeAutocompletePalette).toSelf().inSingletonScope();
     bind(TYPES.IUIExtension).toService(EdgeAutocompletePalette);
+
+    bind(GridSearchPalette).toSelf().inSingletonScope();
+    bind(TYPES.IUIExtension).toService(GridSearchPalette);
 
     bind(TYPES.IDefaultTool).to(EdgeAutocompletePaletteTool);
 

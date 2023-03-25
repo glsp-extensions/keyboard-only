@@ -22,6 +22,7 @@ import { SetKeyboardPointerRenderPositionAction } from '../pointer/actions';
 import { KeyboardPointer } from '../pointer/keyboard-pointer';
 import { KeyboardPointerUI } from '../pointer/constants';
 import { KeyboardGridUI } from './constants';
+import { GridSearchPalette, GridSearchPaletteMetadata } from './grid-search-palette';
 
 @injectable()
 export class KeyboardGrid extends AbstractUIExtension {
@@ -37,6 +38,7 @@ export class KeyboardGrid extends AbstractUIExtension {
     }
 
     protected initializeContents(containerElement: HTMLElement): void {
+        console.log('Init');
         containerElement.tabIndex = KeyboardGridUI.TAB_INDEX;
         containerElement.classList.add('grid-container');
 
@@ -57,6 +59,7 @@ export class KeyboardGrid extends AbstractUIExtension {
         this.containerElement.onkeydown = ev => {
             this.activateCellIfDigitEvent(ev);
             this.hideIfEscapeEvent(ev);
+            this.showSearchOnEvent(ev);
 
             if (this.keyboardPointer.isVisible) {
                 this.keyboardPointer.keyListener.keyDown(ev);
@@ -64,6 +67,18 @@ export class KeyboardGrid extends AbstractUIExtension {
         };
     }
 
+    protected showSearchOnEvent(event: KeyboardEvent): void {
+        if (matchesKeystroke(event, 'KeyF', 'ctrl')) {
+            event.preventDefault();
+            this.actionDispatcher.dispatch(
+                SetUIExtensionVisibilityAction.create({
+                    extensionId: GridSearchPaletteMetadata.ID,
+                    visible: true
+                })
+            );
+            this.hide();
+        }
+    }
     protected override setContainerVisible(visible: boolean): void {
         if (this.containerElement) {
             if (visible) {
