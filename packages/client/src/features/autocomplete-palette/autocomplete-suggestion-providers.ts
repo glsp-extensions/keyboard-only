@@ -33,11 +33,7 @@ export class RevealNamedElementAutocompleteSuggestionProvider implements IAutoco
             element: nameable,
             action: new LabeledAction(
                 `[${nameable.type}] ${name(nameable) ?? '<no-name>'}`,
-<<<<<<< HEAD
-                [SelectAction.create({ selectedElementsIDs: [nameable.id] }), CenterAction.create([nameable.id], { retainZoom: true })],
-=======
                 this.getActions(nameable),
->>>>>>> search
                 codiconCSSString('eye')
             )
         }));
@@ -55,14 +51,7 @@ export class RevealEdgeElementAutocompleteSuggestionProvider implements IAutocom
             element: edge,
             action: new LabeledAction(
                 `[${edge.type}] ` + this.getEdgeLabel(root, edge),
-<<<<<<< HEAD
-                [
-                    SelectAction.create({ selectedElementsIDs: [edge.id] }),
-                    CenterAction.create([edge.sourceId, edge.targetId], { retainZoom: true })
-                ],
-=======
                 this.getActions(edge),
->>>>>>> search
                 codiconCSSString('arrow-both')
             )
         }));
