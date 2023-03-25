@@ -14,13 +14,14 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { LabeledAction, CenterAction } from '@eclipse-glsp/protocol';
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
 import { SEdge, SModelElement, SModelRoot, SNode } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { applyCssClasses, deleteCssClasses } from '../../tool-feedback/css-feedback';
 import { toArray } from 'sprotty/lib/utils/iterable';
 import {
     AutocompleteSuggestion,
+    IAutocompleteSuggestionProvider,
     RevealEdgeElementAutocompleteSuggestionProvider,
     RevealNamedElementAutocompleteSuggestionProvider
 } from '../autocomplete-suggestion-providers';
@@ -37,12 +38,6 @@ export class SearchAutocompletePalette extends BaseAutocompletePalette {
 
     protected cachedSuggestions: AutocompleteSuggestion[] = [];
 
-    @inject(RevealNamedElementAutocompleteSuggestionProvider)
-    protected readonly revealNamedElementSuggestions: RevealNamedElementAutocompleteSuggestionProvider;
-
-    @inject(RevealEdgeElementAutocompleteSuggestionProvider)
-    protected readonly revealNamedEdgeSuggestions: RevealEdgeElementAutocompleteSuggestionProvider;
-
     id(): string {
         return SearchAutocompletePalette.ID;
     }
@@ -52,9 +47,11 @@ export class SearchAutocompletePalette extends BaseAutocompletePalette {
 
         this.autocompleteWidget.inputField.placeholder = 'Search for elements';
     }
-
+    protected getSuggestionProviders(root: Readonly<SModelRoot>, input: string): IAutocompleteSuggestionProvider[] {
+        return [new RevealNamedElementAutocompleteSuggestionProvider(), new RevealEdgeElementAutocompleteSuggestionProvider()];
+    }
     protected async retrieveSuggestions(root: Readonly<SModelRoot>, input: string): Promise<LabeledAction[]> {
-        const providers = [this.revealNamedElementSuggestions, this.revealNamedEdgeSuggestions];
+        const providers = this.getSuggestionProviders(root, input);
         const suggestions = (await Promise.all(providers.map(provider => provider.retrieveSuggestions(root, input)))).flat(1);
 
         console.log('Update Cacha');
