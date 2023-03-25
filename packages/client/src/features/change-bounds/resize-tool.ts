@@ -15,7 +15,19 @@
  ********************************************************************************/
 import { Action, ChangeBoundsOperation, Dimension, Point } from '@eclipse-glsp/protocol';
 import { inject, injectable, optional } from 'inversify';
-import { KeyListener, KeyTool, SModelElement, isBoundsAware, isSelectable, BoundsAware, SParentElement, ISnapper } from 'sprotty';
+import {
+    KeyListener,
+    KeyTool,
+    SModelElement,
+    isBoundsAware,
+    isSelectable,
+    BoundsAware,
+    SParentElement,
+    ISnapper,
+    Selectable,
+    isSelected,
+    SModelRoot
+} from 'sprotty';
 import { TYPES } from '../../base/types';
 import { isResizable, Resizable } from '../change-bounds/model';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
@@ -29,6 +41,8 @@ import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { CheatSheetKeyShortcutProvider, SetCheatSheetKeyShortcutAction } from '../cheat-sheet/cheat-sheet';
 import { HideToastAction, ShowToastMessageAction } from '../toast/toast';
 import * as messages from '../toast/messages.json';
+import { toArray } from 'sprotty/lib/utils/iterable';
+
 @injectable()
 export class ResizeTool implements GLSPTool {
     static ID = 'glsp.resize-keyboard';
@@ -90,12 +104,13 @@ export class ResizeKeyListener extends KeyListener implements CheatSheetKeyShort
     }
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
         const actions: Action[] = [];
-        if (this.tool.keyboardManager.access(this.accessToken)) {
-            if (matchesKeystroke(event, 'Escape')) {
+
+        if (this.tool.keyboardManager.access(this.accessToken) && this.getSelectedElements(element.root).length > 0) {
+            if (this.isEditMode && matchesKeystroke(event, 'Escape')) {
                 this.isEditMode = false;
                 this.tool.actionDispatcher.dispatch(HideToastAction.create(3000));
                 this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create(messages.resize.resize_mode_deactivated));
-            } else if (matchesKeystroke(event, 'KeyR', 'alt')) {
+            } else if (!this.isEditMode && matchesKeystroke(event, 'KeyR', 'alt')) {
                 this.isEditMode = true;
                 this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create(messages.resize.resize_mode_activated));
             }
@@ -170,5 +185,8 @@ export class ResizeKeyListener extends KeyListener implements CheatSheetKeyShort
 
     protected isValidMove(element: SModelElement & BoundsAware, newPosition: Point): boolean {
         return isValidMove(element, newPosition, this.tool.movementRestrictor);
+    }
+    protected getSelectedElements(root: SModelRoot): (SModelElement & Selectable)[] {
+        return toArray(root.index.all().filter(e => isSelected(e))) as (SModelElement & Selectable)[];
     }
 }
