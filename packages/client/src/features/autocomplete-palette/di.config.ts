@@ -17,21 +17,12 @@ import { ContainerModule } from 'inversify';
 
 import { TYPES } from '../../base/types';
 
-import {
-    RevealNamedElementAutocompleteSuggestionProvider,
-    RevealEdgeElementAutocompleteSuggestionProvider
-} from './autocomplete-suggestion-providers';
 import { SearchAutocompletePalette } from './search/search-palette';
 import { SearchAutocompletePaletteTool } from './search/search-tool';
 
 const glspAutocompletePaletteModule = new ContainerModule(bind => {
     bind(SearchAutocompletePalette).toSelf().inSingletonScope();
     bind(TYPES.IUIExtension).toService(SearchAutocompletePalette);
-
-    bind(RevealNamedElementAutocompleteSuggestionProvider).toSelf().inSingletonScope();
-
-    bind(RevealEdgeElementAutocompleteSuggestionProvider).toSelf().inSingletonScope();
-
     bind(TYPES.IDefaultTool).to(SearchAutocompletePaletteTool);
 });
 
