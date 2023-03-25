@@ -15,7 +15,7 @@
  ********************************************************************************/
 import { CenterAction, LabeledAction } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
-import { SModelRoot } from 'sprotty';
+import { SEdge, SModelElement, SModelRoot, SNode } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { applyCssClasses, deleteCssClasses } from '../../tool-feedback/css-feedback';
 import { toArray } from 'sprotty/lib/utils/iterable';
@@ -25,6 +25,10 @@ import {
     RevealNamedElementAutocompleteSuggestionProvider
 } from '../autocomplete-suggestion-providers';
 import { BaseAutocompletePalette } from '../base-autocomplete-palette';
+import { isEqual } from 'lodash';
+
+const CSS_SEARCH_HIDDEN = 'search-hidden';
+const CSS_SEARCH_HIGHLIGHTED = 'search-highlighted';
 
 @injectable()
 export class SearchAutocompletePalette extends BaseAutocompletePalette {
@@ -53,49 +57,81 @@ export class SearchAutocompletePalette extends BaseAutocompletePalette {
         const providers = [this.revealNamedElementSuggestions, this.revealNamedEdgeSuggestions];
         const suggestions = (await Promise.all(providers.map(provider => provider.retrieveSuggestions(root, input)))).flat(1);
 
+        console.log('Update Cacha');
         this.cachedSuggestions = suggestions;
 
         return suggestions.map(s => s.action);
     }
 
     protected override async visibleSuggestionsChanged(root: Readonly<SModelRoot>, labeledActions: LabeledAction[]): Promise<void> {
-        await this.deleteCSS(root);
-        await this.applyCSS(this.getSuggestionsFromLabeledActions(labeledActions));
+        await this.applyCSS(this.getHiddenElements(root, this.getSuggestionsFromLabeledActions(labeledActions)), CSS_SEARCH_HIDDEN);
+        await this.deleteCSS(
+            this.getSuggestionsFromLabeledActions(labeledActions).map(s => s.element),
+            CSS_SEARCH_HIDDEN
+        );
     }
 
     protected override async selectedSuggestionChanged(
         root: Readonly<SModelRoot>,
         labeledAction?: LabeledAction | undefined
     ): Promise<void> {
+        await this.deleteAllCSS(root, CSS_SEARCH_HIGHLIGHTED);
         if (labeledAction !== undefined) {
-            const suggestion = this.getSuggestionsFromLabeledActions([labeledAction]);
+            const suggestions = this.getSuggestionsFromLabeledActions([labeledAction]);
 
             const actions: CenterAction[] = [];
-            suggestion.map(currElem => actions.push(CenterAction.create([currElem.element.id], { retainZoom: true })));
+            suggestions.map(currElem => actions.push(CenterAction.create([currElem.element.id], { animate: true, retainZoom: true })));
 
             this.actionDispatcher.dispatchAll(actions);
+            await this.applyCSS(
+                suggestions.map(s => s.element),
+                CSS_SEARCH_HIGHLIGHTED
+            );
         }
     }
 
     public override hide(): void {
         if (this.root !== undefined) {
-            this.deleteCSS(this.root);
+            this.deleteAllCSS(this.root, CSS_SEARCH_HIDDEN);
+            this.deleteAllCSS(this.root, CSS_SEARCH_HIGHLIGHTED);
         }
 
         super.hide();
     }
 
-    protected applyCSS(suggestions: AutocompleteSuggestion[]): Promise<void> {
-        const actions = suggestions.map(suggestion => applyCssClasses(suggestion.element, 'search-outline'));
+    protected applyCSS(elements: SModelElement[], cssClass: string): Promise<void> {
+        const actions = elements.map(element => applyCssClasses(element, cssClass));
         return this.actionDispatcher.dispatchAll(actions);
     }
 
-    protected deleteCSS(root: Readonly<SModelRoot>): Promise<void> {
-        const actions = toArray(root.index.all().map(element => deleteCssClasses(element, 'search-outline')));
+    protected deleteCSS(elements: SModelElement[], cssClass: string): Promise<void> {
+        const actions = elements.map(element => deleteCssClasses(element, cssClass));
         return this.actionDispatcher.dispatchAll(actions);
+    }
+
+    protected deleteAllCSS(root: Readonly<SModelRoot>, cssClass: string): Promise<void> {
+        const actions = toArray(root.index.all().map(element => deleteCssClasses(element, cssClass)));
+        return this.actionDispatcher.dispatchAll(actions);
+    }
+
+    protected getUnselectedSuggestionsFromLabeledActions(labeledActions: LabeledAction[]): AutocompleteSuggestion[] {
+        return this.cachedSuggestions.filter(c => !labeledActions.find(s => isEqual(s, c.action)));
     }
 
     protected getSuggestionsFromLabeledActions(labeledActions: LabeledAction[]): AutocompleteSuggestion[] {
-        return this.cachedSuggestions.filter(c => labeledActions.find(s => s === c.action));
+        return this.cachedSuggestions.filter(c => labeledActions.find(s => isEqual(s, c.action)));
+    }
+
+    protected getHiddenSuggestionsFromLabeledActions(labeledActions: LabeledAction[]): AutocompleteSuggestion[] {
+        return this.cachedSuggestions.filter(c => !labeledActions.find(s => isEqual(s, c.action)));
+    }
+
+    protected getHiddenElements(root: Readonly<SModelRoot>, suggestions: AutocompleteSuggestion[]): SModelElement[] {
+        return toArray(
+            root.index
+                .all()
+                .filter(element => element instanceof SNode || element instanceof SEdge)
+                .filter(element => suggestions.find(suggestion => suggestion.element.id === element.id) === undefined)
+        );
     }
 }

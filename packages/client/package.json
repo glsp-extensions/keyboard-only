@@ -49,6 +49,7 @@
   "dependencies": {
     "@eclipse-glsp/protocol": "1.1.0-next",
     "autocompleter": "5.1.0",
+    "lodash":"4.17.21",
     "sprotty": "0.13.0-next.f4445dd.342"
   },
   "devDependencies": {
