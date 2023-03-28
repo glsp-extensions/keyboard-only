@@ -36,44 +36,52 @@ export namespace EnableToastAction {
 
 export interface HideToastAction extends Action {
     kind: typeof HideToastAction.KIND;
-    timeout?: number;
+    options: HideToastAction.Options;
 }
 
 export namespace HideToastAction {
     export const KIND = 'hideToastMessageAction';
 
+    export type Options = Pick<ToastOptions, 'id' | 'timeout'>;
+
     export function is(object: any): object is HideToastAction {
         return Action.hasKind(object, KIND);
     }
 
-    export function create(timeout?: number): HideToastAction {
-        return { kind: KIND, timeout };
+    export function create(options: Options): HideToastAction {
+        return { kind: KIND, options };
     }
 }
 
 export interface ShowToastMessageAction extends Action {
     kind: typeof ShowToastMessageAction.KIND;
-    message: string;
-    timeout?: number;
+    options: ToastOptions;
 }
 
 export namespace ShowToastMessageAction {
     export const KIND = 'showToastMessageAction';
 
+    export type CreateOptions = Partial<ToastOptions> & Required<Pick<ToastOptions, 'message'>>;
+
     export function is(object: any): object is ShowToastMessageAction {
         return Action.hasKind(object, KIND);
     }
 
-    export function create(message: string, timeout?: number): ShowToastMessageAction {
-        return { kind: KIND, message, timeout };
+    export function create(options: CreateOptions): ShowToastMessageAction {
+        return { kind: KIND, options: { ...options, position: options.position ?? 'center', id: options.id ?? Symbol('toast id') } };
     }
 }
 
+export interface ToastOptions {
+    id: symbol;
+    timeout?: number;
+    position: 'left' | 'center' | 'right';
+    message: string;
+}
 @injectable()
 export class Toast extends AbstractUIExtension implements IActionHandler {
     static readonly ID = 'toast';
-    protected container: HTMLDivElement;
-    protected text: HTMLSpanElement;
+    protected messages: { [key: symbol]: ToastOptions } = {};
 
     @inject(TYPES.IActionDispatcher) protected readonly actionDispatcher: GLSPActionDispatcher;
 
@@ -85,32 +93,66 @@ export class Toast extends AbstractUIExtension implements IActionHandler {
     }
 
     protected initializeContents(_containerElement: HTMLElement): void {
-        this.text = document.createElement('span');
-        this.container = document.createElement('div');
-        this.container.classList.add('toast-container');
-
-        this.container.appendChild(this.text);
-        _containerElement.appendChild(this.container);
+        this.render();
     }
 
     handle(action: Action): ICommand | Action | void {
         if (EnableToastAction.is(action)) {
             this.actionDispatcher.dispatch(SetUIExtensionVisibilityAction.create({ extensionId: Toast.ID, visible: true }));
         } else if (ShowToastMessageAction.is(action)) {
-            this.text.textContent = action.message;
-            this.container.style.visibility = 'visible';
-            if (action.timeout) {
+            this.messages[action.options.id] = action.options;
+            this.render();
+
+            if (action.options.timeout) {
                 setTimeout(() => {
-                    this.container.style.visibility = 'hidden';
-                }, action.timeout);
+                    this.delete(action.options.id);
+                }, action.options.timeout);
             }
         } else if (HideToastAction.is(action)) {
-            if (action.timeout) {
+            if (action.options.timeout) {
                 setTimeout(() => {
-                    this.text.textContent = '';
-                    this.container.style.visibility = 'hidden';
-                }, action.timeout);
+                    this.delete(action.options.id);
+                }, action.options.timeout);
+            } else {
+                this.delete(action.options.id);
             }
         }
     }
+
+    protected render(): void {
+        if (this.containerElement === undefined) {
+            return;
+        }
+
+        this.containerElement.innerHTML = '';
+
+        values(this.messages).forEach(message => {
+            this.containerElement.appendChild(this.createToastMessage(message));
+        });
+    }
+
+    protected delete(id: symbol): void {
+        delete this.messages[id];
+        this.render();
+    }
+
+    protected createToastMessage(option: ToastOptions): HTMLDivElement {
+        const cell = document.createElement('div');
+        cell.classList.add('toast-cell', `toast-column-${option.position}`);
+
+        const container = document.createElement('div');
+        container.classList.add('toast-container');
+
+        const text = document.createElement('span');
+        text.textContent = option.message;
+
+        container.appendChild(text);
+        cell.appendChild(container);
+
+        return cell;
+    }
+}
+
+function values(obj: { [key: symbol]: ToastOptions }): ToastOptions[] {
+    return Object.getOwnPropertySymbols(obj).map(s => obj[s]);
 }

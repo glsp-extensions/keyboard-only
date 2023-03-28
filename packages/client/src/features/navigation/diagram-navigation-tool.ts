@@ -330,6 +330,7 @@ enum NavigationMode {
     NONE = 'none'
 }
 export class ElementNavigatorKeyListener extends KeyListener {
+    static readonly TIMEOUT = 5000;
     protected mode = NavigationMode.NONE;
     protected previousNode?: SModelElement & BoundsAware;
     protected navigator?: ElementNavigator;
@@ -345,41 +346,63 @@ export class ElementNavigatorKeyListener extends KeyListener {
 
                 if (this.mode === NavigationMode.LOCAL) {
                     this.tool.actionDispatcher.dispatch(
-                        ShowToastMessageAction.create(messages.navigation.local_navigation_mode_deactivated)
+                        ShowToastMessageAction.create({
+                            id: Symbol.for(ElementNavigatorKeyListener.name),
+                            message: messages.navigation.local_navigation_mode_deactivated,
+                            timeout: ElementNavigatorKeyListener.TIMEOUT
+                        })
                     );
                 } else if (this.mode === NavigationMode.DEFAULT) {
                     this.tool.actionDispatcher.dispatch(
-                        ShowToastMessageAction.create(messages.navigation.default_navigation_mode_deactivated)
+                        ShowToastMessageAction.create({
+                            id: Symbol.for(ElementNavigatorKeyListener.name),
+                            message: messages.navigation.default_navigation_mode_deactivated,
+                            timeout: ElementNavigatorKeyListener.TIMEOUT
+                        })
                     );
                 }
-                this.tool.actionDispatcher.dispatch(HideToastAction.create(5000));
+
                 this.mode = NavigationMode.NONE;
             } else if (matchesKeystroke(event, 'KeyN', 'alt')) {
                 this.clean();
                 if (this.mode !== NavigationMode.LOCAL) {
-                    this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create(messages.navigation.local_navigation_mode_activated));
+                    this.tool.actionDispatcher.dispatch(
+                        ShowToastMessageAction.create({
+                            id: Symbol.for(ElementNavigatorKeyListener.name),
+                            message: messages.navigation.local_navigation_mode_activated
+                        })
+                    );
                     this.navigator = this.tool.localElementNavigator;
                     this.mode = NavigationMode.LOCAL;
                 } else {
                     this.mode = NavigationMode.NONE;
-                    this.tool.actionDispatcher.dispatch(HideToastAction.create(5000));
                     this.tool.actionDispatcher.dispatch(
-                        ShowToastMessageAction.create(messages.navigation.local_navigation_mode_deactivated)
+                        ShowToastMessageAction.create({
+                            id: Symbol.for(ElementNavigatorKeyListener.name),
+                            message: messages.navigation.local_navigation_mode_deactivated,
+                            timeout: ElementNavigatorKeyListener.TIMEOUT
+                        })
                     );
                 }
             } else if (matchesKeystroke(event, 'KeyN')) {
                 this.clean();
                 if (this.mode !== NavigationMode.DEFAULT) {
                     this.tool.actionDispatcher.dispatch(
-                        ShowToastMessageAction.create(messages.navigation.default_navigation_mode_activated)
+                        ShowToastMessageAction.create({
+                            id: Symbol.for(ElementNavigatorKeyListener.name),
+                            message: messages.navigation.default_navigation_mode_activated
+                        })
                     );
                     this.navigator = this.tool.elementNavigator;
                     this.mode = NavigationMode.DEFAULT;
                 } else {
                     this.mode = NavigationMode.NONE;
-                    this.tool.actionDispatcher.dispatch(HideToastAction.create(5000));
                     this.tool.actionDispatcher.dispatch(
-                        ShowToastMessageAction.create(messages.navigation.default_navigation_mode_deactivated)
+                        ShowToastMessageAction.create({
+                            id: Symbol.for(ElementNavigatorKeyListener.name),
+                            message: messages.navigation.default_navigation_mode_deactivated,
+                            timeout: ElementNavigatorKeyListener.TIMEOUT
+                        })
                     );
                 }
             }

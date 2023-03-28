@@ -38,6 +38,7 @@ import {
     TYPES
 } from '@eclipse-glsp/client';
 import { diagramNavigationModule } from '@eclipse-glsp/client/lib/features/navigation/di.config';
+import { focusTrackerModule } from '@eclipse-glsp/client/lib/features/focus-tracker/di.config';
 import { DefaultTypes } from '@eclipse-glsp/protocol';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
@@ -81,5 +82,6 @@ export default function createContainer(widgetId: string): Container {
         hiddenDiv: widgetId + '_hidden'
     });
     container.load(diagramNavigationModule);
+    container.load(focusTrackerModule);
     return container;
 }

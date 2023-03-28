@@ -5,5 +5,9 @@
     "local_navigation_mode_activated": "Detailed Nav On: Select and use left(←) and right (→) arrows to iterate, up (↑) and down (↓) arrows to navigate paths. Press 'ALT+N' to exit.",
     "local_navigation_mode_deactivated": "Detailed Nav Off: Press 'N' for default navigation, 'ALT+N' for alternate navigation.",
     "local_navigation_paths": " Use up (↑) and down (↓) arrows to switch between multiple paths."
+  },
+  "focus": {
+    "focus_on": "Currently focused: ",
+    "focus_off": "Currently no element is focused."
   }
 }

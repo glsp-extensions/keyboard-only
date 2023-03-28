@@ -48,6 +48,7 @@ export class GLSPProjectionView extends ProjectedViewportView {
             </div>
         );
         setAttr(rootNode, 'tabindex', 0);
+        setAttr(rootNode, 'aria-label', 'Diagram');
         return rootNode;
     }
 
