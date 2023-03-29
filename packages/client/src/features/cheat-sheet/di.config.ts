@@ -17,14 +17,13 @@ import { ContainerModule } from 'inversify';
 import { configureActionHandler } from 'sprotty';
 import { TYPES } from '../../base/types';
 import { CheatSheet, EnableCheatSheetShortcutAction, SetCheatSheetKeyShortcutAction } from './cheat-sheet';
-import { CheatSheetKeyListener, CheatSheetTool } from './cheat-sheet-tool';
 import '../../../css/cheat-sheet.css';
+import { CheatSheetTool } from './cheat-sheet-tool';
 
 const cheatSheetModule = new ContainerModule((bind, unbind, isBound, rebind) => {
     bind(CheatSheet).toSelf().inSingletonScope();
-    bind(CheatSheetTool).toSelf().inSingletonScope();
     bind(TYPES.IUIExtension).toService(CheatSheet);
-    bind(TYPES.KeyListener).to(CheatSheetKeyListener);
+    bind(TYPES.IDefaultTool).to(CheatSheetTool);
     configureActionHandler({ bind, isBound }, EnableCheatSheetShortcutAction.KIND, CheatSheet);
     configureActionHandler({ bind, isBound }, SetCheatSheetKeyShortcutAction.KIND, CheatSheet);
 });

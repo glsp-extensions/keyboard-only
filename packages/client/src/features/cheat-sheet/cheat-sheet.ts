@@ -1,4 +1,4 @@
-/********************************************************************************
+/****************************
  * Copyright (c) 2019-2022 EclipseSource and others.
  *
  * This program and the accompanying materials are made available under the
@@ -12,15 +12,23 @@
  * https://www.gnu.org/software/classpath/license.html.
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
- ********************************************************************************/
+ ****************************/
 
 import { Action } from '@eclipse-glsp/protocol';
 import { injectable } from 'inversify';
-import { AbstractUIExtension, IActionHandler, ICommand, SetUIExtensionVisibilityAction } from 'sprotty';
+import { AbstractUIExtension, IActionHandler, ICommand, SetUIExtensionVisibilityAction, SModelRoot } from 'sprotty';
+import { groupBy } from 'lodash';
 
 export interface CheatSheetKeyShortcut {
     shortcuts: string[];
     description: string;
+    group: string;
+    position: number;
+}
+
+export interface CheatSheetKeyShortcutProvider {
+    registerShortcutKey(): void;
+    deregisterShortcutKey?(): void;
 }
 
 export interface SetCheatSheetKeyShortcutAction extends Action {
@@ -59,8 +67,7 @@ export namespace SetCheatSheetKeyShortcutAction {
 
 @injectable()
 export class CheatSheet extends AbstractUIExtension implements IActionHandler {
-    static ID = 'cheatSheetTool';
-    protected text: HTMLSpanElement;
+    static ID = 'cheat-sheet';
     protected container: HTMLDivElement;
     protected shortcutsContainer: HTMLDivElement;
     protected registrations: { [key: string]: CheatSheetKeyShortcut[] } = {};
@@ -82,12 +89,44 @@ export class CheatSheet extends AbstractUIExtension implements IActionHandler {
         return CheatSheet.ID;
     }
 
-    protected refreshUI(): void {
-        const keys = Object.values(this.registrations).flatMap(r => r);
-        keys.sort((a, b) => a.shortcuts.length - b.shortcuts.length);
-        keys.forEach(r => this.shortcutsContainer.append(this.createEntry(r)));
+    override show(root: Readonly<SModelRoot>, ...contextElementIds: string[]): void {
+        super.show(root, ...contextElementIds);
+        this.shortcutsContainer.focus();
     }
+    protected refreshUI(): void {
+        this.shortcutsContainer.innerHTML = '';
 
+        const registrations = Object.values(this.registrations).flatMap(r => r);
+        registrations.sort((a, b) => {
+            if (a.group < b.group) {
+                return -1;
+            }
+            if (a.group > b.group) {
+                return 1;
+            }
+            if (a.position < b.position) {
+                return -1;
+            }
+            if (a.position > b.position) {
+                return 1;
+            }
+            return 0;
+        });
+
+        const grouped = groupBy(registrations, k => k.group);
+
+        for (const [group, shortcuts] of Object.entries(grouped)) {
+            const groupDiv = document.createElement('div');
+            const menuTitle = document.createElement('h4');
+            menuTitle.innerText = group;
+
+            groupDiv.appendChild(menuTitle);
+
+            shortcuts.forEach(s => groupDiv.appendChild(this.createEntry(s)));
+
+            this.shortcutsContainer.append(groupDiv);
+        }
+    }
     protected getShortcutHTML(shortcuts: string[]): string {
         return shortcuts.map(key => `<kbd>${key}</kbd>`).join(' + ');
     }
@@ -117,15 +156,10 @@ export class CheatSheet extends AbstractUIExtension implements IActionHandler {
         this.container.appendChild(menuTitle);
 
         const closeBtn = document.createElement('button');
-        closeBtn.id = 'close-btn';
+        closeBtn.id = 'cheat-sheet-close-btn';
         closeBtn.textContent = 'X';
         closeBtn.addEventListener('click', () => {
             this.hide();
-        });
-        document.addEventListener('keydown', (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                this.hide();
-            }
         });
 
         this.container.appendChild(closeBtn);
@@ -134,11 +168,16 @@ export class CheatSheet extends AbstractUIExtension implements IActionHandler {
         this.shortcutsContainer = document.createElement('div');
         this.shortcutsContainer.classList.add('keyboard-shortcuts-container');
         this.shortcutsContainer.tabIndex = 30;
+        this.shortcutsContainer.addEventListener('keydown', (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                this.hide();
+            }
+        });
+
         this.container.appendChild(this.shortcutsContainer);
-        setTimeout(() => {
-            this.shortcutsContainer.focus();
-        }, 0);
         containerElement.appendChild(this.container);
+        containerElement.ariaLabel = 'Shortcut-Menu';
+
         this.refreshUI();
     }
 }
