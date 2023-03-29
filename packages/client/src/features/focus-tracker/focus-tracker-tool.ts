@@ -20,6 +20,7 @@ import { ShowToastMessageAction } from '../toast/toast';
 import * as messages from '../toast/messages.json';
 import { TYPES } from '../../base/types';
 import { GLSPActionDispatcher } from '../../base/action-dispatcher';
+import { ViewerOptions } from 'sprotty';
 
 @injectable()
 export class FocusTrackerTool implements GLSPTool {
@@ -28,6 +29,8 @@ export class FocusTrackerTool implements GLSPTool {
     isEditTool = true;
     @inject(TYPES.IActionDispatcher)
     protected actionDispatcher: GLSPActionDispatcher;
+    @inject(TYPES.ViewerOptions)
+    protected readonly viewerOptions: ViewerOptions;
 
     protected readonly focusInFunction = (event: FocusEvent): Promise<void> => this.focusIn(event);
     protected readonly focusOutFunction = (event: FocusEvent): Promise<void> => this.focusOut(event);
@@ -55,11 +58,19 @@ export class FocusTrackerTool implements GLSPTool {
         const target = event.target;
 
         if (target instanceof HTMLElement) {
+            const parent = this.parentWithAriaLabel(target);
+            const textMessage = this.handleTextNode(target);
             // eslint-disable-next-line no-null/no-null
             if (target.ariaLabel !== null) {
                 message = this.handleAriaLabel(target);
             } else {
-                message = this.handleTextNode(target);
+                if (parent === undefined && textMessage !== undefined) {
+                    message = textMessage;
+                } else if (parent !== undefined && textMessage === undefined) {
+                    message = `Focus is in ${parent.ariaLabel}`;
+                } else if (parent !== undefined && textMessage !== undefined) {
+                    message = `${parent.ariaLabel} -> ${textMessage}`;
+                }
             }
         }
 
@@ -95,5 +106,25 @@ export class FocusTrackerTool implements GLSPTool {
                 position: 'left'
             })
         ]);
+    }
+    protected parentWithAriaLabel(target: HTMLElement): HTMLElement | undefined {
+        let current = target.parentElement;
+
+        while (
+            // eslint-disable-next-line no-null/no-null
+            current !== null &&
+            current !== document.body &&
+            current !== document.getElementById(this.viewerOptions.baseDiv) &&
+            // eslint-disable-next-line no-null/no-null
+            current.ariaLabel === null
+        ) {
+            current = current.parentElement;
+        }
+
+        if (current === document.getElementById(this.viewerOptions.baseDiv) || current === document.body) {
+            return undefined;
+        }
+
+        return current ?? undefined;
     }
 }
