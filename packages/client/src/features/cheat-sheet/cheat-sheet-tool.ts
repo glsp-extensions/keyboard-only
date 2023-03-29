@@ -16,6 +16,7 @@
 import { Action } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
 import { KeyListener, KeyTool, SModelElement } from 'sprotty';
+import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { BaseGLSPTool } from '../tools/base-glsp-tool';
 import { EnableCheatSheetShortcutAction } from './cheat-sheet';
 
@@ -25,7 +26,7 @@ export class CheatSheetTool extends BaseGLSPTool {
 
     @inject(KeyTool) protected readonly keytool: KeyTool;
 
-    protected cheatSheetKeyListener: CheatSheetKeyListener;
+    protected cheatSheetKeyListener = new CheatSheetKeyListener();
 
     get id(): string {
         return CheatSheetTool.ID;
@@ -43,7 +44,7 @@ export class CheatSheetTool extends BaseGLSPTool {
 export class CheatSheetKeyListener extends KeyListener {
     protected readonly token = Symbol(CheatSheetKeyListener.name);
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
-        if (event.key === '?') {
+        if (matchesKeystroke(event, 'KeyH', 'alt')) {
             return [EnableCheatSheetShortcutAction.create()];
         }
         return [];
