@@ -97,6 +97,8 @@ export class KeyboardToolPalette extends ToolPalette {
 
     protected override initializeContents(_containerElement: HTMLElement): void {
         this.containerElement.tabIndex = 20;
+        this.containerElement.setAttribute('aria-label', 'Tool-Palette');
+
         this.createHeader();
         this.createBody();
         this.lastActivebutton = this.defaultToolsButton;
@@ -292,6 +294,7 @@ export class KeyboardToolPalette extends ToolPalette {
         const searchField = document.createElement('input');
         searchField.classList.add('search-input');
         searchField.tabIndex = 21;
+        searchField.setAttribute('aria-label', 'Header Search Field');
         searchField.id = this.containerElement.id + '_search_field';
         searchField.type = 'text';
         searchField.placeholder = ' Search...';

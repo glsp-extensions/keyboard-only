@@ -41,6 +41,7 @@ export class KeyboardGrid extends AbstractUIExtension {
         console.log('Init');
         containerElement.tabIndex = KeyboardGridUI.TAB_INDEX;
         containerElement.classList.add('grid-container');
+        containerElement.setAttribute('aria-label', 'Grid');
 
         for (let i = 1; i <= 9; i++) {
             const gridNumber = document.createElement('div');

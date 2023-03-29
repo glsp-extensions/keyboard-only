@@ -46,6 +46,7 @@ export class SearchAutocompletePalette extends BaseAutocompletePalette {
         super.initializeContents(containerElement);
 
         this.autocompleteWidget.inputField.placeholder = 'Search for elements';
+        containerElement.setAttribute('aria-label', 'Search Field');
     }
     protected getSuggestionProviders(root: Readonly<SModelRoot>, input: string): IAutocompleteSuggestionProvider[] {
         return [new RevealNamedElementAutocompleteSuggestionProvider(), new RevealEdgeElementAutocompleteSuggestionProvider()];

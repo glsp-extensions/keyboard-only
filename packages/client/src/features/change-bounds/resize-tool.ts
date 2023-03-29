@@ -109,7 +109,6 @@ export class ResizeKeyListener extends KeyListener implements CheatSheetKeyShort
         if (this.tool.keyboardManager.access(this.accessToken) && this.getSelectedElements(element.root).length > 0) {
             if (this.isEditMode && matchesKeystroke(event, 'Escape')) {
                 this.isEditMode = false;
-                // this.tool.actionDispatcher.dispatch(HideToastAction.create(3000));
                 this.tool.actionDispatcher.dispatch(
                     ShowToastMessageAction.create({
                         id: Symbol.for(ElementNavigatorKeyListener.name),

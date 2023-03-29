@@ -171,6 +171,7 @@ export class CheatSheet extends AbstractUIExtension implements IActionHandler {
         this.shortcutsContainer = document.createElement('div');
         this.shortcutsContainer.classList.add('keyboard-shortcuts-container');
         this.shortcutsContainer.tabIndex = 30;
+        this.shortcutsContainer.ariaLabel = 'Shortcut-Menu';
         this.container.appendChild(this.shortcutsContainer);
         setTimeout(() => {
             this.shortcutsContainer.focus();

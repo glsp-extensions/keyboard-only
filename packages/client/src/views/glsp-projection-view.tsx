@@ -49,7 +49,7 @@ export class GLSPProjectionView extends ProjectedViewportView {
         );
         setClass(rootNode, 'sprotty-graph-container', true);
         setAttr(rootNode, 'tabindex', 1);
-        setAttr(rootNode, 'aria-label', 'Diagram');
+        setAttr(rootNode, 'aria-label', 'Canvas');
         return rootNode;
     }
 
