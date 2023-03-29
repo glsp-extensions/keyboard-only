@@ -1,14 +1,30 @@
 .toast {
     position: absolute;
     bottom: 1rem;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
     width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-column-gap: 1rem;
+    margin: 0 1rem;
+}
+
+.toast-cell {
+}
+
+.toast-column-left {
+    grid-column: 1 / span 1;
+}
+
+.toast-column-center {
+    grid-column: 2 / span 1;
+}
+
+.toast-column-right {
+    grid-column: 3 / span 1;
 }
 
 .toast-container {
-    visibility: hidden;
+    display: inline-block;
     min-width: 256px;
     max-width: 516px;
     background-color: #ccc;

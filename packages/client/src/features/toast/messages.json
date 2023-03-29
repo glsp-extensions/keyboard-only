@@ -6,8 +6,13 @@
     "local_navigation_mode_deactivated": "Detailed Nav Off: Press 'N' for default navigation, 'ALT+N' for alternate navigation.",
     "local_navigation_paths": " Use up (↑) and down (↓) arrows to switch between multiple paths."
   },
+
   "resize": {
     "resize_mode_activated": "Resize On: Use plus(+) and minus(-) to resize, 'CTRL'+'0' for default size. Press 'ESC' to exit.",
     "resize_mode_deactivated": "Resize Off: Press 'ALT'+'R' for resize mode."
+  },
+  "focus": {
+    "focus_on": "Currently focused: ",
+    "focus_off": "Currently no element is focused."
   }
 }

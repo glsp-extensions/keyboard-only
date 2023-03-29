@@ -42,6 +42,7 @@ import keyboardToolPaletteModule from '@eclipse-glsp/client/lib/features/keyboar
 import { keyboardControlModule } from '@eclipse-glsp/client/lib/features/keyboard/interactions/di.config';
 import { keyboardManagerModule } from '@eclipse-glsp/client/lib/features/keyboard/manager/di.config';
 import { diagramNavigationModule } from '@eclipse-glsp/client/lib/features/navigation/di.config';
+import { focusTrackerModule } from '@eclipse-glsp/client/lib/features/focus-tracker/di.config';
 import { DefaultTypes } from '@eclipse-glsp/protocol';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
@@ -93,9 +94,12 @@ export default function createContainer(widgetId: string): Container {
     container.load(cheatSheetModule);
     container.load(diagramNavigationModule);
     container.load(keyboardManagerModule);
+    container.load(focusTrackerModule);
+
     overrideViewerOptions(container, {
         baseDiv: widgetId,
         hiddenDiv: widgetId + '_hidden'
     });
+
     return container;
 }

@@ -22,7 +22,7 @@ import { SetKeyboardPointerRenderPositionAction } from '../pointer/actions';
 import { KeyboardPointer } from '../pointer/keyboard-pointer';
 import { KeyboardPointerUI } from '../pointer/constants';
 import { KeyboardGridUI } from './constants';
-import { GridSearchPalette, GridSearchPaletteMetadata } from './grid-search-palette';
+import { GridSearchPaletteMetadata } from './grid-search-palette';
 
 @injectable()
 export class KeyboardGrid extends AbstractUIExtension {

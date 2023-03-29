@@ -37,7 +37,7 @@ import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { TYPES } from '../../base/types';
 import { calcElementAndRoute, isRoutable, isSelectableAndBoundsAware } from '../../utils/smodel-util';
-import { HideToastAction, ShowToastMessageAction } from '../toast/toast';
+import { ShowToastMessageAction } from '../toast/toast';
 import { applyCssClasses, deleteCssClasses } from '../tool-feedback/css-feedback';
 import * as messages from '../toast/messages.json';
 import { RepositionAction } from '../viewport/reposition';
@@ -333,8 +333,10 @@ enum NavigationMode {
     DEFAULT = 'default',
     NONE = 'none'
 }
+
 export class ElementNavigatorKeyListener extends KeyListener implements CheatSheetKeyShortcutProvider {
     protected readonly accessToken = Symbol('ElementNavigatorKeyListener');
+    static readonly TIMEOUT = 5000;
     protected mode = NavigationMode.NONE;
     protected previousNode?: SModelElement & BoundsAware;
     protected navigator?: ElementNavigator;
@@ -382,15 +384,22 @@ export class ElementNavigatorKeyListener extends KeyListener implements CheatShe
 
                     if (this.mode === NavigationMode.LOCAL) {
                         this.tool.actionDispatcher.dispatch(
-                            ShowToastMessageAction.create(messages.navigation.local_navigation_mode_deactivated)
+                            ShowToastMessageAction.create({
+                                id: Symbol.for(ElementNavigatorKeyListener.name),
+                                message: messages.navigation.local_navigation_mode_deactivated,
+                                timeout: ElementNavigatorKeyListener.TIMEOUT
+                            })
                         );
                     } else if (this.mode === NavigationMode.DEFAULT) {
                         this.tool.actionDispatcher.dispatch(
-                            ShowToastMessageAction.create(messages.navigation.default_navigation_mode_deactivated)
+                            ShowToastMessageAction.create({
+                                id: Symbol.for(ElementNavigatorKeyListener.name),
+                                message: messages.navigation.default_navigation_mode_deactivated,
+                                timeout: ElementNavigatorKeyListener.TIMEOUT
+                            })
                         );
                     }
 
-                    this.tool.actionDispatcher.dispatch(HideToastAction.create(4000));
                     this.tool.keyboardManager.unlock(this.accessToken);
                     this.mode = NavigationMode.NONE;
                 }
@@ -398,17 +407,24 @@ export class ElementNavigatorKeyListener extends KeyListener implements CheatShe
                     this.clean();
                     if (this.mode !== NavigationMode.LOCAL) {
                         this.tool.keyboardManager.lock(this.accessToken);
+
                         this.tool.actionDispatcher.dispatch(
-                            ShowToastMessageAction.create(messages.navigation.local_navigation_mode_activated)
+                            ShowToastMessageAction.create({
+                                id: Symbol.for(ElementNavigatorKeyListener.name),
+                                message: messages.navigation.local_navigation_mode_activated
+                            })
                         );
                         this.navigator = this.tool.localElementNavigator;
                         this.mode = NavigationMode.LOCAL;
                     } else {
                         this.tool.keyboardManager.unlock(this.accessToken);
                         this.mode = NavigationMode.NONE;
-                        this.tool.actionDispatcher.dispatch(HideToastAction.create(4000));
                         this.tool.actionDispatcher.dispatch(
-                            ShowToastMessageAction.create(messages.navigation.local_navigation_mode_deactivated)
+                            ShowToastMessageAction.create({
+                                id: Symbol.for(ElementNavigatorKeyListener.name),
+                                message: messages.navigation.local_navigation_mode_deactivated,
+                                timeout: ElementNavigatorKeyListener.TIMEOUT
+                            })
                         );
                     }
                 } else if (matchesKeystroke(event, 'KeyN')) {
@@ -416,16 +432,22 @@ export class ElementNavigatorKeyListener extends KeyListener implements CheatShe
                     if (this.mode !== NavigationMode.DEFAULT) {
                         this.tool.keyboardManager.lock(this.accessToken);
                         this.tool.actionDispatcher.dispatch(
-                            ShowToastMessageAction.create(messages.navigation.default_navigation_mode_activated)
+                            ShowToastMessageAction.create({
+                                id: Symbol.for(ElementNavigatorKeyListener.name),
+                                message: messages.navigation.default_navigation_mode_activated
+                            })
                         );
                         this.navigator = this.tool.elementNavigator;
                         this.mode = NavigationMode.DEFAULT;
                     } else {
                         this.tool.keyboardManager.unlock(this.accessToken);
                         this.mode = NavigationMode.NONE;
-                        this.tool.actionDispatcher.dispatch(HideToastAction.create(4000));
                         this.tool.actionDispatcher.dispatch(
-                            ShowToastMessageAction.create(messages.navigation.default_navigation_mode_deactivated)
+                            ShowToastMessageAction.create({
+                                id: Symbol.for(ElementNavigatorKeyListener.name),
+                                message: messages.navigation.default_navigation_mode_deactivated,
+                                timeout: ElementNavigatorKeyListener.TIMEOUT
+                            })
                         );
                     }
                 }

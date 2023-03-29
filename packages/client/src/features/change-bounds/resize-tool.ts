@@ -39,9 +39,10 @@ import { IMovementRestrictor } from './movement-restrictor';
 import { KeyboardManagerService } from '../keyboard/manager/keyboard-manager-service';
 import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { CheatSheetKeyShortcutProvider, SetCheatSheetKeyShortcutAction } from '../cheat-sheet/cheat-sheet';
-import { HideToastAction, ShowToastMessageAction } from '../toast/toast';
+import { ShowToastMessageAction } from '../toast/toast';
 import * as messages from '../toast/messages.json';
 import { toArray } from 'sprotty/lib/utils/iterable';
+import { ElementNavigatorKeyListener } from '../navigation/diagram-navigation-tool';
 
 @injectable()
 export class ResizeTool implements GLSPTool {
@@ -108,11 +109,23 @@ export class ResizeKeyListener extends KeyListener implements CheatSheetKeyShort
         if (this.tool.keyboardManager.access(this.accessToken) && this.getSelectedElements(element.root).length > 0) {
             if (this.isEditMode && matchesKeystroke(event, 'Escape')) {
                 this.isEditMode = false;
-                this.tool.actionDispatcher.dispatch(HideToastAction.create(3000));
-                this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create(messages.resize.resize_mode_deactivated));
+                // this.tool.actionDispatcher.dispatch(HideToastAction.create(3000));
+                this.tool.actionDispatcher.dispatch(
+                    ShowToastMessageAction.create({
+                        id: Symbol.for(ElementNavigatorKeyListener.name),
+                        message: messages.resize.resize_mode_deactivated,
+                        timeout: ElementNavigatorKeyListener.TIMEOUT
+                    })
+                );
             } else if (!this.isEditMode && matchesKeystroke(event, 'KeyR', 'alt')) {
                 this.isEditMode = true;
-                this.tool.actionDispatcher.dispatch(ShowToastMessageAction.create(messages.resize.resize_mode_activated));
+                this.tool.actionDispatcher.dispatch(
+                    ShowToastMessageAction.create({
+                        id: Symbol.for(ElementNavigatorKeyListener.name),
+                        message: messages.resize.resize_mode_activated,
+                        timeout: ElementNavigatorKeyListener.TIMEOUT
+                    })
+                );
             }
 
             if (this.isEditMode) {
