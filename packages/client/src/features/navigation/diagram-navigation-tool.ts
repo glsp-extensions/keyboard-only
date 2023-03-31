@@ -37,7 +37,7 @@ import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { TYPES } from '../../base/types';
 import { calcElementAndRoute, isRoutable, isSelectableAndBoundsAware } from '../../utils/smodel-util';
-import { HideToastAction, ShowToastMessageAction } from '../toast/toast';
+import { ShowToastMessageAction } from '../toast/toast';
 import { applyCssClasses, deleteCssClasses } from '../tool-feedback/css-feedback';
 import * as messages from '../toast/messages.json';
 import { RepositionAction } from '../viewport/reposition';
@@ -372,7 +372,7 @@ export class ElementNavigatorKeyListener extends KeyListener {
                             message: messages.navigation.local_navigation_mode_activated
                         })
                     );
-                    this.navigator = this.tool.localElementNavigator;
+                    this.navigator = this.tool.elementNavigator;
                     this.mode = NavigationMode.LOCAL;
                 } else {
                     this.mode = NavigationMode.NONE;
@@ -393,7 +393,7 @@ export class ElementNavigatorKeyListener extends KeyListener {
                             message: messages.navigation.default_navigation_mode_activated
                         })
                     );
-                    this.navigator = this.tool.elementNavigator;
+                    this.navigator = this.tool.localElementNavigator;
                     this.mode = NavigationMode.DEFAULT;
                 } else {
                     this.mode = NavigationMode.NONE;
