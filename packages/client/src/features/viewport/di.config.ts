@@ -33,7 +33,7 @@ import { ZoomTool } from './zoom-tool';
 import { TYPES } from '../../base/types';
 import { SelectTool } from './select-tool';
 import { RestoreViewportHandler } from './viewport-handler';
-import { KeyboardGridCellSelectedAction } from '../keyboard/interactions/grid/actions';
+import { KeyboardGridCellSelectedAction, KeyboardGridKeyboardEventAction } from '../keyboard/interactions/grid/actions';
 
 const glspViewportModule = new ContainerModule((bind, _unbind, isBound) => {
     configureCommand({ bind, isBound }, CenterCommand);
@@ -63,6 +63,7 @@ export const glspViewportInteractionsModule = new ContainerModule((bind, _unbind
 
     configureActionHandler({ bind, isBound }, EnableDefaultToolsAction.KIND, RestoreViewportHandler);
     configureActionHandler({ bind, isBound }, KeyboardGridCellSelectedAction.KIND, ZoomTool);
+    configureActionHandler({ bind, isBound }, KeyboardGridKeyboardEventAction.KIND, ZoomTool);
 });
 
 export default glspViewportModule;

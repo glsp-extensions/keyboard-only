@@ -35,7 +35,11 @@ import { SModelRootListener } from '../../base/model/update-model-command';
 import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 import { CheatSheetKeyShortcutProvider, SetCheatSheetKeyShortcutAction } from '../cheat-sheet/cheat-sheet';
-import { EnableKeyboardGridAction, KeyboardGridCellSelectedAction } from '../keyboard/interactions/grid/actions';
+import {
+    EnableKeyboardGridAction,
+    KeyboardGridCellSelectedAction,
+    KeyboardGridKeyboardEventAction
+} from '../keyboard/interactions/grid/actions';
 import { KeyboardGridMetadata } from '../keyboard/interactions/grid/constants';
 import { KeyboardManagerService } from '../keyboard/manager/keyboard-manager-service';
 import { getAbsolutePositionByPoint } from '../../utils/viewpoint-util';
@@ -76,12 +80,21 @@ export class ZoomTool implements GLSPTool, SModelRootListener {
     }
 
     handle(action: Action): Action | void {
-        if (KeyboardGridCellSelectedAction.is(action) && action.options.originId === ZoomTool.ID) {
-            const viewportAction = this.zoomKeyListener.newViewport(
-                this.root,
-                getAbsolutePositionByPoint(this.root, action.options.centerCellPosition),
-                this.zoomKeyListener.defaultZoomInFactor
-            );
+        if (isViewport(this.root)) {
+            let viewportAction: Action | undefined = undefined;
+
+            if (KeyboardGridCellSelectedAction.is(action) && action.options.originId === ZoomTool.ID) {
+                viewportAction = this.zoomKeyListener.setNewZoomFactor(
+                    this.root,
+                    this.zoomKeyListener.defaultZoomInFactor,
+                    getAbsolutePositionByPoint(this.root, action.options.centerCellPosition)
+                );
+            } else if (KeyboardGridKeyboardEventAction.is(action) && action.options.originId === ZoomTool.ID) {
+                if (matchesKeystroke(action.options.event, 'Minus')) {
+                    viewportAction = this.zoomKeyListener.setNewZoomFactor(this.root, this.zoomKeyListener.defaultZoomOutFactor);
+                }
+            }
+
             if (viewportAction) {
                 this.actionDispatcher.dispatchAll([
                     viewportAction,
@@ -147,7 +160,7 @@ export class ZoomKeyListener extends KeyListener implements CheatSheetKeyShortcu
                 return [
                     EnableKeyboardGridAction.create({
                         originId: ZoomTool.ID,
-                        triggerActions: [SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridMetadata.ID, visible: false })]
+                        triggerActions: []
                     })
                 ];
             } else if (matchesKeystroke(event, 'Minus')) {
@@ -168,55 +181,7 @@ export class ZoomKeyListener extends KeyListener implements CheatSheetKeyShortcu
         return result;
     }
 
-    newViewport(root: Readonly<SModelRoot>, point: Point, zoomFactor: number): SetViewportAction | undefined {
-        if (isViewport(root)) {
-            const newZoom = root.zoom * zoomFactor;
-            return SetViewportAction.create(
-                root.id,
-                {
-                    scroll: {
-                        x: point.x - (0.5 * root.canvasBounds.width) / newZoom,
-                        y: point.y - (0.5 * root.canvasBounds.height) / newZoom
-                    },
-                    zoom: newZoom
-                },
-                { animate: true }
-            );
-        }
-
-        return undefined;
-    }
-
-    protected executeZoomWorkflow(
-        selectedElements: (SModelElement & BoundsAware)[],
-        viewport: SModelElement & SModelRoot & Viewport,
-        zoomFactor: number
-    ): Action {
-        // Zoom to element
-        if (selectedElements.length > 0) {
-            const center = this.getCenter(selectedElements, viewport);
-            return this.setNewZoomFactor(viewport, zoomFactor, center);
-        } else {
-            // Zoom to viewport
-            return this.setNewZoomFactor(viewport, zoomFactor);
-        }
-    }
-    protected getCenter(selectedElements: (SModelElement & BoundsAware)[], viewport: SModelElement & SModelRoot & Viewport): Point {
-        // Get bounds of elements based on the viewport
-        const allBounds = selectedElements.map(e => this.boundsInViewport(e, e.bounds, viewport));
-        const mergedBounds = allBounds.reduce((b0, b1) => Bounds.combine(b0, b1));
-        return Bounds.center(mergedBounds);
-    }
-
-    // copy from center-fit.ts, translates the children bounds to the viewport bounds
-    protected boundsInViewport(element: SModelElement, bounds: Bounds, viewport: SModelElement & SModelRoot & Viewport): Bounds {
-        if (element instanceof SChildElement && element.parent !== viewport) {
-            return this.boundsInViewport(element.parent, element.parent.localToParent(bounds) as Bounds, viewport);
-        } else {
-            return bounds;
-        }
-    }
-    protected setNewZoomFactor(viewport: SModelElement & SModelRoot & Viewport, zoomFactor: number, point?: Point): SetViewportAction {
+    setNewZoomFactor(viewport: SModelElement & SModelRoot & Viewport, zoomFactor: number, point?: Point): SetViewportAction {
         let newViewport: Viewport;
         const newZoom = viewport.zoom * zoomFactor;
 
@@ -237,6 +202,38 @@ export class ZoomKeyListener extends KeyListener implements CheatSheetKeyShortcu
 
         return SetViewportAction.create(viewport.id, newViewport, { animate: true });
     }
+
+    protected executeZoomWorkflow(
+        selectedElements: (SModelElement & BoundsAware)[],
+        viewport: SModelElement & SModelRoot & Viewport,
+        zoomFactor: number
+    ): Action {
+        // Zoom to element
+        if (selectedElements.length > 0) {
+            const center = this.getCenter(selectedElements, viewport);
+            return this.setNewZoomFactor(viewport, zoomFactor, center);
+        } else {
+            // Zoom to viewport
+            return this.setNewZoomFactor(viewport, zoomFactor);
+        }
+    }
+
+    protected getCenter(selectedElements: (SModelElement & BoundsAware)[], viewport: SModelElement & SModelRoot & Viewport): Point {
+        // Get bounds of elements based on the viewport
+        const allBounds = selectedElements.map(e => this.boundsInViewport(e, e.bounds, viewport));
+        const mergedBounds = allBounds.reduce((b0, b1) => Bounds.combine(b0, b1));
+        return Bounds.center(mergedBounds);
+    }
+
+    // copy from center-fit.ts, translates the children bounds to the viewport bounds
+    protected boundsInViewport(element: SModelElement, bounds: Bounds, viewport: SModelElement & SModelRoot & Viewport): Bounds {
+        if (element instanceof SChildElement && element.parent !== viewport) {
+            return this.boundsInViewport(element.parent, element.parent.localToParent(bounds) as Bounds, viewport);
+        } else {
+            return bounds;
+        }
+    }
+
     protected isChildOfSelected(selectedElements: SModelElement[], element: SModelElement): boolean {
         const elementsAsSet = new Set(selectedElements);
         while (element instanceof SChildElement) {

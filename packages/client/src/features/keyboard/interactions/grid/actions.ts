@@ -66,3 +66,28 @@ export namespace KeyboardGridCellSelectedAction {
         };
     }
 }
+
+export interface KeyboardGridKeyboardEventAction extends Action {
+    kind: typeof KeyboardGridKeyboardEventAction.KIND;
+    options: KeyboardGridKeyboardEventAction.Options;
+}
+
+export namespace KeyboardGridKeyboardEventAction {
+    export const KIND = 'keyboardGridKeyboardEvent';
+
+    export interface Options {
+        originId: string;
+        event: KeyboardEvent;
+    }
+
+    export function is(object: any): object is KeyboardGridKeyboardEventAction {
+        return Action.hasKind(object, KIND) && hasObjectProp(object, 'options');
+    }
+
+    export function create(options: Options): KeyboardGridKeyboardEventAction {
+        return {
+            kind: KIND,
+            options
+        };
+    }
+}

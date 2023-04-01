@@ -28,7 +28,7 @@ import {
 import { KeyCode, matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { KeyboardGridMetadata } from './constants';
 import { Action, Point } from '@eclipse-glsp/protocol';
-import { EnableKeyboardGridAction, KeyboardGridCellSelectedAction } from './actions';
+import { EnableKeyboardGridAction, KeyboardGridCellSelectedAction, KeyboardGridKeyboardEventAction } from './actions';
 
 @injectable()
 export class KeyboardGrid extends AbstractUIExtension implements IActionHandler {
@@ -85,6 +85,13 @@ export class KeyboardGrid extends AbstractUIExtension implements IActionHandler 
     protected onKeyDown(event: KeyboardEvent): void {
         this.activateCellIfDigitEvent(event);
         this.hideIfEscapeEvent(event);
+
+        this.actionDispatcher.dispatch(
+            KeyboardGridKeyboardEventAction.create({
+                originId: this.originId,
+                event
+            })
+        );
     }
 
     protected override setContainerVisible(visible: boolean): void {
