@@ -92,6 +92,8 @@ export class ZoomTool implements GLSPTool, SModelRootListener {
             } else if (KeyboardGridKeyboardEventAction.is(action) && action.options.originId === ZoomTool.ID) {
                 if (matchesKeystroke(action.options.event, 'Minus')) {
                     viewportAction = this.zoomKeyListener.setNewZoomFactor(this.root, this.zoomKeyListener.defaultZoomOutFactor);
+                } else if (matchesKeystroke(action.options.event, 'Digit0', 'ctrl')) {
+                    viewportAction = CenterAction.create([]);
                 }
             }
 
