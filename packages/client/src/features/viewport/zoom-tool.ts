@@ -39,7 +39,7 @@ import { EnableKeyboardGridAction, KeyboardGridCellSelectedAction } from '../key
 import { KeyboardGridMetadata } from '../keyboard/interactions/grid/constants';
 import { KeyboardManagerService } from '../keyboard/manager/keyboard-manager-service';
 import { getAbsolutePositionByPoint } from '../../utils/viewpoint-util';
-import { ShowToastMessageAction } from '../toast/toast';
+import { HideToastAction, ShowToastMessageAction } from '../toast/toast';
 import * as messages from '../toast/messages.json';
 import { ElementNavigatorKeyListener } from '../navigation/diagram-navigation-tool';
 /**
@@ -83,7 +83,10 @@ export class ZoomTool implements GLSPTool, SModelRootListener {
                 this.zoomKeyListener.defaultZoomInFactor
             );
             if (viewportAction) {
-                this.actionDispatcher.dispatch(viewportAction);
+                this.actionDispatcher.dispatchAll([
+                    viewportAction,
+                    HideToastAction.create({ id: Symbol.for(ElementNavigatorKeyListener.name) })
+                ]);
             }
         }
     }
