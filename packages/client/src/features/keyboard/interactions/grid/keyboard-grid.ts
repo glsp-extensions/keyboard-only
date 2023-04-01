@@ -16,30 +16,50 @@
 import '../../../../../css/keyboard.css';
 
 import { inject, injectable } from 'inversify';
-import { AbstractUIExtension, ActionDispatcher, SetUIExtensionVisibilityAction, SModelRoot, TYPES } from 'sprotty';
+import {
+    AbstractUIExtension,
+    ActionDispatcher,
+    IActionHandler,
+    ICommand,
+    SetUIExtensionVisibilityAction,
+    SModelRoot,
+    TYPES
+} from 'sprotty';
 import { KeyCode, matchesKeystroke } from 'sprotty/lib/utils/keyboard';
-import { SetKeyboardPointerRenderPositionAction } from '../pointer/actions';
-import { KeyboardPointer } from '../pointer/keyboard-pointer';
-import { KeyboardPointerUI } from '../pointer/constants';
-import { KeyboardGridUI } from './constants';
-import { GridSearchPaletteMetadata } from './grid-search-palette';
+import { KeyboardGridMetadata } from './constants';
+import { Action, Point } from '@eclipse-glsp/protocol';
+import { EnableKeyboardGridAction, KeyboardGridCellSelectedAction } from './actions';
 
 @injectable()
-export class KeyboardGrid extends AbstractUIExtension {
+export class KeyboardGrid extends AbstractUIExtension implements IActionHandler {
     @inject(TYPES.IActionDispatcher) protected readonly actionDispatcher: ActionDispatcher;
-    @inject(KeyboardPointer) protected readonly keyboardPointer: KeyboardPointer;
+
+    protected triggerActions: Action[] = [];
+    protected originId: string;
 
     id(): string {
-        return KeyboardGridUI.ID;
+        return KeyboardGridMetadata.ID;
     }
 
     containerClass(): string {
-        return KeyboardGridUI.ID;
+        return KeyboardGridMetadata.ID;
+    }
+
+    handle(action: Action): void | Action | ICommand {
+        if (EnableKeyboardGridAction.is(action)) {
+            this.triggerActions = action.options.triggerActions;
+            this.originId = action.options.originId;
+            this.actionDispatcher.dispatch(
+                SetUIExtensionVisibilityAction.create({
+                    extensionId: KeyboardGridMetadata.ID,
+                    visible: true
+                })
+            );
+        }
     }
 
     protected initializeContents(containerElement: HTMLElement): void {
-        console.log('Init');
-        containerElement.tabIndex = KeyboardGridUI.TAB_INDEX;
+        containerElement.tabIndex = KeyboardGridMetadata.TAB_INDEX;
         containerElement.classList.add('grid-container');
         containerElement.setAttribute('aria-label', 'Grid');
 
@@ -58,28 +78,15 @@ export class KeyboardGrid extends AbstractUIExtension {
         }
 
         this.containerElement.onkeydown = ev => {
-            this.activateCellIfDigitEvent(ev);
-            this.hideIfEscapeEvent(ev);
-            this.showSearchOnEvent(ev);
-
-            if (this.keyboardPointer.isVisible) {
-                this.keyboardPointer.keyListener.keyDown(ev);
-            }
+            this.onKeyDown(ev);
         };
     }
 
-    protected showSearchOnEvent(event: KeyboardEvent): void {
-        if (matchesKeystroke(event, 'KeyF', 'ctrl')) {
-            event.preventDefault();
-            this.actionDispatcher.dispatch(
-                SetUIExtensionVisibilityAction.create({
-                    extensionId: GridSearchPaletteMetadata.ID,
-                    visible: true
-                })
-            );
-            this.hide();
-        }
+    protected onKeyDown(event: KeyboardEvent): void {
+        this.activateCellIfDigitEvent(event);
+        this.hideIfEscapeEvent(event);
     }
+
     protected override setContainerVisible(visible: boolean): void {
         if (this.containerElement) {
             if (visible) {
@@ -114,11 +121,24 @@ export class KeyboardGrid extends AbstractUIExtension {
         }
 
         if (index !== undefined) {
-            this.keyboardPointerPositionInGrid(index);
+            const position = this.centerPositionOfCell(index);
+
+            this.dispatchActionsForCell(index, position);
         }
     }
 
-    protected keyboardPointerPositionInGrid(index: number): void {
+    protected dispatchActionsForCell(index: number, cellCenter: Point): void {
+        this.actionDispatcher.dispatchAll([
+            ...this.triggerActions,
+            KeyboardGridCellSelectedAction.create({
+                originId: this.originId,
+                cellId: index.toString(),
+                centerCellPosition: cellCenter
+            })
+        ]);
+    }
+
+    protected centerPositionOfCell(index: number): Point {
         let x = 0;
         let y = 0;
 
@@ -130,10 +150,10 @@ export class KeyboardGrid extends AbstractUIExtension {
             y = positions[1];
         }
 
-        this.actionDispatcher.dispatchAll([
-            SetUIExtensionVisibilityAction.create({ extensionId: KeyboardPointerUI.ID, visible: true }),
-            SetKeyboardPointerRenderPositionAction.create(x, y)
-        ]);
+        return {
+            x,
+            y
+        };
     }
 }
 

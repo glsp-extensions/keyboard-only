@@ -18,7 +18,7 @@ import { Point } from '@eclipse-glsp/protocol';
 import { findChildrenAtPosition, findParentByFeature, SModelElement } from 'sprotty';
 import { Containable, isContainable } from '../../../../features/hints/model';
 import { getAbsolutePositionByPoint } from '../../../../utils/viewpoint-util';
-import { KeyboardPointerUI } from './constants';
+import { KeyboardPointerMetadata } from './constants';
 import { KeyboardPointer } from './keyboard-pointer';
 
 export class KeyboardPointerPosition {
@@ -28,8 +28,8 @@ export class KeyboardPointerPosition {
 
     get centerizedRenderPosition(): Point {
         return {
-            x: this.renderPosition.x + KeyboardPointerUI.CIRCLE_WIDTH / 2,
-            y: this.renderPosition.y + KeyboardPointerUI.CRICLE_HEIGHT / 2
+            x: this.renderPosition.x + KeyboardPointerMetadata.CIRCLE_WIDTH / 2,
+            y: this.renderPosition.y + KeyboardPointerMetadata.CRICLE_HEIGHT / 2
         };
     }
 

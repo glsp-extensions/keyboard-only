@@ -17,9 +17,8 @@ import { CreateNodeOperation } from '@eclipse-glsp/protocol';
 import { EnableDefaultToolsAction, IActionDispatcher, SetUIExtensionVisibilityAction } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { KeyboardListener } from '../../keyboard-listener';
-import { KeyboardGridUI } from '../grid/constants';
-
-import { KeyboardPointerUI } from './constants';
+import { KeyboardNodeGridMetadata } from '../grid/constants';
+import { KeyboardPointerMetadata } from './constants';
 import { KeyboardPointer } from './keyboard-pointer';
 import { KeyboardPointerPosition } from './keyboard-pointer.position';
 
@@ -67,8 +66,16 @@ export class KeyboardPointerKeyboardListener extends KeyboardListener {
                 const location = this.position.diagramPosition;
 
                 this.actionDispatcher.dispatchAll([
-                    SetUIExtensionVisibilityAction.create({ extensionId: KeyboardPointerUI.ID, visible: false, contextElementsId: [] }),
-                    SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: false, contextElementsId: [] }),
+                    SetUIExtensionVisibilityAction.create({
+                        extensionId: KeyboardPointerMetadata.ID,
+                        visible: false,
+                        contextElementsId: []
+                    }),
+                    SetUIExtensionVisibilityAction.create({
+                        extensionId: KeyboardNodeGridMetadata.ID,
+                        visible: false,
+                        contextElementsId: []
+                    }),
                     CreateNodeOperation.create(elementTypeId, { location, containerId, args: this.keyboardPointer.triggerAction.args }),
                     EnableDefaultToolsAction.create()
                 ]);

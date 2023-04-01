@@ -36,8 +36,8 @@ import {
 } from '../../../features/tool-palette/tool-palette';
 import { FocusDomAction } from '../actions';
 import { EdgeAutocompletePalette } from '../interactions/edge-autocomplete/edge-autocomplete-palette';
-import { KeyboardGridUI } from '../interactions/grid/constants';
 import { SetCheatSheetKeyShortcutAction } from '../../../features/cheat-sheet/cheat-sheet';
+import { KeyboardNodeGridMetadata } from '../interactions/grid/constants';
 
 const SEARCH_ICON_ID = 'search';
 const PALETTE_ICON_ID = 'symbol-color';
@@ -383,7 +383,11 @@ export class KeyboardToolPalette extends ToolPalette {
             if (items[index].actions.some(a => a.kind === TriggerNodeCreationAction.KIND)) {
                 this.actionDispatcher.dispatchAll([
                     ...items[index].actions,
-                    SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: true, contextElementsId: [] })
+                    SetUIExtensionVisibilityAction.create({
+                        extensionId: KeyboardNodeGridMetadata.ID,
+                        visible: true,
+                        contextElementsId: []
+                    })
                 ]);
             } else {
                 this.actionDispatcher.dispatchAll([

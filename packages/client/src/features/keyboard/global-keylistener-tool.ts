@@ -20,8 +20,8 @@ import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 import { ToolPalette } from '../tool-palette/tool-palette';
 import { FocusDomAction } from './actions';
-import { KeyboardGridUI } from './interactions/grid/constants';
-import { KeyboardPointerUI } from './interactions/pointer/constants';
+import { KeyboardGridMetadata, KeyboardNodeGridMetadata } from './interactions/grid/constants';
+import { KeyboardPointerMetadata } from './interactions/pointer/constants';
 
 @injectable()
 export class GlobalKeyListenerTool implements GLSPTool {
@@ -55,8 +55,9 @@ export class KeyboardListener {
             return [FocusDomAction.create(ToolPalette.ID)];
         } else if (matchesKeystroke(event, 'Escape')) {
             return [
-                SetUIExtensionVisibilityAction.create({ extensionId: KeyboardPointerUI.ID, visible: false, contextElementsId: [] }),
-                SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridUI.ID, visible: false, contextElementsId: [] })
+                SetUIExtensionVisibilityAction.create({ extensionId: KeyboardPointerMetadata.ID, visible: false, contextElementsId: [] }),
+                SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridMetadata.ID, visible: false, contextElementsId: [] }),
+                SetUIExtensionVisibilityAction.create({ extensionId: KeyboardNodeGridMetadata.ID, visible: false, contextElementsId: [] })
             ];
         }
         return [];

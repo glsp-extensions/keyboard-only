@@ -24,7 +24,7 @@ import {
 } from '../../../autocomplete-palette/autocomplete-suggestion-providers';
 import { SEdge, SetUIExtensionVisibilityAction, SModelElement, SModelRoot } from 'sprotty';
 import { Action } from '@eclipse-glsp/protocol';
-import { KeyboardGridUI } from './constants';
+import { KeyboardNodeGridMetadata } from './constants';
 
 export namespace GridSearchPaletteMetadata {
     export const ID = 'grid-search-palette';
@@ -46,7 +46,7 @@ export class GridRevealEdgeSuggestionProvider extends RevealEdgeElementAutocompl
         return [
             ...super.getActions(edge),
             SetUIExtensionVisibilityAction.create({
-                extensionId: KeyboardGridUI.ID,
+                extensionId: KeyboardNodeGridMetadata.ID,
                 visible: true
             })
         ];
@@ -57,7 +57,7 @@ export class GridRevealNamedElementSuggestionProvider extends RevealNamedElement
         return [
             ...super.getActions(nameable),
             SetUIExtensionVisibilityAction.create({
-                extensionId: KeyboardGridUI.ID,
+                extensionId: KeyboardNodeGridMetadata.ID,
                 visible: true
             })
         ];

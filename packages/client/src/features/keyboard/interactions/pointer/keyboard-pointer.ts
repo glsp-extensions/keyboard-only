@@ -18,8 +18,9 @@ import { inject, injectable } from 'inversify';
 import { AbstractUIExtension, IActionDispatcher, IActionHandler, SModelRoot, TYPES } from 'sprotty';
 
 import { SModelRootListener } from '../../../../base/model/update-model-command';
+import { KeyboardGridCellSelectedAction } from '../grid/actions';
 import { SetKeyboardPointerRenderPositionAction } from './actions';
-import { KeyboardPointerUI } from './constants';
+import { KeyboardPointerMetadata } from './constants';
 import { KeyboardPointerKeyboardListener } from './keyboard-pointer.listener';
 import { KeyboardPointerPosition } from './keyboard-pointer.position';
 
@@ -49,17 +50,17 @@ export class KeyboardPointer extends AbstractUIExtension implements IActionHandl
     }
 
     id(): string {
-        return KeyboardPointerUI.ID;
+        return KeyboardPointerMetadata.ID;
     }
 
     containerClass(): string {
-        return KeyboardPointerUI.ID;
+        return KeyboardPointerMetadata.ID;
     }
 
     protected initializeContents(containerElement: HTMLElement): void {
         containerElement.style.position = 'absolute';
-        containerElement.style.height = `${KeyboardPointerUI.CRICLE_HEIGHT}px`;
-        containerElement.style.width = `${KeyboardPointerUI.CIRCLE_WIDTH}px`;
+        containerElement.style.height = `${KeyboardPointerMetadata.CRICLE_HEIGHT}px`;
+        containerElement.style.width = `${KeyboardPointerMetadata.CIRCLE_WIDTH}px`;
         containerElement.style.borderRadius = '100%';
     }
 
@@ -73,6 +74,9 @@ export class KeyboardPointer extends AbstractUIExtension implements IActionHandl
             this._triggerAction = action;
         } else if (SetKeyboardPointerRenderPositionAction.is(action)) {
             this.position.renderPosition = { x: action.x, y: action.y };
+            this.render();
+        } else if (KeyboardGridCellSelectedAction.is(action) && action.options.originId === KeyboardPointerMetadata.ID) {
+            this.position.renderPosition = action.options.centerCellPosition;
             this.render();
         }
     }

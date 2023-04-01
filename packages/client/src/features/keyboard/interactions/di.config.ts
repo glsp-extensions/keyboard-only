@@ -25,6 +25,8 @@ import { KeyboardGrid } from './grid/keyboard-grid';
 import { KeyboardPointer } from './pointer/keyboard-pointer';
 import { SetKeyboardPointerRenderPositionAction } from './pointer/actions';
 import { GridSearchPalette } from './grid/grid-search-palette';
+import { EnableKeyboardGridAction, KeyboardGridCellSelectedAction } from './grid/actions';
+import { KeyboardNodeGrid } from './grid/keyboard-node-grid';
 
 export const keyboardControlModule = new ContainerModule((bind, _unbind, isBound, rebind) => {
     bind(TYPES.IDefaultTool).to(GlobalKeyListenerTool);
@@ -35,6 +37,10 @@ export const keyboardControlModule = new ContainerModule((bind, _unbind, isBound
 
     bind(KeyboardGrid).toSelf().inSingletonScope();
     bind(TYPES.IUIExtension).toService(KeyboardGrid);
+
+    bind(KeyboardNodeGrid).toSelf().inSingletonScope();
+    bind(TYPES.IUIExtension).toService(KeyboardNodeGrid);
+
     bind(EdgeAutocompletePalette).toSelf().inSingletonScope();
     bind(TYPES.IUIExtension).toService(EdgeAutocompletePalette);
 
@@ -43,9 +49,12 @@ export const keyboardControlModule = new ContainerModule((bind, _unbind, isBound
 
     bind(TYPES.IDefaultTool).to(EdgeAutocompletePaletteTool);
 
+    configureActionHandler({ bind, isBound }, EnableKeyboardGridAction.KIND, KeyboardGrid);
+
     configureActionHandler({ bind, isBound }, TriggerEdgeCreationAction.KIND, EdgeAutocompletePalette);
     configureActionHandler({ bind, isBound }, SetEdgeTargetSelectionAction.KIND, EdgeAutocompletePalette);
 
     configureActionHandler({ bind, isBound }, TriggerNodeCreationAction.KIND, KeyboardPointer);
+    configureActionHandler({ bind, isBound }, KeyboardGridCellSelectedAction.KIND, KeyboardPointer);
     configureActionHandler({ bind, isBound }, SetKeyboardPointerRenderPositionAction.KIND, KeyboardPointer);
 });

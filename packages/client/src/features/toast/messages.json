@@ -14,5 +14,8 @@
   "focus": {
     "focus_on": "Currently focused: ",
     "focus_off": "Currently no element is focused."
+  },
+  "grid": {
+    "zoom-in-grid": "Select a digit from 1-9 to zoom in on the respective box."
   }
 }

@@ -26,25 +26,33 @@ import {
     SModelRoot,
     SChildElement,
     BoundsAware,
-    TYPES
+    TYPES,
+    SetUIExtensionVisibilityAction
 } from 'sprotty';
 
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
+import { SModelRootListener } from '../../base/model/update-model-command';
 import { GLSPActionDispatcher } from '../../base/action-dispatcher';
 import { GLSPTool } from '../../base/tool-manager/glsp-tool-manager';
 import { CheatSheetKeyShortcutProvider, SetCheatSheetKeyShortcutAction } from '../cheat-sheet/cheat-sheet';
+import { EnableKeyboardGridAction, KeyboardGridCellSelectedAction } from '../keyboard/interactions/grid/actions';
+import { KeyboardGridMetadata } from '../keyboard/interactions/grid/constants';
 import { KeyboardManagerService } from '../keyboard/manager/keyboard-manager-service';
-
+import { getAbsolutePositionByPoint } from '../../utils/viewpoint-util';
+import { ShowToastMessageAction } from '../toast/toast';
+import * as messages from '../toast/messages.json';
+import { ElementNavigatorKeyListener } from '../navigation/diagram-navigation-tool';
 /**
  * Zoom viewport when its focused and arrow keys are hit.
  */
 @injectable()
-export class ZoomTool implements GLSPTool {
+export class ZoomTool implements GLSPTool, SModelRootListener {
     static ID = 'glsp.zoom-keyboard';
 
-    isEditTool = true;
+    isEditTool = false;
 
     protected zoomKeyListener: ZoomKeyListener = new ZoomKeyListener(this);
+    protected root: Readonly<SModelRoot>;
 
     @inject(KeyTool) protected readonly keytool: KeyTool;
     @inject(KeyboardManagerService) readonly keyboardManager: KeyboardManagerService;
@@ -62,13 +70,31 @@ export class ZoomTool implements GLSPTool {
     disable(): void {
         this.keytool.deregister(this.zoomKeyListener);
     }
+
+    modelRootChanged(root: Readonly<SModelRoot>): void {
+        this.root = root;
+    }
+
+    handle(action: Action): Action | void {
+        if (KeyboardGridCellSelectedAction.is(action) && action.options.originId === ZoomTool.ID) {
+            const viewportAction = this.zoomKeyListener.newViewport(
+                this.root,
+                getAbsolutePositionByPoint(this.root, action.options.centerCellPosition),
+                this.zoomKeyListener.defaultZoomInFactor
+            );
+            if (viewportAction) {
+                this.actionDispatcher.dispatch(viewportAction);
+            }
+        }
+    }
 }
 
 @injectable()
 export class ZoomKeyListener extends KeyListener implements CheatSheetKeyShortcutProvider {
     protected readonly accessToken = Symbol('ZoomKeyListener');
-    protected defaultZoomInFactor = 1.1;
-    protected defaultZoomOutFactor = 0.9;
+    public readonly defaultZoomInFactor = 1.1;
+    public readonly defaultZoomOutFactor = 0.9;
+
     constructor(protected readonly tool: ZoomTool) {
         super();
     }
@@ -83,6 +109,9 @@ export class ZoomKeyListener extends KeyListener implements CheatSheetKeyShortcu
                 ]),
                 SetCheatSheetKeyShortcutAction.create(Symbol('zoom-reset'), [
                     { shortcuts: ['CTRL', '0'], description: 'Reset zoom to default', group: 'Zoom', position: 2 }
+                ]),
+                SetCheatSheetKeyShortcutAction.create(Symbol('zoom-in-grid'), [
+                    { shortcuts: ['CTRL', '+'], description: 'Zoom in via Grid', group: 'Zoom', position: 3 }
                 ])
             ]);
         });
@@ -104,7 +133,21 @@ export class ZoomKeyListener extends KeyListener implements CheatSheetKeyShortcu
             if (!viewport) {
                 return [];
             }
-            if (matchesKeystroke(event, 'Minus')) {
+
+            if (event.key === '+' && event.ctrlKey) {
+                this.tool.actionDispatcher.dispatch(
+                    ShowToastMessageAction.create({
+                        id: Symbol.for(ElementNavigatorKeyListener.name),
+                        message: messages.grid['zoom-in-grid']
+                    })
+                );
+                return [
+                    EnableKeyboardGridAction.create({
+                        originId: ZoomTool.ID,
+                        triggerActions: [SetUIExtensionVisibilityAction.create({ extensionId: KeyboardGridMetadata.ID, visible: false })]
+                    })
+                ];
+            } else if (matchesKeystroke(event, 'Minus')) {
                 const action = this.executeZoomWorkflow(selectedElements, viewport, this.defaultZoomOutFactor);
                 if (action) {
                     result.push(action);
@@ -120,6 +163,25 @@ export class ZoomKeyListener extends KeyListener implements CheatSheetKeyShortcu
         }
 
         return result;
+    }
+
+    newViewport(root: Readonly<SModelRoot>, point: Point, zoomFactor: number): SetViewportAction | undefined {
+        if (isViewport(root)) {
+            const newZoom = root.zoom * zoomFactor;
+            return SetViewportAction.create(
+                root.id,
+                {
+                    scroll: {
+                        x: point.x - (0.5 * root.canvasBounds.width) / newZoom,
+                        y: point.y - (0.5 * root.canvasBounds.height) / newZoom
+                    },
+                    zoom: newZoom
+                },
+                { animate: true }
+            );
+        }
+
+        return undefined;
     }
 
     protected executeZoomWorkflow(
