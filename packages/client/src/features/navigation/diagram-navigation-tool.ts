@@ -414,7 +414,7 @@ export class ElementNavigatorKeyListener extends KeyListener implements CheatShe
                                 message: messages.navigation.local_navigation_mode_activated
                             })
                         );
-                        this.navigator = this.tool.localElementNavigator;
+                        this.navigator = this.tool.elementNavigator;
                         this.mode = NavigationMode.LOCAL;
                     } else {
                         this.tool.keyboardManager.unlock(this.accessToken);
@@ -437,7 +437,7 @@ export class ElementNavigatorKeyListener extends KeyListener implements CheatShe
                                 message: messages.navigation.default_navigation_mode_activated
                             })
                         );
-                        this.navigator = this.tool.elementNavigator;
+                        this.navigator = this.tool.localElementNavigator;
                         this.mode = NavigationMode.DEFAULT;
                     } else {
                         this.tool.keyboardManager.unlock(this.accessToken);
