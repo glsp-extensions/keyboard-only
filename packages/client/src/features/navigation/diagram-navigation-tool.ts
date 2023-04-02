@@ -450,11 +450,16 @@ export class ElementNavigatorKeyListener extends KeyListener implements CheatShe
                         position: 2
                     }
                 ]),
-                SetCheatSheetKeyShortcutAction.create(Symbol('activate-alternate-navigation'), [
-                    { shortcuts: ['N'], description: 'Activate alternate navigation mode', group: 'Alternate Navigation', position: 0 }
+                SetCheatSheetKeyShortcutAction.create(Symbol('activate-position-navigation'), [
+                    {
+                        shortcuts: ['N'],
+                        description: 'Activate position based navigation mode',
+                        group: 'Position based Navigation',
+                        position: 0
+                    }
                 ]),
-                SetCheatSheetKeyShortcutAction.create(Symbol('alternate-navigation'), [
-                    { shortcuts: ['⬅ | ➡'], description: 'Navigate through element', group: 'Alternate Navigation', position: 1 }
+                SetCheatSheetKeyShortcutAction.create(Symbol('position-navigation'), [
+                    { shortcuts: ['⬅ | ➡'], description: 'Navigate through element', group: 'Position based Navigation', position: 1 }
                 ])
             ]);
         });
