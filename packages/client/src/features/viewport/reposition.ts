@@ -46,11 +46,16 @@ export class RepositionCommand extends BoundsAwareViewportCommand {
         super(true);
     }
 
+
     protected override boundsInViewport(element: SModelElement, bounds: Bounds, viewport: SModelRoot & Viewport): Bounds {
         if (element instanceof SChildElement && element.parent !== viewport) {
             return this.boundsInViewport(element.parent, element.parent.localToParent(bounds) as Bounds, viewport);
         } else if (element instanceof SEdge) {
-            return getRouteBounds(calcElementAndRoute(element).newRoutingPoints ?? []);
+            const edgeBounds = getRouteBounds(calcElementAndRoute(element).newRoutingPoints ?? []);
+
+            if (element instanceof SChildElement && element.parent !== viewport) {
+                return this.boundsInViewport(element.parent, element.parent.localToParent(edgeBounds), viewport);
+            }
         } else {
             return bounds;
         }

@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { Action, Point, SelectAction } from '@eclipse-glsp/protocol';
+import { Action, Bounds, Point, SelectAction } from '@eclipse-glsp/protocol';
 import { inject, injectable, optional } from 'inversify';
 import {
     KeyListener,
@@ -29,7 +29,9 @@ import {
     isSelectable,
     EdgeRouterRegistry,
     SEdge,
-    SConnectableElement
+    SConnectableElement,
+    SChildElement,
+    SNode
 } from 'sprotty';
 import { toArray } from 'sprotty/lib/utils/iterable';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
@@ -297,7 +299,90 @@ export class LocalElementNavigator implements ElementNavigator {
         return elements.filter(predicate)[0];
     }
 }
+@injectable()
+export class PositionNavigator implements ElementNavigator {
+    @inject(TYPES.IActionDispatcher) protected readonly actionDispatcher: GLSPActionDispatcher;
 
+    previous(
+        root: Readonly<SModelRoot>,
+        current: SModelElement & BoundsAware,
+        previousCurrent?: SModelElement & BoundsAware,
+        predicate?: (element: SModelElement) => boolean
+    ): SModelElement | undefined {
+        return this.getNearestElement(root, current, e => this.bounds(root, e).x < this.bounds(root, current).x);
+    }
+
+    next(
+        root: Readonly<SModelRoot>,
+        current: SModelElement & BoundsAware,
+        previousCurrent?: SModelElement & BoundsAware,
+        predicate?: (element: SModelElement) => boolean
+    ): SModelElement | undefined {
+        return this.getNearestElement(root, current, e => this.bounds(root, e).x > this.bounds(root, current).x);
+    }
+
+    up(
+        root: Readonly<SModelRoot>,
+        current: SModelElement & BoundsAware,
+        previousCurrent?: SModelElement & BoundsAware,
+        predicate?: (element: SModelElement) => boolean
+    ): SModelElement | undefined {
+        return this.getNearestElement(root, current, e => this.bounds(root, e).y < this.bounds(root, current).y);
+    }
+
+    down(
+        root: Readonly<SModelRoot>,
+        current: SModelElement & BoundsAware,
+        previousCurrent?: SModelElement & BoundsAware,
+        predicate?: (element: SModelElement) => boolean
+    ): SModelElement | undefined {
+        return this.getNearestElement(root, current, e => this.bounds(root, e).y > this.bounds(root, current).y);
+    }
+
+    protected getNearestElement(
+        root: Readonly<SModelRoot>,
+        current: SModelElement & BoundsAware,
+        filter: (e: SModelElement & BoundsAware) => boolean
+    ): SModelElement | undefined {
+        const elements = this.boundElements(root).filter(filter);
+        return this.sortByDistance(root, current, elements)[0];
+    }
+
+    protected sortByDistance(
+        root: SModelRoot,
+        current: SModelElement & BoundsAware,
+        elements: (SModelElement & BoundsAware)[]
+    ): (SModelElement & BoundsAware)[] {
+        // https://www.tutorialspoint.com/sort-array-of-points-by-ascending-distance-from-a-given-point-javascript
+        const distance = (coor1: Point, coor2: Point): number => {
+            const x = coor2.x - coor1.x;
+            const y = coor2.y - coor1.y;
+            return Math.sqrt(x * x + y * y);
+        };
+
+        return elements.sort(
+            (a, b) =>
+                distance(this.bounds(root, a), this.bounds(root, current)) - distance(this.bounds(root, b), this.bounds(root, current))
+        );
+    }
+
+    protected boundElements(root: Readonly<SModelRoot>): (SModelElement & BoundsAware)[] {
+        return toArray(root.index.all().filter(e => e instanceof SNode && isSelectable(e) && isBoundsAware(e))) as (SModelElement &
+            BoundsAware)[];
+    }
+
+    protected bounds(root: Readonly<SModelRoot>, element: SModelElement & BoundsAware): Bounds {
+        return this.boundsInViewport(element, element.bounds, root);
+    }
+
+    protected boundsInViewport(element: SModelElement, bounds: Bounds, viewport: SModelRoot): Bounds {
+        if (element instanceof SChildElement && element.parent !== viewport) {
+            return this.boundsInViewport(element.parent, element.parent.localToParent(bounds) as Bounds, viewport);
+        } else {
+            return bounds;
+        }
+    }
+}
 @injectable()
 export class ElementNavigatorTool implements GLSPTool {
     static ID = 'glsp.diagram-navigation';
@@ -305,7 +390,6 @@ export class ElementNavigatorTool implements GLSPTool {
     isEditTool = true;
 
     protected elementNavigatorKeyListener: ElementNavigatorKeyListener = new ElementNavigatorKeyListener(this);
-
     @inject(KeyTool) protected readonly keytool: KeyTool;
     @inject(TYPES.IElementNavigator) readonly elementNavigator: ElementNavigator;
     @inject(TYPES.ILocalElementNavigator) readonly localElementNavigator: ElementNavigator;
@@ -325,7 +409,7 @@ export class ElementNavigatorTool implements GLSPTool {
 }
 
 enum NavigationMode {
-    LOCAL = 'local',
+    POSITION = 'position',
     DEFAULT = 'default',
     NONE = 'none'
 }
@@ -344,7 +428,7 @@ export class ElementNavigatorKeyListener extends KeyListener {
             if (matchesKeystroke(event, 'Escape')) {
                 this.clean();
 
-                if (this.mode === NavigationMode.LOCAL) {
+                if (this.mode === NavigationMode.POSITION) {
                     this.tool.actionDispatcher.dispatch(
                         ShowToastMessageAction.create({
                             id: Symbol.for(ElementNavigatorKeyListener.name),
@@ -365,7 +449,7 @@ export class ElementNavigatorKeyListener extends KeyListener {
                 this.mode = NavigationMode.NONE;
             } else if (matchesKeystroke(event, 'KeyN', 'alt')) {
                 this.clean();
-                if (this.mode !== NavigationMode.LOCAL) {
+                if (this.mode !== NavigationMode.POSITION) {
                     this.tool.actionDispatcher.dispatch(
                         ShowToastMessageAction.create({
                             id: Symbol.for(ElementNavigatorKeyListener.name),
@@ -373,7 +457,7 @@ export class ElementNavigatorKeyListener extends KeyListener {
                         })
                     );
                     this.navigator = this.tool.elementNavigator;
-                    this.mode = NavigationMode.LOCAL;
+                    this.mode = NavigationMode.POSITION;
                 } else {
                     this.mode = NavigationMode.NONE;
                     this.tool.actionDispatcher.dispatch(
