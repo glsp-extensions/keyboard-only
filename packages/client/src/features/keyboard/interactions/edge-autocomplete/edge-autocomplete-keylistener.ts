@@ -17,13 +17,17 @@ import { Action } from '@eclipse-glsp/protocol';
 import { KeyListener, SetUIExtensionVisibilityAction, SModelElement } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 
-import { EdgeAutocompletePalette } from './edge-autocomplete-palette';
+import { EdgeAutocompletePaletteMetadata } from './edge-autocomplete-palette';
 
 export class EdgeAutocompletePaletteKeyListener extends KeyListener {
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
         if (matchesKeystroke(event, 'Escape')) {
             return [
-                SetUIExtensionVisibilityAction.create({ extensionId: EdgeAutocompletePalette.ID, visible: false, contextElementsId: [] })
+                SetUIExtensionVisibilityAction.create({
+                    extensionId: EdgeAutocompletePaletteMetadata.ID,
+                    visible: false,
+                    contextElementsId: []
+                })
             ];
         }
         return [];

@@ -35,7 +35,7 @@ import {
     EnableToolPaletteAction
 } from '../../../features/tool-palette/tool-palette';
 import { FocusDomAction } from '../actions';
-import { EdgeAutocompletePalette } from '../interactions/edge-autocomplete/edge-autocomplete-palette';
+import { EdgeAutocompletePaletteMetadata } from '../interactions/edge-autocomplete/edge-autocomplete-palette';
 import { SetCheatSheetKeyShortcutAction } from '../../../features/cheat-sheet/cheat-sheet';
 import { KeyboardNodeGridMetadata } from '../interactions/grid/constants';
 
@@ -393,7 +393,7 @@ export class KeyboardToolPalette extends ToolPalette {
                 this.actionDispatcher.dispatchAll([
                     ...items[index].actions,
                     SetUIExtensionVisibilityAction.create({
-                        extensionId: EdgeAutocompletePalette.ID,
+                        extensionId: EdgeAutocompletePaletteMetadata.ID,
                         visible: true,
                         contextElementsId: []
                     })
