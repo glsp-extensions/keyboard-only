@@ -26,8 +26,7 @@ import {
     SModelRoot,
     SChildElement,
     BoundsAware,
-    TYPES,
-    SetUIExtensionVisibilityAction
+    TYPES
 } from 'sprotty';
 
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
@@ -40,7 +39,6 @@ import {
     KeyboardGridCellSelectedAction,
     KeyboardGridKeyboardEventAction
 } from '../keyboard/interactions/grid/actions';
-import { KeyboardGridMetadata } from '../keyboard/interactions/grid/constants';
 import { KeyboardManagerService } from '../keyboard/manager/keyboard-manager-service';
 import { getAbsolutePositionByPoint } from '../../utils/viewpoint-util';
 import { HideToastAction, ShowToastMessageAction } from '../toast/toast';
