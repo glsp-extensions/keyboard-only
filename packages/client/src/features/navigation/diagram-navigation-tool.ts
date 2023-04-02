@@ -348,29 +348,29 @@ export class ElementNavigatorKeyListener extends KeyListener implements CheatShe
         this.tool.actionDispatcher.onceModelInitialized().then(() => {
             this.tool.actionDispatcher.dispatchAll([
                 SetCheatSheetKeyShortcutAction.create(Symbol('activate-default-navigation'), [
-                    { shortcuts: ['N'], description: 'Activate default navigation mode', group: 'Default Navigation', position: 0 }
+                    { shortcuts: ['ALT', 'N'], description: 'Activate default navigation mode', group: 'Default Navigation', position: 0 }
                 ]),
-                SetCheatSheetKeyShortcutAction.create(Symbol('default-navigation'), [
-                    { shortcuts: ['⬅ | ➡'], description: 'Navigate through element', group: 'Default Navigation', position: 1 }
-                ]),
-                SetCheatSheetKeyShortcutAction.create(Symbol('activate-detailed-navigation'), [
-                    { shortcuts: ['ALT', 'N'], description: 'Activate detailed navigation mode', group: 'Detailed Navigation', position: 0 }
-                ]),
-                SetCheatSheetKeyShortcutAction.create(Symbol('detailed-navigation-elements'), [
+                SetCheatSheetKeyShortcutAction.create(Symbol('default-navigation-elements'), [
                     {
                         shortcuts: ['⬅ ➡'],
                         description: 'Navigate through elements',
-                        group: 'Detailed Navigation',
+                        group: 'Default Navigation',
                         position: 1
                     }
                 ]),
-                SetCheatSheetKeyShortcutAction.create(Symbol('detailed-navigation-edges'), [
+                SetCheatSheetKeyShortcutAction.create(Symbol('default-navigation-edges'), [
                     {
                         shortcuts: ['⬆ ⬇'],
                         description: 'Navigate through edges',
-                        group: 'Detailed Navigation',
+                        group: 'Default Navigation',
                         position: 2
                     }
+                ]),
+                SetCheatSheetKeyShortcutAction.create(Symbol('activate-alternate-navigation'), [
+                    { shortcuts: ['N'], description: 'Activate alternate navigation mode', group: 'Alternate Navigation', position: 0 }
+                ]),
+                SetCheatSheetKeyShortcutAction.create(Symbol('alternate-navigation'), [
+                    { shortcuts: ['⬅ | ➡'], description: 'Navigate through element', group: 'Alternate Navigation', position: 1 }
                 ])
             ]);
         });
