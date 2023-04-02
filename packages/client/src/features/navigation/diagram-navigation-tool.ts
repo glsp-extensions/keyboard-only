@@ -432,12 +432,12 @@ export class ElementNavigatorKeyListener extends KeyListener implements CheatShe
         this.tool.actionDispatcher.onceModelInitialized().then(() => {
             this.tool.actionDispatcher.dispatchAll([
                 SetCheatSheetKeyShortcutAction.create(Symbol('activate-default-navigation'), [
-                    { shortcuts: ['ALT', 'N'], description: 'Activate default navigation mode', group: 'Default Navigation', position: 0 }
+                    { shortcuts: ['N'], description: 'Activate default navigation', group: 'Default Navigation', position: 0 }
                 ]),
                 SetCheatSheetKeyShortcutAction.create(Symbol('default-navigation-elements'), [
                     {
                         shortcuts: ['⬅ ➡'],
-                        description: 'Navigate through elements',
+                        description: 'Navigate by relation between elements.',
                         group: 'Default Navigation',
                         position: 1
                     }
@@ -445,21 +445,34 @@ export class ElementNavigatorKeyListener extends KeyListener implements CheatShe
                 SetCheatSheetKeyShortcutAction.create(Symbol('default-navigation-edges'), [
                     {
                         shortcuts: ['⬆ ⬇'],
-                        description: 'Navigate through edges',
+                        description: 'Navigate by relation between edges.',
                         group: 'Default Navigation',
                         position: 2
                     }
                 ]),
                 SetCheatSheetKeyShortcutAction.create(Symbol('activate-position-navigation'), [
                     {
-                        shortcuts: ['N'],
-                        description: 'Activate position based navigation mode',
+                        shortcuts: ['ALT', 'N'],
+                        description: 'Activate position based navigation',
                         group: 'Position based Navigation',
                         position: 0
                     }
                 ]),
-                SetCheatSheetKeyShortcutAction.create(Symbol('position-navigation'), [
-                    { shortcuts: ['⬅ | ➡'], description: 'Navigate through element', group: 'Position based Navigation', position: 1 }
+                SetCheatSheetKeyShortcutAction.create(Symbol('position-navigation-left-right'), [
+                    {
+                        shortcuts: ['⬅ | ➡'],
+                        description: 'Navigate left or right between neighbors.',
+                        group: 'Position based Navigation',
+                        position: 1
+                    }
+                ]),
+                SetCheatSheetKeyShortcutAction.create(Symbol('position-navigation-up-down'), [
+                    {
+                        shortcuts: ['⬆ | ⬇'],
+                        description: 'Navigate up or down between neighbors.',
+                        group: 'Position based Navigation',
+                        position: 1
+                    }
                 ])
             ]);
         });
