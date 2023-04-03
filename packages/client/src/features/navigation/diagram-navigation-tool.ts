@@ -425,7 +425,7 @@ export class ElementNavigatorKeyListener extends KeyListener {
 
     override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
         if (this.getSelectedElements(element.root).length > 0) {
-            if (matchesKeystroke(event, 'Escape')) {
+            if (this.mode !== NavigationMode.NONE && matchesKeystroke(event, 'Escape')) {
                 this.clean();
 
                 if (this.mode === NavigationMode.POSITION) {
