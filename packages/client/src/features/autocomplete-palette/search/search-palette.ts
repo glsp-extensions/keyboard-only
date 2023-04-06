@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { LabeledAction, CenterAction } from '@eclipse-glsp/protocol';
+import { LabeledAction } from '@eclipse-glsp/protocol';
 import { injectable } from 'inversify';
 import { SEdge, SModelElement, SModelRoot, SNode } from 'sprotty';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
@@ -27,6 +27,7 @@ import {
 } from '../autocomplete-suggestion-providers';
 import { BaseAutocompletePalette } from '../base-autocomplete-palette';
 import { isEqual } from 'lodash';
+import { RepositionAction } from '../../viewport/reposition';
 
 const CSS_SEARCH_HIDDEN = 'search-hidden';
 const CSS_SEARCH_HIGHLIGHTED = 'search-highlighted';
@@ -77,8 +78,8 @@ export class SearchAutocompletePalette extends BaseAutocompletePalette {
         if (labeledAction !== undefined) {
             const suggestions = this.getSuggestionsFromLabeledActions([labeledAction]);
 
-            const actions: CenterAction[] = [];
-            suggestions.map(currElem => actions.push(CenterAction.create([currElem.element.id], { animate: true, retainZoom: true })));
+            const actions: RepositionAction[] = [];
+            suggestions.map(currElem => actions.push(RepositionAction.create([currElem.element.id])));
 
             this.actionDispatcher.dispatchAll(actions);
             await this.applyCSS(
