@@ -1,10 +1,9 @@
 {
   "navigation": {
-    "default_navigation_mode_activated": "Navigation On: Select and use left(←) and right (→) arrows to iterate, up (↑) and down (↓) arrows to navigate paths. Press 'N' to exit.",
-    "default_navigation_mode_deactivated": "Navigation Off: Press 'N' for default navigation, 'ALT+N' for position navigation.",
-    "default_navigation_paths": " Use up (↑) and down (↓) arrows to switch between multiple paths.",
-    "local_navigation_mode_activated": "Position based Nav On: Select element and use left(←) and right(→) to navigate. Press 'ALT+N' to exit.",
-    "local_navigation_mode_deactivated": "Position based Nav Off: Press 'N' for default navigation, 'ALT+N' for position navigation."
+    "default_navigation_mode_activated": "Navigation On: Use arrow keys to select preceding (←) or succeding (→) elements. Use the up (↑) and down (↓) arrows to navigate paths. Press 'N' to exit.",
+    "default_navigation_mode_deactivated": "Navigation Off: Press 'N' for default navigation, 'ALT+N' for position based navigation.",
+    "local_navigation_mode_activated": "Position based Nav On: Navigate nearest elements using arrow keys: (↑) for above, (↓) for below, (←) for previous, (→) for next. Press 'N' to exit. Press 'ALT+N' to exit.",
+    "local_navigation_mode_deactivated": "Position based Nav Off: Press 'N' for default navigation, 'ALT+N' for position based navigation."
   },
 
   "resize": {
