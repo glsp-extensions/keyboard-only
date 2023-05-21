@@ -1,52 +1,113 @@
-# Eclipse GLSP - Client [![Build Status](https://ci.eclipse.org/glsp/job/eclipse-glsp/job/glsp-client/job/master/badge/icon)](https://ci.eclipse.org/glsp/job/eclipse-glsp/job/glsp-client/job/master/)
+# ER 23
 
-A web-based diagram client framework for the [Graphical Language Server Platform (GLSP)](https://github.com/eclipse-glsp/glsp) based on [Eclipse Sprotty](https://github.com/eclipse/sprotty).
+This repo accommodates our paper at ER 2023 on disability-aware conceptual modeling and proposes a tool prototype that allows basic user model interactions to be performed with the keyboard.
 
-## Structure
+https://user-images.githubusercontent.com/61785275/204158028-f8f052a8-6ff5-409b-899c-64576c178c5a.mp4
 
--   `@eclipse-glsp/protocol`: Generic client-server communication protocol
--   `@eclipse-glsp/client`: sprotty-based GLSP client
+For starting and running the application please read the [GLSP-README](./GLSP-README.md).
 
-## Building
+## Commands
 
-This project is built with `yarn` and is available from npm via [@eclipse-glsp/protocol](https://www.npmjs.com/package/@eclipse-glsp/protocol) and [@eclipse-glsp/client](https://www.npmjs.com/package/@eclipse-glsp/client).
+### CRUD Modeling Operations
 
-## Workflow Diagram Example
+#### Tool Palette
 
-The workflow diagram is a consistent example provided by all GLSP components. The example implements a simple flow chart diagram editor with different types of nodes and edges (see screenshot below).
-The example can be used to try out different GLSP features, as well as several available integrations with IDE platforms (Theia, VSCode, Eclipse, Standalone).
-As the example is fully open source, you can also use it as a blueprint for a custom implementation of a GLSP diagram editor.
-See [our project website](https://www.eclipse.org/glsp/documentation/#workflowoverview) for an overview of the workflow example and all components implementing it.
+The shortcut `ALT + P` sets the focus on the tool palette. Afterward, the characters `a - z` select an element or `1 - 5` for the header menu options.
 
-![Workflow Diagram](/documentation/standalone-diagram.gif)
+#### Grid + Pointer
 
-### How to start the Workflow Diagram example?
+After selecting a node in the tool palette, the grid gets visible. The grid is for positioning the _pointer_ in the screen.
 
-Clone this repository and build the glsp-client packages:
+The following shortcuts are usable:
 
-```bash
-yarn install
-```
+-   `1 - 9`: Position the pointer in the grid
+-   `ARROW KEYS`: Move the pointer to a direction
+-   `ENTER`: Create the node
+-   `CTRL + ENTER`: Create multiple nodes
 
-Next, download a pre-built version of the Workflow Example Diagram Server and start it (replace X.X.X with the current version, the download script will print out the correct command on the console):
+#### Create Nodes
 
-```bash
-yarn download:exampleServer
-java -jar org.eclipse.glsp.example.workflow-X.X.X-SNAPSHOT-glsp.jar org.eclipse.glsp.example.workflow.launch.ExampleServerLauncher --port=8081 --websocket
-```
+1. `ALT + P`: Focus the tool palette
+2. `a - z`: Select a node
+3. `1 - 9`: Position the pointer in a cell
+4. `ARROW KEYS`: Move the pointer to the correct position
+5. Create the node by using either
+    - `ENTER`: Create the node und finishes the operation
+    - `CTRL + ENTER`: Create multiple nodes
 
-Once the server is running, open the `glsp-client/examples/workflow-standalone/app/diagram.html` file in your favorite browser.
+#### Create Edges
 
-### How to start the Workflow Diagram example server from the sources
+1. `ALT + P`: Focus the tool palette
+2. `a - z`: Select an edge
+3. Type in either **type** or **name** of node for **source**
+4. `ENTER`: Make selection
+5. Type in either **type** or **name** of node for **target**
+6. `ENTER`: Make selection
 
-If you want to explore or change the Workflow Diagram Server too, you can clone, build and start the [`workflow example glsp-server`](https://github.com/eclipse-glsp/glsp-server#workflow-diagram-example) from your IDE instead of using the pre-built version of the Workflow Diagram Server.
-See [`workflow example glsp-server`](https://github.com/eclipse-glsp/glsp-server#workflow-diagram-example) for instructions on building and running the Workflow Diagram Server example.
+#### Search
 
-### Where to find the sources?
+The search palette can be opened by using the shortcut `CTRL + F`. It allows to search labelled elements or edges that have a labelled node as source or target. The result set will be highlighted accordingly.
 
-In addition to this repository, the source code of the Workflow Diagram server example can be found here: <https://github.com/eclipse-glsp/glsp-server/tree/master/examples/org.eclipse.glsp.example.workflow>
+#### Read / Select via Search
 
-## More information
+1. `CTRL + F`: Open the search palette
+2. Type in either **type** or **name** of element
+3. `ENTER`: Select the element
 
-For more information, please visit the [Eclipse GLSP Umbrella repository](https://github.com/eclipse-glsp/glsp) and the [Eclipse GLSP Website](https://www.eclipse.org/glsp/).
-If you have questions, please raise them in the [discussions](https://github.com/eclipse-glsp/glsp/discussions) and have a look at our [communication and support options](https://www.eclipse.org/glsp/contact/).
+#### Update / Edit: Rename element
+
+1. `CTRL + F`: Open the search palette
+2. Type in either **type** or **name** of element
+3. `ENTER`: Select the element
+4. `F2`: Rename the labelled element
+
+#### Delete
+
+1. `CTRL + F`: Open the search palette
+2. Type in either **type** or **name** of element
+3. `ENTER`: Select the element
+4. `DEL`: Delete the element
+
+### Model Exploration
+
+#### Move
+
+1. Select one or multiple elements or the viewport.
+2. Use arrow keys to move element(s) or viewport to the desired location.
+
+#### Zoom
+
+1. Select one or multiple elements or the viewport.
+2. Use `+` or `-` to zoom in or out gradually.
+3. `CTRL+0`: Set the zoom level to default.
+
+#### Zoom via Grid
+
+1. `CTRL+'+'`: Display the grid.
+2. `1 - 9`: Position the pointer in a cell to zoom.
+3. Repeat 2.) to reach the desired zoom level.
+
+### Resize element
+
+1. Select one or multiple elements.
+2. `ALT+R`: Activate the resize mode.
+3. `+` or `-` to adapt the size of the element(s).
+4. `CTRL+0`: Set the size of the element(s) to default.
+
+### Model Navigation
+
+#### Default Navigation (following directions of relations)
+
+1. Select element as starting point.
+2. `N`: Activate default navigation.
+3. Use arrow keys to iterate through model according to the directions of the given relations.
+
+#### Position-based Navigation (following x and y coordinates)
+
+1. Select element as starting point.
+2. `ALT+N`: Activate position based navigation.
+3. Use arrow keys to iterate through model according to the positions of the elements, i.e. depending on the order of the elements' x and y coordinates.
+
+### Help
+
+1. `ALT+H`: Display help about existing shortcuts and their descriptions.
