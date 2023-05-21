@@ -2,7 +2,8 @@
 
 This repo accommodates our paper at ER 2023 on disability-aware conceptual modeling and proposes a tool prototype that allows basic user model interactions to be performed with the keyboard.
 
-https://user-images.githubusercontent.com/61785275/204158028-f8f052a8-6ff5-409b-899c-64576c178c5a.mp4
+https://github.com/glsp-extensions/keyboard-only/assets/61785275/8daea117-70e9-4371-9307-c267fe8fb3c2
+
 
 For starting and running the application please read the [GLSP-README](./GLSP-README.md).
 
